@@ -1,12 +1,14 @@
 import SwiftUI
 
 // MARK: - Meme Browse View
-// Full browsable library of addiction memes with category/type filters.
+// Browsable library with GIFs + text memes, filterable by type and category.
 struct MemeBrowseView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedType: AddictionType? = nil
     @State private var selectedCategory: MemeCategory? = nil
+    @State private var gifs: [GiphyManager.GiphyGif] = []
+    @State private var isLoadingGifs = false
 
     private var filteredMemes: [MemeItem] {
         MemeLibrary.shared.filteredMemes(type: selectedType, category: selectedCategory)
@@ -20,6 +22,7 @@ struct MemeBrowseView: View {
                     HStack(spacing: 8) {
                         filterChip(label: "All", isSelected: selectedType == nil) {
                             selectedType = nil
+                            gifs = []
                         }
                         ForEach(AddictionType.allCases, id: \.self) { type in
                             filterChip(
@@ -28,6 +31,11 @@ struct MemeBrowseView: View {
                                 color: type.color
                             ) {
                                 selectedType = selectedType == type ? nil : type
+                                if let t = selectedType {
+                                    loadGifs(for: t)
+                                } else {
+                                    gifs = []
+                                }
                             }
                         }
                     }
@@ -54,15 +62,48 @@ struct MemeBrowseView: View {
                     .padding(.bottom, 8)
                 }
 
-                // Meme grid
+                // Content
                 ScrollView {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        ForEach(filteredMemes) { meme in
-                            memeCard(meme)
+                    VStack(spacing: 16) {
+                        // GIF section (if a type is selected)
+                        if !gifs.isEmpty {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("GIFs")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal, 16)
+
+                                ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 12) {
+                                        ForEach(gifs) { gif in
+                                            GIFImageView(url: gif.gifURL)
+                                                .frame(width: 180, height: 180)
+                                                .cornerRadius(12)
+                                                .clipped()
+                                        }
+                                    }
+                                    .padding(.horizontal, 16)
+                                }
+                                .frame(height: 180)
+                            }
+                        } else if isLoadingGifs && selectedType != nil {
+                            HStack {
+                                Spacer()
+                                ProgressView().tint(.gray)
+                                Spacer()
+                            }
+                            .frame(height: 100)
                         }
+
+                        // Text memes grid
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                            ForEach(filteredMemes) { meme in
+                                memeCard(meme)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 40)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 40)
                 }
             }
             .background(Color(hex: "0A0A0A"))
@@ -113,5 +154,13 @@ struct MemeBrowseView: View {
         .frame(maxWidth: .infinity, minHeight: 140)
         .background(Color(hex: "141414"))
         .cornerRadius(16)
+    }
+
+    private func loadGifs(for type: AddictionType) {
+        isLoadingGifs = true
+        Task {
+            gifs = await GiphyManager.shared.randomGifs(for: type, count: 20)
+            isLoadingGifs = false
+        }
     }
 }
