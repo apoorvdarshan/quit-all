@@ -19,6 +19,8 @@ struct HomeView: View {
     @State private var showMilestones = false
     @State private var showCost = false
     @State private var showMemes = false
+    @State private var showRelapse = false
+    @State private var relapseAddiction: CDAddiction?
     @State private var streakTimer = Timer.publish(every: 60, on: .main, in: .common).autoconnect()
 
     // Force refresh to update streak display
@@ -108,6 +110,20 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showMemes) {
                 MemeBrowseView()
+            }
+            .sheet(isPresented: $showRelapse) {
+                if let addiction = relapseAddiction {
+                    RelapseView(addiction: addiction)
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .showRelapseView)) { notification in
+                if let addiction = notification.object as? CDAddiction {
+                    relapseAddiction = addiction
+                    // Wait for SOS fullScreenCover to fully dismiss
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        showRelapse = true
+                    }
+                }
             }
         }
     }
