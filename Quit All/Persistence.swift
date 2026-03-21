@@ -1,10 +1,3 @@
-//
-//  Persistence.swift
-//  Quit All
-//
-//  Created by Apoorv Darshan on 22/03/26.
-//
-
 import CoreData
 
 struct PersistenceController {
@@ -14,15 +7,43 @@ struct PersistenceController {
     static let preview: PersistenceController = {
         let result = PersistenceController(inMemory: true)
         let viewContext = result.container.viewContext
-        for _ in 0..<10 {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
+
+        // Create sample addiction for previews
+        let addiction = CDAddiction(context: viewContext)
+        addiction.id = UUID()
+        addiction.name = "Smoking"
+        addiction.type = AddictionType.smoking.rawValue
+        addiction.startDate = Calendar.current.date(byAdding: .day, value: -47, to: Date())
+        addiction.dailyCost = 15.0
+        addiction.currency = Locale.current.currency?.identifier ?? "USD"
+        addiction.isActive = true
+        addiction.longestStreak = 47
+        addiction.totalRelapses = 2
+        addiction.motivation = "For my health and family"
+
+        // Create sample craving events
+        for i in 0..<5 {
+            let craving = CDCravingEvent(context: viewContext)
+            craving.id = UUID()
+            craving.timestamp = Calendar.current.date(byAdding: .day, value: -i, to: Date())
+            craving.trigger = CravingTrigger.allCases.randomElement()?.rawValue ?? "Stress"
+            craving.survived = i > 0
+            craving.duration = Int32.random(in: 60...600)
+            craving.moodBefore = Mood.allCases.randomElement()?.rawValue ?? "Okay"
+            craving.moodAfter = Mood.allCases.randomElement()?.rawValue ?? "Good"
+            craving.addiction = addiction
         }
+
+        // Create sample milestone
+        let milestone = CDMilestone(context: viewContext)
+        milestone.id = UUID()
+        milestone.type = MilestoneType.thirtyDays.rawValue
+        milestone.unlockedDate = Calendar.current.date(byAdding: .day, value: -17, to: Date())
+        milestone.addiction = addiction
+
         do {
             try viewContext.save()
         } catch {
-            // Replace this implementation with code to handle the error appropriately.
-            // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
             let nsError = error as NSError
             fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }
@@ -36,22 +57,12 @@ struct PersistenceController {
         if inMemory {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         }
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+        container.loadPersistentStores { _, error in
             if let error = error as NSError? {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-
-                /*
-                 Typical reasons for an error here include:
-                 * The parent directory does not exist, cannot be created, or disallows writing.
-                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
-                 * The device is out of space.
-                 * The store could not be migrated to the current model version.
-                 Check the error message to determine what the actual problem was.
-                 */
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
-        })
+        }
         container.viewContext.automaticallyMergesChangesFromParent = true
+        container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
 }

@@ -1,9 +1,43 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
-    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="23231" systemVersion="24D81" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
+    <entity name="CDAddiction" representedClassName="CDAddiction" syncable="YES" codeGenerationType="class">
+        <attribute name="currency" optional="YES" attributeType="String"/>
+        <attribute name="dailyCost" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isActive" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="longestStreak" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="motivation" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="totalRelapses" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <relationship name="cravings" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDCravingEvent" inverseName="addiction" inverseEntity="CDCravingEvent"/>
+        <relationship name="milestones" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDMilestone" inverseName="addiction" inverseEntity="CDMilestone"/>
+        <relationship name="relapses" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CDRelapseEvent" inverseName="addiction" inverseEntity="CDRelapseEvent"/>
     </entity>
-    <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
-    </elements>
+    <entity name="CDCravingEvent" representedClassName="CDCravingEvent" syncable="YES" codeGenerationType="class">
+        <attribute name="duration" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="moodAfter" optional="YES" attributeType="String"/>
+        <attribute name="moodBefore" optional="YES" attributeType="String"/>
+        <attribute name="survived" optional="YES" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="trigger" optional="YES" attributeType="String"/>
+        <relationship name="addiction" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDAddiction" inverseName="cravings" inverseEntity="CDAddiction"/>
+    </entity>
+    <entity name="CDMilestone" representedClassName="CDMilestone" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="type" optional="YES" attributeType="String"/>
+        <attribute name="unlockedDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="addiction" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDAddiction" inverseName="milestones" inverseEntity="CDAddiction"/>
+    </entity>
+    <entity name="CDRelapseEvent" representedClassName="CDRelapseEvent" syncable="YES" codeGenerationType="class">
+        <attribute name="feeling" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="nextTimePlan" optional="YES" attributeType="String"/>
+        <attribute name="streakBroken" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="whatHappened" optional="YES" attributeType="String"/>
+        <relationship name="addiction" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CDAddiction" inverseName="relapses" inverseEntity="CDAddiction"/>
+    </entity>
 </model>

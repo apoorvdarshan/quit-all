@@ -1,0 +1,307 @@
+import SwiftUI
+import CoreData
+
+// MARK: - Relapse View
+// No shame. No red. Just understanding and restart.
+struct RelapseView: View {
+    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
+
+    let addiction: CDAddiction
+
+    @State private var selectedActivity: RelapseActivity?
+    @State private var selectedMood: Mood?
+    @State private var nextTimePlan = ""
+    @State private var currentStep = 0
+    @State private var isComplete = false
+
+    private var addictionType: AddictionType {
+        AddictionTracker.shared.addictionType(for: addiction)
+    }
+
+    private var streakBroken: Int {
+        StreakEngine.daysSince(addiction.startDate)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(hex: "0A0A0A").ignoresSafeArea()
+
+                if isComplete {
+                    restartView
+                } else {
+                    VStack(spacing: 24) {
+                        switch currentStep {
+                        case 0:
+                            acknowledgmentStep
+                        case 1:
+                            activityStep
+                        case 2:
+                            moodStep
+                        case 3:
+                            planStep
+                        default:
+                            EmptyView()
+                        }
+                    }
+                }
+            }
+            .preferredColorScheme(.dark)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark")
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 0: Acknowledgment
+    private var acknowledgmentStep: some View {
+        VStack(spacing: 20) {
+            Spacer()
+
+            Text("Okay. That happened.")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+
+            if streakBroken > 0 {
+                Text("Your streak of \(streakBroken) days is saved in history.")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+            }
+
+            Text("Let's understand what happened.")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+
+            Spacer()
+
+            Button {
+                HapticManager.shared.impact(.medium)
+                withAnimation(.spring(duration: 0.3)) {
+                    currentStep = 1
+                }
+            } label: {
+                Text("Continue")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(Color(hex: "141414"))
+                    .cornerRadius(16)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 32)
+        }
+    }
+
+    // MARK: - Step 1: What were you doing?
+    private var activityStep: some View {
+        VStack(spacing: 20) {
+            Spacer().frame(height: 40)
+
+            Text("What were you doing\nbefore it happened?")
+                .font(.title2.weight(.bold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                ForEach(RelapseActivity.allCases, id: \.self) { activity in
+                    Button {
+                        HapticManager.shared.selection()
+                        selectedActivity = activity
+                    } label: {
+                        VStack(spacing: 6) {
+                            Text(activity.emoji)
+                                .font(.title2)
+                            Text(activity.rawValue)
+                                .font(.system(size: 11))
+                                .lineLimit(2)
+                                .multilineTextAlignment(.center)
+                        }
+                        .foregroundColor(selectedActivity == activity ? .black : .white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 80)
+                        .background(selectedActivity == activity ? addictionType.color : Color(hex: "141414"))
+                        .cornerRadius(12)
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer()
+
+            if selectedActivity != nil {
+                Button {
+                    HapticManager.shared.impact(.medium)
+                    withAnimation(.spring(duration: 0.3)) { currentStep = 2 }
+                } label: {
+                    Text("Next")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(addictionType.color)
+                        .cornerRadius(16)
+                }
+                .padding(.horizontal, 20)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+
+            Spacer().frame(height: 32)
+        }
+    }
+
+    // MARK: - Step 2: How are you feeling?
+    private var moodStep: some View {
+        VStack(spacing: 20) {
+            Spacer().frame(height: 60)
+
+            Text("How are you feeling\nright now?")
+                .font(.title2.weight(.bold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+
+            HStack(spacing: 12) {
+                ForEach(Mood.allCases, id: \.self) { mood in
+                    Button {
+                        HapticManager.shared.selection()
+                        selectedMood = mood
+                    } label: {
+                        VStack(spacing: 6) {
+                            Text(mood.emoji)
+                                .font(.system(size: 36))
+                            Text(mood.rawValue)
+                                .font(.caption)
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(selectedMood == mood ? addictionType.color.opacity(0.3) : Color(hex: "141414"))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(selectedMood == mood ? addictionType.color : Color.clear, lineWidth: 2)
+                        )
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer()
+
+            if selectedMood != nil {
+                Button {
+                    HapticManager.shared.impact(.medium)
+                    withAnimation(.spring(duration: 0.3)) { currentStep = 3 }
+                } label: {
+                    Text("Next")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(addictionType.color)
+                        .cornerRadius(16)
+                }
+                .padding(.horizontal, 20)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+
+            Spacer().frame(height: 32)
+        }
+    }
+
+    // MARK: - Step 3: What will you do differently?
+    private var planStep: some View {
+        VStack(spacing: 20) {
+            Spacer().frame(height: 60)
+
+            Text("What will you do\ndifferently next time?")
+                .font(.title2.weight(.bold))
+                .foregroundColor(.white)
+                .multilineTextAlignment(.center)
+
+            TextField("Type here...", text: $nextTimePlan, axis: .vertical)
+                .foregroundColor(.white)
+                .lineLimit(3...6)
+                .padding()
+                .background(Color(hex: "141414"))
+                .cornerRadius(12)
+                .padding(.horizontal, 20)
+
+            Spacer()
+
+            Button {
+                HapticManager.shared.impact(.heavy)
+                saveRelapse()
+            } label: {
+                Text("Save & Start Over")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(addictionType.color)
+                    .cornerRadius(16)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 32)
+        }
+    }
+
+    // MARK: - Restart View
+    private var restartView: some View {
+        VStack(spacing: 24) {
+            Spacer()
+
+            Text(addictionType.emoji)
+                .font(.system(size: 72))
+
+            Text("New streak begins now.")
+                .font(.title.weight(.bold))
+                .foregroundColor(.white)
+
+            Text("You're not starting from zero.\nYou're starting from experience.")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+
+            Spacer()
+
+            Button {
+                dismiss()
+            } label: {
+                Text("Let's Go")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(addictionType.color)
+                    .cornerRadius(16)
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 32)
+        }
+    }
+
+    // MARK: - Save
+    private func saveRelapse() {
+        AddictionTracker.shared.logRelapse(
+            for: addiction,
+            whatHappened: selectedActivity?.rawValue ?? "",
+            feeling: selectedMood?.rawValue ?? "",
+            nextTimePlan: nextTimePlan,
+            context: viewContext
+        )
+
+        withAnimation(.spring(duration: 0.5)) {
+            isComplete = true
+        }
+    }
+}
