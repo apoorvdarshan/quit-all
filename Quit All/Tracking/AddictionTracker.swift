@@ -115,7 +115,7 @@ final class AddictionTracker {
     // MARK: - Helpers
 
     func addictionType(for addiction: CDAddiction) -> AddictionType {
-        AddictionType(rawValue: addiction.type ?? "") ?? .custom
+        AddictionType(rawValue: addiction.type ?? "") ?? .smoking
     }
 
     func saveContext(_ context: NSManagedObjectContext) {

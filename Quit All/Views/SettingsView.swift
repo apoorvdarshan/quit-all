@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreData
 
 // MARK: - Settings View
 struct SettingsView: View {
