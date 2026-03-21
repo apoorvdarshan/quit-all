@@ -7,8 +7,29 @@ import SwiftUI
 final class GiphyManager {
     static let shared = GiphyManager()
 
-    // Giphy public beta key — free, no signup needed
-    private let apiKey = "dc6zaTOxFJmzC"
+    // Read from .env file (gitignored — never committed)
+    private let apiKey: String = {
+        // Try project root .env
+        let projectPaths = [
+            Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent(".env"),
+            URL(fileURLWithPath: #filePath)  // source file location
+                .deletingLastPathComponent() // Memes/
+                .deletingLastPathComponent() // Quit All/
+                .deletingLastPathComponent() // project root
+                .appendingPathComponent(".env")
+        ]
+        for path in projectPaths {
+            if let contents = try? String(contentsOf: path, encoding: .utf8) {
+                for line in contents.components(separatedBy: .newlines) {
+                    let trimmed = line.trimmingCharacters(in: .whitespaces)
+                    if trimmed.hasPrefix("GIPHY_API_KEY=") {
+                        return String(trimmed.dropFirst("GIPHY_API_KEY=".count))
+                    }
+                }
+            }
+        }
+        return ""
+    }()
     private let baseURL = "https://api.giphy.com/v1/gifs"
 
     var cachedGifs: [String: [GiphyGif]] = [:]
