@@ -148,67 +148,75 @@ struct OnboardingView: View {
         let type = addictions[currentDetailIndex]
 
         return AnyView(
-            VStack(spacing: 24) {
-                Spacer().frame(height: 40)
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(spacing: 24) {
+                        Spacer().frame(height: 40)
 
-                Text(type.emoji)
-                    .font(.system(size: 60))
+                        Text(type.emoji)
+                            .font(.system(size: 60))
 
-                Text("Quitting \(type.rawValue)")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-
-                VStack(alignment: .leading, spacing: 16) {
-                    // Cost input
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("How much do you spend per day?")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-
-                        HStack {
-                            Text(Locale.current.currencySymbol ?? "$")
-                                .foregroundColor(.gray)
-                            TextField("0", text: binding(for: type, in: $addictionCosts))
-                                .keyboardType(.decimalPad)
-                                .foregroundColor(.white)
-                                .font(.title2.weight(.semibold))
-                        }
-                        .padding()
-                        .background(Color(hex: "141414"))
-                        .cornerRadius(12)
-                    }
-
-                    // Motivation input
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Why are you quitting?")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-
-                        TextField("For my health, family...", text: binding(for: type, in: $addictionMotivations))
+                        Text("Quitting \(type.rawValue)")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(.white)
-                            .padding()
-                            .background(Color(hex: "141414"))
-                            .cornerRadius(12)
-                    }
 
-                    // Last use date
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("When did you last do it?")
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
+                        VStack(alignment: .leading, spacing: 16) {
+                            // Cost input
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("How much do you spend per day?")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
 
-                        DatePicker("", selection: dateBinding(for: type), in: ...Date(), displayedComponents: [.date, .hourAndMinute])
-                            .datePickerStyle(.compact)
-                            .labelsHidden()
-                            .tint(type.color)
-                            .padding()
-                            .background(Color(hex: "141414"))
-                            .cornerRadius(12)
+                                HStack {
+                                    Text(Locale.current.currencySymbol ?? "$")
+                                        .foregroundColor(.gray)
+                                    TextField("0", text: binding(for: type, in: $addictionCosts))
+                                        .keyboardType(.decimalPad)
+                                        .foregroundColor(.white)
+                                        .font(.title2.weight(.semibold))
+                                }
+                                .padding()
+                                .background(Color(hex: "141414"))
+                                .cornerRadius(12)
+                            }
+
+                            // Motivation input
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Why are you quitting?")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+
+                                TextField("For my health, family...", text: binding(for: type, in: $addictionMotivations))
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(Color(hex: "141414"))
+                                    .cornerRadius(12)
+                            }
+
+                            // Last use date
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("When did you last do it?")
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+
+                                DatePicker("", selection: dateBinding(for: type), in: ...Date(), displayedComponents: [.date, .hourAndMinute])
+                                    .datePickerStyle(.compact)
+                                    .labelsHidden()
+                                    .tint(type.color)
+                                    .padding()
+                                    .background(Color(hex: "141414"))
+                                    .cornerRadius(12)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+
+                        Spacer().frame(height: 20)
                     }
                 }
-                .padding(.horizontal, 20)
-
-                Spacer()
+                .scrollDismissesKeyboard(.interactively)
+                .onTapGesture {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
 
                 HStack(spacing: 12) {
                     if currentDetailIndex > 0 || currentStep > 0 {
