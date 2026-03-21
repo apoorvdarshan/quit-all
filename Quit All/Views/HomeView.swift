@@ -111,7 +111,7 @@ struct HomeView: View {
             .sheet(isPresented: $showMemes) {
                 MemeBrowseView()
             }
-            .sheet(isPresented: $showRelapse) {
+            .fullScreenCover(isPresented: $showRelapse) {
                 if let addiction = relapseAddiction {
                     RelapseView(addiction: addiction)
                 }
@@ -119,10 +119,19 @@ struct HomeView: View {
             .onReceive(NotificationCenter.default.publisher(for: .showRelapseView)) { notification in
                 if let addiction = notification.object as? CDAddiction {
                     relapseAddiction = addiction
-                    // Wait for SOS fullScreenCover to fully dismiss
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                }
+            }
+            .onChange(of: showSOS) { _, isShowing in
+                // When SOS dismisses and we have a pending relapse, show it
+                if !isShowing && relapseAddiction != nil {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         showRelapse = true
                     }
+                }
+            }
+            .onChange(of: showRelapse) { _, isShowing in
+                if !isShowing {
+                    relapseAddiction = nil
                 }
             }
         }

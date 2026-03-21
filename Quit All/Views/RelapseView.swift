@@ -24,41 +24,40 @@ struct RelapseView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color(hex: "0A0A0A").ignoresSafeArea()
+        ZStack {
+            Color(hex: "0A0A0A").ignoresSafeArea()
+
+            VStack {
+                // Close button
+                HStack {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.title2)
+                            .foregroundColor(.gray)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
 
                 if isComplete {
                     restartView
                 } else {
-                    VStack(spacing: 24) {
+                    Group {
                         switch currentStep {
-                        case 0:
-                            acknowledgmentStep
-                        case 1:
-                            activityStep
-                        case 2:
-                            moodStep
-                        case 3:
-                            planStep
-                        default:
-                            EmptyView()
+                        case 0: acknowledgmentStep
+                        case 1: activityStep
+                        case 2: moodStep
+                        case 3: planStep
+                        default: EmptyView()
                         }
                     }
                 }
             }
-            .preferredColorScheme(.dark)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image(systemName: "xmark")
-                            .foregroundColor(.gray)
-                    }
-                }
-            }
         }
+        .preferredColorScheme(.dark)
     }
 
     // MARK: - Step 0: Acknowledgment
@@ -75,6 +74,7 @@ struct RelapseView: View {
                     .font(.subheadline)
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
             }
 
             Text("Let's understand what happened.")
@@ -105,7 +105,7 @@ struct RelapseView: View {
     // MARK: - Step 1: What were you doing?
     private var activityStep: some View {
         VStack(spacing: 20) {
-            Spacer().frame(height: 40)
+            Spacer().frame(height: 20)
 
             Text("What were you doing\nbefore it happened?")
                 .font(.title2.weight(.bold))
@@ -114,24 +114,7 @@ struct RelapseView: View {
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                 ForEach(RelapseActivity.allCases, id: \.self) { activity in
-                    Button {
-                        HapticManager.shared.selection()
-                        selectedActivity = activity
-                    } label: {
-                        VStack(spacing: 6) {
-                            Text(activity.emoji)
-                                .font(.title2)
-                            Text(activity.rawValue)
-                                .font(.system(size: 11))
-                                .lineLimit(2)
-                                .multilineTextAlignment(.center)
-                        }
-                        .foregroundColor(selectedActivity == activity ? .black : .white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 80)
-                        .background(selectedActivity == activity ? addictionType.color : Color(hex: "141414"))
-                        .cornerRadius(12)
-                    }
+                    activityButton(activity)
                 }
             }
             .padding(.horizontal, 20)
@@ -139,30 +122,38 @@ struct RelapseView: View {
             Spacer()
 
             if selectedActivity != nil {
-                Button {
-                    HapticManager.shared.impact(.medium)
-                    withAnimation(.spring(duration: 0.3)) { currentStep = 2 }
-                } label: {
-                    Text("Next")
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(addictionType.color)
-                        .cornerRadius(16)
-                }
-                .padding(.horizontal, 20)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                nextButton { currentStep = 2 }
             }
 
             Spacer().frame(height: 32)
         }
     }
 
+    private func activityButton(_ activity: RelapseActivity) -> some View {
+        Button {
+            HapticManager.shared.selection()
+            selectedActivity = activity
+        } label: {
+            VStack(spacing: 6) {
+                Text(activity.emoji)
+                    .font(.title2)
+                Text(activity.rawValue)
+                    .font(.system(size: 11))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+            }
+            .foregroundColor(selectedActivity == activity ? .black : .white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 80)
+            .background(selectedActivity == activity ? addictionType.color : Color(hex: "141414"))
+            .cornerRadius(12)
+        }
+    }
+
     // MARK: - Step 2: How are you feeling?
     private var moodStep: some View {
         VStack(spacing: 20) {
-            Spacer().frame(height: 60)
+            Spacer().frame(height: 40)
 
             Text("How are you feeling\nright now?")
                 .font(.title2.weight(.bold))
@@ -171,26 +162,7 @@ struct RelapseView: View {
 
             HStack(spacing: 12) {
                 ForEach(Mood.allCases, id: \.self) { mood in
-                    Button {
-                        HapticManager.shared.selection()
-                        selectedMood = mood
-                    } label: {
-                        VStack(spacing: 6) {
-                            Text(mood.emoji)
-                                .font(.system(size: 36))
-                            Text(mood.rawValue)
-                                .font(.caption)
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(selectedMood == mood ? addictionType.color.opacity(0.3) : Color(hex: "141414"))
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(selectedMood == mood ? addictionType.color : Color.clear, lineWidth: 2)
-                        )
-                    }
+                    moodButton(mood)
                 }
             }
             .padding(.horizontal, 20)
@@ -198,30 +170,40 @@ struct RelapseView: View {
             Spacer()
 
             if selectedMood != nil {
-                Button {
-                    HapticManager.shared.impact(.medium)
-                    withAnimation(.spring(duration: 0.3)) { currentStep = 3 }
-                } label: {
-                    Text("Next")
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .background(addictionType.color)
-                        .cornerRadius(16)
-                }
-                .padding(.horizontal, 20)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
+                nextButton { currentStep = 3 }
             }
 
             Spacer().frame(height: 32)
         }
     }
 
+    private func moodButton(_ mood: Mood) -> some View {
+        Button {
+            HapticManager.shared.selection()
+            selectedMood = mood
+        } label: {
+            VStack(spacing: 6) {
+                Text(mood.emoji)
+                    .font(.system(size: 36))
+                Text(mood.rawValue)
+                    .font(.caption)
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            .background(selectedMood == mood ? addictionType.color.opacity(0.3) : Color(hex: "141414"))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(selectedMood == mood ? addictionType.color : Color.clear, lineWidth: 2)
+            )
+        }
+    }
+
     // MARK: - Step 3: What will you do differently?
     private var planStep: some View {
         VStack(spacing: 20) {
-            Spacer().frame(height: 60)
+            Spacer().frame(height: 40)
 
             Text("What will you do\ndifferently next time?")
                 .font(.title2.weight(.bold))
@@ -253,6 +235,28 @@ struct RelapseView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 32)
         }
+        .scrollDismissesKeyboard(.interactively)
+        .onTapGesture {
+            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+        }
+    }
+
+    // MARK: - Shared Next Button
+    private func nextButton(action: @escaping () -> Void) -> some View {
+        Button {
+            HapticManager.shared.impact(.medium)
+            withAnimation(.spring(duration: 0.3)) { action() }
+        } label: {
+            Text("Next")
+                .font(.headline)
+                .foregroundColor(.black)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(addictionType.color)
+                .cornerRadius(16)
+        }
+        .padding(.horizontal, 20)
+        .transition(.move(edge: .bottom).combined(with: .opacity))
     }
 
     // MARK: - Restart View
