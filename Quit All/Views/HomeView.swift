@@ -60,19 +60,11 @@ struct HomeView: View {
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 16) {
-                        Button {
-                            showMemes = true
-                        } label: {
-                            Image(systemName: "face.smiling")
-                                .foregroundColor(.gray)
-                        }
-                        Button {
-                            showStats = true
-                        } label: {
-                            Image(systemName: "chart.bar.fill")
-                                .foregroundColor(.gray)
-                        }
+                    Button {
+                        showStats = true
+                    } label: {
+                        Image(systemName: "chart.bar.fill")
+                            .foregroundColor(.gray)
                     }
                 }
             }
