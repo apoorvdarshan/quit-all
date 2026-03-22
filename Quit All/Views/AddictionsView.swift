@@ -7,7 +7,10 @@ struct AddictionsView: View {
     @Environment(\.dismiss) private var dismiss
 
     @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \CDAddiction.startDate, ascending: true)],
+        sortDescriptors: [
+            NSSortDescriptor(keyPath: \CDAddiction.sortOrder, ascending: true),
+            NSSortDescriptor(keyPath: \CDAddiction.startDate, ascending: true)
+        ],
         predicate: NSPredicate(format: "isActive == YES"),
         animation: .default
     ) private var addictions: FetchedResults<CDAddiction>
@@ -73,6 +76,7 @@ struct AddictionsView: View {
                     )
                 }
                 .onDelete(perform: deleteAddictions)
+                .onMove(perform: moveAddictions)
             }
             .scrollContentBackground(.hidden)
             .background(Color(hex: "080808"))
@@ -106,6 +110,15 @@ struct AddictionsView: View {
             let addiction = addictions[index]
             AddictionTracker.shared.deleteAddiction(addiction, context: viewContext)
         }
+    }
+
+    private func moveAddictions(from source: IndexSet, to destination: Int) {
+        var items = Array(addictions)
+        items.move(fromOffsets: source, toOffset: destination)
+        for (index, item) in items.enumerated() {
+            item.sortOrder = Int32(index)
+        }
+        AddictionTracker.shared.saveContext(viewContext)
     }
 }
 

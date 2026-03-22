@@ -7,7 +7,10 @@ struct HomeView: View {
     @Environment(\.managedObjectContext) private var viewContext
 
     @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \CDAddiction.startDate, ascending: true)],
+        sortDescriptors: [
+            NSSortDescriptor(keyPath: \CDAddiction.sortOrder, ascending: true),
+            NSSortDescriptor(keyPath: \CDAddiction.startDate, ascending: true)
+        ],
         predicate: NSPredicate(format: "isActive == YES"),
         animation: .default
     ) private var addictions: FetchedResults<CDAddiction>
