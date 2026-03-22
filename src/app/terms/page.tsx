@@ -24,11 +24,11 @@ const sections = [
   {
     title: "Subscriptions",
     items: [
-      "Quit All offers auto-renewable subscriptions: Monthly ($7.99/month) and Yearly ($49.99/year)",
-      "Payment is charged to your Apple ID account at confirmation of purchase",
+      "Quit All offers a 3-day free trial followed by auto-renewable subscriptions: Monthly ($7.99/month) and Yearly ($49.99/year)",
+      "Payment is charged to your Apple ID account at the end of the free trial period",
       "Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period",
       "You can manage and cancel subscriptions in your Apple ID account settings",
-      "Free trial period, if offered, is forfeited when purchasing a subscription",
+      "If you cancel during the free trial, you will not be charged",
     ],
   },
   {
@@ -83,7 +83,7 @@ export default function Terms() {
         <motion.div className="legal-header" initial="hidden" animate="visible">
           <motion.p variants={fadeUp} custom={0} className="legal-label">Legal</motion.p>
           <motion.h1 variants={fadeUp} custom={1} className="legal-title">Terms of Service</motion.h1>
-          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: March 22, 2026</motion.p>
+          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: March 23, 2026</motion.p>
         </motion.div>
 
         <motion.div className="legal-divider" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
