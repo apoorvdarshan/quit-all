@@ -125,7 +125,7 @@ struct OnboardingView: View {
                 Image(type.iconName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 64, height: 64)
                 Text(type.rawValue)
                     .font(.subheadline.weight(.medium))
                     .foregroundColor(.white)
@@ -158,7 +158,7 @@ struct OnboardingView: View {
                         Image(type.iconName)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 88, height: 88)
+                            .frame(width: 100, height: 100)
 
                         Text("Quitting \(type.rawValue)")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
