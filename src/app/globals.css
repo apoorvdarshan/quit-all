@@ -355,6 +355,14 @@ img { max-width: 100%; display: block; }
   text-transform: uppercase; color: var(--text-muted); transition: color 0.3s;
 }
 .footer-links a:hover { color: var(--gold); }
+.footer-socials a {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(201,168,76,0.06); transition: all 0.3s;
+}
+.footer-socials a:hover { background: rgba(201,168,76,0.15); color: var(--gold); }
+.footer-socials svg { opacity: 0.5; transition: opacity 0.3s; }
+.footer-socials a:hover svg { opacity: 1; }
 .footer-copy { font-size: 11px; color: var(--text-muted); }
 
 /* Legal pages */
