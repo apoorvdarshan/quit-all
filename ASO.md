@@ -16,7 +16,7 @@ Quit Smoking, Vaping & More
 
 ## Keywords (100 chars max, comma separated)
 ```
-quit smoking,stop vaping,sober,addiction tracker,quit drinking,no fap,dopamine detox,habit breaker
+stop smoking,vaping,sober tracker,addiction,drinking,no fap,dopamine detox,craving,relapse,streaks
 ```
 
 ## Promotional Text (170 chars max, can be updated without review)
