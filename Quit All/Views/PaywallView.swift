@@ -5,7 +5,7 @@ import StoreKit
 struct PaywallView: View {
     let onComplete: () -> Void
 
-    @State private var selectedProduct: Product?
+    @State private var selectedProductId: String = SubscriptionProduct.yearly.rawValue
     @State private var isPurchasing = false
     @State private var isRestoring = false
     @State private var isTrialEligible = false
@@ -85,7 +85,7 @@ struct PaywallView: View {
                             price: formattedPrice(for: SubscriptionProduct.yearly.rawValue, fallback: "$49.99/year"),
                             subtitle: yearlySubtitle,
                             badge: "SAVE 48%",
-                            isSelected: selectedProduct?.id == SubscriptionProduct.yearly.rawValue
+                            isSelected: selectedProductId == SubscriptionProduct.yearly.rawValue
                         ) {
                             selectProduct(id: SubscriptionProduct.yearly.rawValue)
                         }
@@ -95,7 +95,7 @@ struct PaywallView: View {
                             price: formattedPrice(for: SubscriptionProduct.monthly.rawValue, fallback: "$7.99/month"),
                             subtitle: "Billed monthly",
                             badge: nil,
-                            isSelected: selectedProduct?.id == SubscriptionProduct.monthly.rawValue
+                            isSelected: selectedProductId == SubscriptionProduct.monthly.rawValue
                         ) {
                             selectProduct(id: SubscriptionProduct.monthly.rawValue)
                         }
@@ -183,7 +183,8 @@ struct PaywallView: View {
         .task {
             await PaywallManager.shared.loadProducts()
             // Default select yearly
-            selectedProduct = PaywallManager.shared.products.last
+            // Default yearly selected — products may not load without StoreKit config
+            selectedProductId = SubscriptionProduct.yearly.rawValue
 
             // Check trial eligibility from StoreKit
             if let yearly = PaywallManager.shared.products.last {
@@ -278,11 +279,14 @@ struct PaywallView: View {
 
     private func selectProduct(id: String) {
         HapticManager.shared.selection()
-        selectedProduct = PaywallManager.shared.products.first { $0.id == id }
+        selectedProductId = id
     }
 
     private func purchase() async {
-        guard let product = selectedProduct else { return }
+        guard let product = PaywallManager.shared.products.first(where: { $0.id == selectedProductId }) else {
+            PaywallManager.shared.purchaseError = "Products not available. Please try again."
+            return
+        }
         isPurchasing = true
         let success = await PaywallManager.shared.purchase(product)
         isPurchasing = false
