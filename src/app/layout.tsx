@@ -28,10 +28,10 @@ export const metadata: Metadata = {
     description: "One app to quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings, save money.",
     images: [
       {
-        url: "/logo.png",
-        width: 1024,
-        height: 1024,
-        alt: "Quit All App Logo",
+        url: "/og.png",
+        width: 1920,
+        height: 1080,
+        alt: "Quit All - Break Every Habit",
       },
     ],
   },
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: "Quit All — Quit Every Addiction in One App",
     description: "Quit smoking, vaping, alcohol & 6 more addictions. Track streaks, survive cravings with GIFs, save money. 100% private.",
     creator: "@apoorvdarshan",
-    images: ["/logo.png"],
+    images: ["/og.png"],
   },
   robots: {
     index: true,
