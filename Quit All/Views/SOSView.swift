@@ -30,9 +30,13 @@ struct SOSView: View {
         case outcome
     }
 
+    private let gold = Color(hex: "D4AF37")
+    private let lightGold = Color(hex: "F5E6A3")
+    private let darkRed = Color(hex: "8B0000")
+
     var body: some View {
         ZStack {
-            Color(hex: "0A0A0A").ignoresSafeArea()
+            Color(hex: "080808").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 header
@@ -120,18 +124,23 @@ struct SOSView: View {
 
                         // Meme text below
                         Text(meme.text)
-                            .font(.title3.weight(.semibold))
-                            .foregroundColor(.white)
+                            .font(.system(size: 18, weight: .semibold, design: .serif))
+                            .foregroundColor(lightGold)
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 32)
 
-                        Text(meme.category.rawValue)
-                            .font(.caption.weight(.medium))
-                            .foregroundColor(addictionType.color)
+                        Text(meme.category.rawValue.uppercased())
+                            .font(.system(size: 11, weight: .semibold, design: .serif))
+                            .foregroundColor(gold.opacity(0.7))
+                            .tracking(1.5)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 6)
-                            .background(addictionType.color.opacity(0.15))
+                            .background(gold.opacity(0.1))
                             .cornerRadius(20)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(gold.opacity(0.2), lineWidth: 1)
+                            )
 
                         Spacer()
                     }
@@ -140,9 +149,10 @@ struct SOSView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .automatic))
 
-            Text("Swipe for more")
-                .font(.caption)
-                .foregroundColor(.gray.opacity(0.5))
+            Text("SWIPE FOR MORE")
+                .font(.system(size: 10, weight: .medium, design: .serif))
+                .foregroundColor(gold.opacity(0.3))
+                .tracking(1.5)
                 .padding(.bottom, 8)
 
             Button {
@@ -151,13 +161,18 @@ struct SOSView: View {
                     phase = .trigger
                 }
             } label: {
-                Text("I'm ready to check in")
-                    .font(.headline)
-                    .foregroundColor(.black)
+                Text("I'M READY TO CHECK IN")
+                    .font(.system(size: 14, weight: .bold, design: .serif))
+                    .foregroundColor(.white)
+                    .tracking(1.5)
                     .frame(maxWidth: .infinity)
                     .frame(height: 52)
-                    .background(addictionType.color)
-                    .cornerRadius(16)
+                    .background(
+                        LinearGradient(colors: [gold.opacity(0.8), Color(hex: "8B6914")], startPoint: .top, endPoint: .bottom)
+                    )
+                    .cornerRadius(14)
+                    .overlay(RoundedRectangle(cornerRadius: 14).stroke(gold.opacity(0.3), lineWidth: 1))
+                    .shadow(color: gold.opacity(0.3), radius: 12, y: 6)
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 24)
@@ -170,8 +185,8 @@ struct SOSView: View {
             Spacer()
 
             Text("What triggered this craving?")
-                .font(.title2.weight(.bold))
-                .foregroundColor(.white)
+                .font(.system(size: 24, weight: .bold, design: .serif))
+                .foregroundColor(lightGold)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                 ForEach(CravingTrigger.allCases, id: \.self) { trigger in
@@ -184,13 +199,17 @@ struct SOSView: View {
                         HStack(spacing: 8) {
                             Text(trigger.emoji)
                             Text(trigger.rawValue)
-                                .font(.subheadline)
+                                .font(.system(size: 14, weight: .medium, design: .serif))
                         }
-                        .foregroundColor(selectedTrigger == trigger ? .black : .white)
+                        .foregroundColor(selectedTrigger == trigger ? .black : .white.opacity(0.7))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(selectedTrigger == trigger ? addictionType.color : Color(hex: "141414"))
+                        .background(selectedTrigger == trigger ? gold : Color(hex: "111111"))
                         .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(selectedTrigger == trigger ? gold : gold.opacity(0.08), lineWidth: 1)
+                        )
                     }
                 }
             }
@@ -205,13 +224,18 @@ struct SOSView: View {
                         phase = .outcome
                     }
                 } label: {
-                    Text("Did you make it?")
-                        .font(.headline)
-                        .foregroundColor(.black)
+                    Text("DID YOU MAKE IT?")
+                        .font(.system(size: 14, weight: .bold, design: .serif))
+                        .foregroundColor(.white)
+                        .tracking(1.5)
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
-                        .background(addictionType.color)
-                        .cornerRadius(16)
+                        .background(
+                            LinearGradient(colors: [gold.opacity(0.8), Color(hex: "8B6914")], startPoint: .top, endPoint: .bottom)
+                        )
+                        .cornerRadius(14)
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(gold.opacity(0.3), lineWidth: 1))
+                        .shadow(color: gold.opacity(0.3), radius: 12, y: 6)
                 }
                 .padding(.horizontal, 20)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -227,35 +251,38 @@ struct SOSView: View {
             Spacer()
 
             Text("Did you make it through?")
-                .font(.title.weight(.bold))
-                .foregroundColor(.white)
+                .font(.system(size: 26, weight: .bold, design: .serif))
+                .foregroundColor(lightGold)
 
             Text("Be honest. No judgment.")
-                .font(.subheadline)
-                .foregroundColor(.gray)
+                .font(.system(size: 14, weight: .medium, design: .serif))
+                .foregroundColor(.white.opacity(0.35))
+                .tracking(0.5)
 
             HStack(spacing: 16) {
                 Button {
                     HapticManager.shared.cravingSurvived()
                     handleOutcome(survived: true)
                 } label: {
-                    VStack(spacing: 8) {
-                        Text("✅")
-                            .font(.system(size: 48))
+                    VStack(spacing: 10) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(gold)
                         Text("YES")
-                            .font(.headline.weight(.bold))
+                            .font(.system(size: 18, weight: .black, design: .serif))
                             .foregroundColor(.white)
+                            .tracking(2)
                         Text("I made it")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                            .font(.system(size: 12, design: .serif))
+                            .foregroundColor(.white.opacity(0.4))
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 140)
-                    .background(Color.green.opacity(0.15))
-                    .cornerRadius(20)
+                    .background(gold.opacity(0.1))
+                    .cornerRadius(18)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(Color.green.opacity(0.3), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(gold.opacity(0.4), lineWidth: 1)
                     )
                 }
 
@@ -263,20 +290,26 @@ struct SOSView: View {
                     HapticManager.shared.relapse()
                     handleOutcome(survived: false)
                 } label: {
-                    VStack(spacing: 8) {
-                        Text("😔")
-                            .font(.system(size: 48))
+                    VStack(spacing: 10) {
+                        Image(systemName: "xmark.seal.fill")
+                            .font(.system(size: 40))
+                            .foregroundColor(darkRed)
                         Text("NO")
-                            .font(.headline.weight(.bold))
+                            .font(.system(size: 18, weight: .black, design: .serif))
                             .foregroundColor(.white)
+                            .tracking(2)
                         Text("I gave in")
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                            .font(.system(size: 12, design: .serif))
+                            .foregroundColor(.white.opacity(0.4))
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 140)
-                    .background(Color(hex: "141414"))
-                    .cornerRadius(20)
+                    .background(Color(hex: "111111"))
+                    .cornerRadius(18)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 18)
+                            .stroke(darkRed.opacity(0.3), lineWidth: 1)
+                    )
                 }
             }
             .padding(.horizontal, 20)

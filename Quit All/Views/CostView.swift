@@ -35,7 +35,7 @@ struct CostView: View {
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
             }
-            .background(Color(hex: "0A0A0A"))
+            .background(Color(hex: "080808"))
             .navigationTitle("Money Saved")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -66,7 +66,7 @@ struct CostView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(20)
     }
 
@@ -102,7 +102,7 @@ struct CostView: View {
             }
         }
         .padding(20)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(16)
     }
 
@@ -148,7 +148,7 @@ struct CostView: View {
             }
         }
         .padding(20)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(16)
     }
 
@@ -185,7 +185,7 @@ struct CostView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(20)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(16)
     }
 }

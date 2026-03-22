@@ -33,7 +33,7 @@ struct MilestonesView: View {
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
             }
-            .background(Color(hex: "0A0A0A"))
+            .background(Color(hex: "080808"))
             .navigationTitle("Milestones")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -115,7 +115,7 @@ struct MilestonesView: View {
                 }
             }
             .padding(16)
-            .background(Color(hex: "141414"))
+            .background(Color(hex: "111111"))
             .cornerRadius(16)
             .opacity(unlocked ? 1.0 : 0.5)
         }
@@ -179,7 +179,7 @@ struct MilestonesView: View {
             .frame(maxWidth: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 24)
-                    .fill(Color(hex: "0A0A0A"))
+                    .fill(Color(hex: "080808"))
                     .overlay(
                         RoundedRectangle(cornerRadius: 24)
                             .stroke(addictionType.color.opacity(0.3), lineWidth: 1)
@@ -210,7 +210,7 @@ struct MilestonesView: View {
             .foregroundColor(.gray)
             .padding(.bottom, 32)
         }
-        .background(Color(hex: "0A0A0A").ignoresSafeArea())
+        .background(Color(hex: "080808").ignoresSafeArea())
         .preferredColorScheme(.dark)
     }
 }

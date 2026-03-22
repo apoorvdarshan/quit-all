@@ -19,7 +19,7 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "0A0A0A").ignoresSafeArea()
+            Color(hex: "080808").ignoresSafeArea()
 
             VStack(spacing: 0) {
                 progressBar
@@ -132,7 +132,7 @@ struct OnboardingView: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 100)
-            .background(isSelected ? type.color.opacity(0.3) : Color(hex: "141414"))
+            .background(isSelected ? type.color.opacity(0.3) : Color(hex: "111111"))
             .cornerRadius(16)
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
@@ -180,7 +180,7 @@ struct OnboardingView: View {
                                         .font(.title2.weight(.semibold))
                                 }
                                 .padding()
-                                .background(Color(hex: "141414"))
+                                .background(Color(hex: "111111"))
                                 .cornerRadius(12)
                             }
 
@@ -193,7 +193,7 @@ struct OnboardingView: View {
                                 TextField("For my health, family...", text: binding(for: type, in: $addictionMotivations))
                                     .foregroundColor(.white)
                                     .padding()
-                                    .background(Color(hex: "141414"))
+                                    .background(Color(hex: "111111"))
                                     .cornerRadius(12)
                             }
 
@@ -208,7 +208,7 @@ struct OnboardingView: View {
                                     .labelsHidden()
                                     .tint(type.color)
                                     .padding()
-                                    .background(Color(hex: "141414"))
+                                    .background(Color(hex: "111111"))
                                     .cornerRadius(12)
                             }
                         }
@@ -239,7 +239,7 @@ struct OnboardingView: View {
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 56)
-                                .background(Color(hex: "141414"))
+                                .background(Color(hex: "111111"))
                                 .cornerRadius(16)
                         }
                     }

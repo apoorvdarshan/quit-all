@@ -7,14 +7,15 @@ An iOS app that helps you quit smoking, vaping, alcohol, porn, social media, wee
 - **Streak Tracking** — Giant streak counter with circular progress ring toward next milestone
 - **Multiple Addictions** — Track as many as you want simultaneously with horizontal scroll cards
 - **SOS Craving Screen** — Full-screen takeover with animated GIFs, motivational memes, trigger logging, and outcome tracking
-- **Meme Library** — 135 curated text memes across 5 categories (Motivational, Roast, Consequence, Distraction, Relatable) + GIFs from Giphy
+- **Meme Library** — 2,790 curated text memes across 5 categories (Motivational, Roast, Consequence, Distraction, Relatable) + fresh GIFs from Giphy every session
 - **Stats & Patterns** — Calendar heatmap, craving frequency charts, hourly heatmaps, trigger breakdown, and pattern insights
 - **Cost Calculator** — Money saved, projection slider up to 5 years, "what you could buy" cards, life time saved
 - **Milestones** — 9 progressive milestones with health facts and shareable cards
 - **Relapse Flow** — No-shame relapse logging (activity, mood, plan) with streak reset
 - **Smart Notifications** — Pattern-based alerts at your highest risk times
+- **Edit Addictions** — Edit daily spending and motivation from Settings
 - **Haptic Feedback** — Tactile feedback on all key interactions
-- **Dark Mode Only** — Full dark theme with per-addiction accent colors
+- **Dark Casino Gold Theme** — Luxury dark theme with gold accents, serif fonts, and Gemini-generated icons
 
 ## Screenshots
 

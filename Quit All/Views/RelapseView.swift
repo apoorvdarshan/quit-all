@@ -25,7 +25,7 @@ struct RelapseView: View {
 
     var body: some View {
         ZStack {
-            Color(hex: "0A0A0A").ignoresSafeArea()
+            Color(hex: "080808").ignoresSafeArea()
 
             VStack {
                 // Close button
@@ -66,7 +66,7 @@ struct RelapseView: View {
             Spacer()
 
             Text("Okay. That happened.")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .font(.system(size: 28, weight: .bold, design: .serif))
                 .foregroundColor(.white)
 
             if streakBroken > 0 {
@@ -94,7 +94,7 @@ struct RelapseView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(Color(hex: "141414"))
+                    .background(Color(hex: "111111"))
                     .cornerRadius(16)
             }
             .padding(.horizontal, 20)
@@ -108,7 +108,7 @@ struct RelapseView: View {
             Spacer().frame(height: 20)
 
             Text("What were you doing\nbefore it happened?")
-                .font(.title2.weight(.bold))
+                .font(.system(size: 22, weight: .bold, design: .serif))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
 
@@ -145,7 +145,7 @@ struct RelapseView: View {
             .foregroundColor(selectedActivity == activity ? .black : .white)
             .frame(maxWidth: .infinity)
             .frame(height: 80)
-            .background(selectedActivity == activity ? addictionType.color : Color(hex: "141414"))
+            .background(selectedActivity == activity ? addictionType.color : Color(hex: "111111"))
             .cornerRadius(12)
         }
     }
@@ -156,7 +156,7 @@ struct RelapseView: View {
             Spacer().frame(height: 40)
 
             Text("How are you feeling\nright now?")
-                .font(.title2.weight(.bold))
+                .font(.system(size: 22, weight: .bold, design: .serif))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
 
@@ -191,7 +191,7 @@ struct RelapseView: View {
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(selectedMood == mood ? addictionType.color.opacity(0.3) : Color(hex: "141414"))
+            .background(selectedMood == mood ? addictionType.color.opacity(0.3) : Color(hex: "111111"))
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
@@ -206,7 +206,7 @@ struct RelapseView: View {
             Spacer().frame(height: 40)
 
             Text("What will you do\ndifferently next time?")
-                .font(.title2.weight(.bold))
+                .font(.system(size: 22, weight: .bold, design: .serif))
                 .foregroundColor(.white)
                 .multilineTextAlignment(.center)
 
@@ -214,7 +214,7 @@ struct RelapseView: View {
                 .foregroundColor(.white)
                 .lineLimit(3...6)
                 .padding()
-                .background(Color(hex: "141414"))
+                .background(Color(hex: "111111"))
                 .cornerRadius(12)
                 .padding(.horizontal, 20)
 
@@ -229,7 +229,7 @@ struct RelapseView: View {
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(addictionType.color)
+                    .background(LinearGradient(colors: [Color(hex: "D4AF37").opacity(0.8), Color(hex: "8B6914")], startPoint: .top, endPoint: .bottom))
                     .cornerRadius(16)
             }
             .padding(.horizontal, 20)
@@ -252,7 +252,7 @@ struct RelapseView: View {
                 .foregroundColor(.black)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
-                .background(addictionType.color)
+                .background(LinearGradient(colors: [Color(hex: "D4AF37").opacity(0.8), Color(hex: "8B6914")], startPoint: .top, endPoint: .bottom))
                 .cornerRadius(16)
         }
         .padding(.horizontal, 20)
@@ -270,8 +270,8 @@ struct RelapseView: View {
                 .frame(width: 96, height: 96)
 
             Text("New streak begins now.")
-                .font(.title.weight(.bold))
-                .foregroundColor(.white)
+                .font(.system(size: 26, weight: .bold, design: .serif))
+                .foregroundColor(Color(hex: "F5E6A3"))
 
             Text("You're not starting from zero.\nYou're starting from experience.")
                 .font(.subheadline)
@@ -288,7 +288,7 @@ struct RelapseView: View {
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
-                    .background(addictionType.color)
+                    .background(LinearGradient(colors: [Color(hex: "D4AF37").opacity(0.8), Color(hex: "8B6914")], startPoint: .top, endPoint: .bottom))
                     .cornerRadius(16)
             }
             .padding(.horizontal, 20)
