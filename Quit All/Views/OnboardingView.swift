@@ -214,9 +214,9 @@ struct OnboardingView: View {
                             .foregroundColor(lightGold)
 
                         VStack(alignment: .leading, spacing: 16) {
-                            // Currency picker (show only on first addiction)
-                            if currentDetailIndex == 0 {
-                                inputField(label: "CURRENCY") {
+                            inputField(label: "DAILY SPENDING") {
+                                HStack(spacing: 0) {
+                                    // Currency symbol as dropdown
                                     Menu {
                                         ForEach(currencies, id: \.0) { code, symbol, name in
                                             Button {
@@ -231,25 +231,18 @@ struct OnboardingView: View {
                                             }
                                         }
                                     } label: {
-                                        HStack {
-                                            let curr = currencies.first { $0.0 == selectedCurrency }
-                                            Text("\(curr?.1 ?? "$") \(curr?.2 ?? "US Dollar")")
-                                                .font(.system(size: 16, weight: .medium, design: .serif))
-                                                .foregroundColor(lightGold)
-                                            Spacer()
+                                        HStack(spacing: 4) {
+                                            Text(currencies.first { $0.0 == selectedCurrency }?.1 ?? "$")
+                                                .font(.system(size: 20, weight: .bold, design: .serif))
+                                                .foregroundColor(gold)
                                             Image(systemName: "chevron.down")
-                                                .font(.system(size: 12))
+                                                .font(.system(size: 8, weight: .bold))
                                                 .foregroundColor(gold.opacity(0.5))
                                         }
+                                        .padding(.trailing, 10)
                                     }
-                                }
-                            }
 
-                            inputField(label: "DAILY SPENDING") {
-                                HStack {
-                                    Text(currencies.first { $0.0 == selectedCurrency }?.1 ?? "$")
-                                        .font(.system(size: 16, design: .serif))
-                                        .foregroundColor(gold.opacity(0.5))
+                                    // Amount input
                                     TextField("0", text: binding(for: type, in: $addictionCosts))
                                         .keyboardType(.decimalPad)
                                         .foregroundColor(lightGold)
