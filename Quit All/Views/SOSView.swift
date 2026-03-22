@@ -82,8 +82,11 @@ struct SOSView: View {
 
             Spacer()
 
-            Text(addictionType.emoji)
-                .font(.title2)
+            Image(addictionType.iconName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 28, height: 28)
+                .cornerRadius(6)
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)

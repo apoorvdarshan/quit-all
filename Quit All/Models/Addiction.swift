@@ -29,6 +29,20 @@ enum AddictionType: String, CaseIterable, Codable, Identifiable {
         }
     }
 
+    var iconName: String {
+        switch self {
+        case .smoking: return "icon_smoking"
+        case .vaping: return "icon_vaping"
+        case .alcohol: return "icon_alcohol"
+        case .porn: return "icon_porn"
+        case .socialMedia: return "icon_social_media"
+        case .weed: return "icon_weed"
+        case .gambling: return "icon_gambling"
+        case .overspending: return "icon_overspending"
+        case .caffeine: return "icon_caffeine"
+        }
+    }
+
     var color: Color {
         switch self {
         case .smoking, .vaping: return Color(hex: "607D8B")

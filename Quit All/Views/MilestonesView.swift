@@ -133,8 +133,11 @@ struct MilestonesView: View {
 
             // The shareable card
             VStack(spacing: 20) {
-                Text(addictionType.emoji)
-                    .font(.system(size: 48))
+                Image(addictionType.iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 56, height: 56)
+                    .cornerRadius(14)
 
                 Text("\(days) days free from \(addiction.name?.lowercased() ?? "")")
                     .font(.title2.weight(.bold))

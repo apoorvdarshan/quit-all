@@ -264,8 +264,11 @@ struct RelapseView: View {
         VStack(spacing: 24) {
             Spacer()
 
-            Text(addictionType.emoji)
-                .font(.system(size: 72))
+            Image(addictionType.iconName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 80, height: 80)
+                .cornerRadius(20)
 
             Text("New streak begins now.")
                 .font(.title.weight(.bold))

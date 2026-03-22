@@ -22,8 +22,11 @@ struct AddictionsView: View {
                     let days = StreakEngine.daysSince(addiction.startDate)
 
                     HStack(spacing: 12) {
-                        Text(type.emoji)
-                            .font(.title2)
+                        Image(type.iconName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 36, height: 36)
+                            .cornerRadius(8)
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text(addiction.name ?? "")

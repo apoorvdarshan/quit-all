@@ -144,8 +144,11 @@ struct HomeView: View {
                         }
                     } label: {
                         VStack(spacing: 4) {
-                            Text(type.emoji)
-                                .font(.title2)
+                            Image(type.iconName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .cornerRadius(6)
                             Text(addiction.name ?? "")
                                 .font(.caption.weight(.medium))
                                 .foregroundColor(.white)
@@ -218,17 +221,17 @@ struct HomeView: View {
 
             // Stats row
             HStack(spacing: 24) {
-                statBadge(emoji: "💰", value: CostCalculator.formatCurrency(moneySaved, currencyCode: addiction.currency), label: "Saved")
+                statBadge(iconName: "icon_money_saved", value: CostCalculator.formatCurrency(moneySaved, currencyCode: addiction.currency), label: "Saved")
                     .onTapGesture {
                         HapticManager.shared.selection()
                         showCost = true
                     }
 
                 if hoursSaved > 0 {
-                    statBadge(emoji: "⏰", value: CostCalculator.formatHoursSaved(hoursSaved), label: "Life saved")
+                    statBadge(iconName: "icon_life_saved", value: CostCalculator.formatHoursSaved(hoursSaved), label: "Life saved")
                 }
 
-                statBadge(emoji: "📅", value: formatCleanSince(addiction.startDate), label: "Clean since")
+                statBadge(iconName: "icon_calendar", value: formatCleanSince(addiction.startDate), label: "Clean since")
             }
             .padding(.horizontal, 20)
 
@@ -244,10 +247,13 @@ struct HomeView: View {
         }
     }
 
-    private func statBadge(emoji: String, value: String, label: String) -> some View {
+    private func statBadge(iconName: String, value: String, label: String) -> some View {
         VStack(spacing: 4) {
-            Text(emoji)
-                .font(.title3)
+            Image(iconName)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 28, height: 28)
+                .cornerRadius(6)
             Text(value)
                 .font(.subheadline.weight(.bold))
                 .foregroundColor(.white)

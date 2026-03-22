@@ -121,9 +121,12 @@ struct OnboardingView: View {
                 }
             }
         } label: {
-            VStack(spacing: 8) {
-                Text(type.emoji)
-                    .font(.system(size: 36))
+            VStack(spacing: 6) {
+                Image(type.iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 48, height: 48)
+                    .cornerRadius(12)
                 Text(type.rawValue)
                     .font(.subheadline.weight(.medium))
                     .foregroundColor(.white)
@@ -153,8 +156,11 @@ struct OnboardingView: View {
                     VStack(spacing: 24) {
                         Spacer().frame(height: 40)
 
-                        Text(type.emoji)
-                            .font(.system(size: 60))
+                        Image(type.iconName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 72, height: 72)
+                            .cornerRadius(16)
 
                         Text("Quitting \(type.rawValue)")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
