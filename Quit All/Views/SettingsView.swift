@@ -68,6 +68,43 @@ struct SettingsView: View {
                 }
                 .listRowBackground(Color(hex: "111111"))
 
+                // Subscription
+                Section {
+                    Button {
+                        manageSubscription()
+                    } label: {
+                        HStack {
+                            Image(systemName: "crown.fill")
+                                .foregroundColor(gold)
+                            Text("Manage Subscription")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+
+                    Button {
+                        Task { await PaywallManager.shared.restorePurchases() }
+                    } label: {
+                        HStack {
+                            Image(systemName: "arrow.counterclockwise")
+                                .foregroundColor(gold)
+                            Text("Restore Purchases")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                        }
+                    }
+                } header: {
+                    Text("SUBSCRIPTION")
+                        .font(.system(size: 11, weight: .semibold, design: .serif))
+                        .foregroundColor(gold.opacity(0.6))
+                        .tracking(1.5)
+                }
+                .listRowBackground(Color(hex: "111111"))
+
                 // About
                 Section {
                     HStack {
@@ -158,6 +195,12 @@ struct SettingsView: View {
             }
         }
         .preferredColorScheme(.dark)
+    }
+
+    private func manageSubscription() {
+        if let url = URL(string: "https://apps.apple.com/account/subscriptions") {
+            UIApplication.shared.open(url)
+        }
     }
 
     private func resetAllData() {

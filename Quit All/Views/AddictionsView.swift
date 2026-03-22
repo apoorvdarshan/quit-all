@@ -16,6 +16,7 @@ struct AddictionsView: View {
     ) private var addictions: FetchedResults<CDAddiction>
 
     @State private var editingAddiction: CDAddiction?
+    @State private var showAddNew = false
 
     private let gold = Color(hex: "D4AF37")
     private let lightGold = Color(hex: "F5E6A3")
@@ -101,21 +102,34 @@ struct AddictionsView: View {
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
+                    HStack(spacing: 12) {
                         Button {
-                            resetOrder()
+                            showAddNew = true
                         } label: {
-                            Label("Reset Order", systemImage: "arrow.counterclockwise")
+                            Image(systemName: "plus")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(gold)
                         }
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .font(.system(size: 15))
-                            .foregroundColor(gold)
+
+                        Menu {
+                            Button {
+                                resetOrder()
+                            } label: {
+                                Label("Reset Order", systemImage: "arrow.counterclockwise")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.system(size: 15))
+                                .foregroundColor(gold)
+                        }
                     }
                 }
             }
             .sheet(item: $editingAddiction) { addiction in
                 EditAddictionView(addiction: addiction)
+            }
+            .sheet(isPresented: $showAddNew) {
+                AddNewAddictionView(existingTypes: addictions.compactMap { AddictionTracker.shared.addictionType(for: $0) })
             }
         }
         .preferredColorScheme(.dark)
@@ -304,5 +318,204 @@ struct EditAddictionView: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
+    }
+}
+
+// MARK: - Add New Addiction View
+struct AddNewAddictionView: View {
+    @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.dismiss) private var dismiss
+
+    let existingTypes: [AddictionType]
+
+    @State private var selectedType: AddictionType?
+    @State private var dailyCost: String = ""
+    @State private var motivation: String = ""
+    @State private var startDate: Date = Date()
+
+    private let gold = Color(hex: "D4AF37")
+    private let lightGold = Color(hex: "F5E6A3")
+
+    private var availableTypes: [AddictionType] {
+        AddictionType.allCases.filter { !existingTypes.contains($0) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                Color(hex: "080808").ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: 24) {
+                        if availableTypes.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 48))
+                                    .foregroundColor(gold)
+                                Text("You're tracking all addictions!")
+                                    .font(.system(size: 16, weight: .medium, design: .serif))
+                                    .foregroundColor(.white.opacity(0.6))
+                            }
+                            .padding(.top, 60)
+                        } else {
+                            Text("CHOOSE ADDICTION")
+                                .font(.system(size: 11, weight: .semibold, design: .serif))
+                                .foregroundColor(gold.opacity(0.6))
+                                .tracking(1.5)
+                                .padding(.top, 20)
+
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 90), spacing: 12)], spacing: 12) {
+                                ForEach(availableTypes) { type in
+                                    Button {
+                                        selectedType = type
+                                        HapticManager.shared.selection()
+                                    } label: {
+                                        VStack(spacing: 8) {
+                                            Image(type.iconName)
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 36, height: 36)
+                                            Text(type.rawValue)
+                                                .font(.system(size: 11, weight: .medium, design: .serif))
+                                                .foregroundColor(.white.opacity(0.8))
+                                                .lineLimit(1)
+                                        }
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 14)
+                                        .background(Color(hex: selectedType == type ? "1A1608" : "111111"))
+                                        .cornerRadius(12)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(selectedType == type ? gold.opacity(0.5) : Color.white.opacity(0.06), lineWidth: 1)
+                                        )
+                                    }
+                                }
+                            }
+                            .padding(.horizontal, 20)
+
+                            if selectedType != nil {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("DAILY SPENDING")
+                                        .font(.system(size: 11, weight: .semibold, design: .serif))
+                                        .foregroundColor(gold.opacity(0.6))
+                                        .tracking(1.5)
+
+                                    HStack {
+                                        Text("$")
+                                            .font(.system(size: 16, design: .serif))
+                                            .foregroundColor(gold.opacity(0.5))
+                                        TextField("0", text: $dailyCost)
+                                            .keyboardType(.decimalPad)
+                                            .foregroundColor(lightGold)
+                                            .font(.system(size: 22, weight: .bold, design: .serif))
+                                    }
+                                    .padding()
+                                    .background(Color(hex: "111111"))
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .stroke(gold.opacity(0.1), lineWidth: 1)
+                                    )
+                                }
+                                .padding(.horizontal, 20)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("QUIT DATE")
+                                        .font(.system(size: 11, weight: .semibold, design: .serif))
+                                        .foregroundColor(gold.opacity(0.6))
+                                        .tracking(1.5)
+
+                                    DatePicker("", selection: $startDate, in: ...Date(), displayedComponents: .date)
+                                        .datePickerStyle(.compact)
+                                        .tint(gold)
+                                        .padding()
+                                        .background(Color(hex: "111111"))
+                                        .cornerRadius(12)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(gold.opacity(0.1), lineWidth: 1)
+                                        )
+                                }
+                                .padding(.horizontal, 20)
+
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("WHY YOU'RE QUITTING")
+                                        .font(.system(size: 11, weight: .semibold, design: .serif))
+                                        .foregroundColor(gold.opacity(0.6))
+                                        .tracking(1.5)
+
+                                    TextField("Your motivation...", text: $motivation)
+                                        .font(.system(size: 15, design: .serif))
+                                        .foregroundColor(.white.opacity(0.8))
+                                        .padding()
+                                        .background(Color(hex: "111111"))
+                                        .cornerRadius(12)
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .stroke(gold.opacity(0.1), lineWidth: 1)
+                                        )
+                                }
+                                .padding(.horizontal, 20)
+
+                                Button {
+                                    addAddiction()
+                                } label: {
+                                    Text("ADD ADDICTION")
+                                        .font(.system(size: 15, weight: .bold, design: .serif))
+                                        .tracking(2)
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 54)
+                                        .background(
+                                            LinearGradient(
+                                                colors: [gold, Color(hex: "8B6914")],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                        .cornerRadius(14)
+                                        .shadow(color: gold.opacity(0.3), radius: 12, y: 4)
+                                }
+                                .padding(.horizontal, 20)
+                            }
+
+                            Spacer().frame(height: 40)
+                        }
+                    }
+                }
+                .scrollDismissesKeyboard(.interactively)
+                .onTapGesture {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+            }
+            .navigationTitle("Add Addiction")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 15, design: .serif))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
+                }
+            }
+        }
+        .preferredColorScheme(.dark)
+    }
+
+    private func addAddiction() {
+        guard let type = selectedType else { return }
+        let _ = AddictionTracker.shared.createAddiction(
+            name: type.rawValue,
+            type: type,
+            startDate: startDate,
+            dailyCost: Double(dailyCost) ?? 0,
+            motivation: motivation,
+            context: viewContext
+        )
+        HapticManager.shared.notification(.success)
+        dismiss()
     }
 }
