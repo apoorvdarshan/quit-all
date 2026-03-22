@@ -4,11 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
+const ease = [0.16, 1, 0.3, 1] as const;
+
 const fadeUp = {
   hidden: { opacity: 0, y: 30, filter: "blur(6px)" },
   visible: (i: number) => ({
     opacity: 1, y: 0, filter: "blur(0px)",
-    transition: { duration: 0.8, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }
+    transition: { duration: 0.8, delay: i * 0.1, ease }
   }),
 };
 

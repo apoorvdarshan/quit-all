@@ -6,11 +6,13 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
 
 // Richer animation variants
+const ease = [0.16, 1, 0.3, 1] as const;
+
 const fadeUp = {
   hidden: { opacity: 0, y: 50, filter: "blur(8px)" },
   visible: (i: number) => ({
     opacity: 1, y: 0, filter: "blur(0px)",
-    transition: { duration: 1, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }
+    transition: { duration: 1, delay: i * 0.12, ease }
   }),
 };
 
@@ -18,7 +20,7 @@ const scaleIn = {
   hidden: { opacity: 0, scale: 0.9 },
   visible: (i: number) => ({
     opacity: 1, scale: 1,
-    transition: { duration: 0.8, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }
+    transition: { duration: 0.8, delay: i * 0.08, ease }
   }),
 };
 
@@ -26,7 +28,7 @@ const slideIn = {
   hidden: { opacity: 0, x: -30 },
   visible: (i: number) => ({
     opacity: 1, x: 0,
-    transition: { duration: 0.7, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }
+    transition: { duration: 0.7, delay: i * 0.06, ease }
   }),
 };
 
