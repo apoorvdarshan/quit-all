@@ -83,7 +83,7 @@ Secondary: Lifestyle
 
 ## Age Rating
 ```
-17+ (Frequent/Intense: Mature/Suggestive Themes)
+18+ (Frequent/Intense: Alcohol, Tobacco, Drug References)
 ```
 
 ## What's New (for updates)
