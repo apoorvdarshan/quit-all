@@ -8,6 +8,9 @@ struct CostView: View {
 
     @State private var projectionMonths: Double = 6
 
+    private let gold = Color(hex: "D4AF37")
+    private let lightGold = Color(hex: "F5E6A3")
+
     private var addictionType: AddictionType {
         AddictionTracker.shared.addictionType(for: addiction)
     }
@@ -16,16 +19,10 @@ struct CostView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Hero: total saved
                     heroCard
-
-                    // Timeline slider projection
                     projectionCard
-
-                    // What you could buy
                     whatYouCouldBuyCard
 
-                    // Life time saved (for smoking/alcohol)
                     if addictionType.minutesPerUnit > 0 {
                         lifeSavedCard
                     }
@@ -40,7 +37,13 @@ struct CostView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Done")
+                            .font(.system(size: 15, weight: .semibold, design: .serif))
+                            .foregroundColor(gold)
+                    }
                 }
             }
         }
@@ -52,22 +55,34 @@ struct CostView: View {
         let saved = CostCalculator.moneySaved(dailyCost: addiction.dailyCost, startDate: addiction.startDate)
 
         return VStack(spacing: 8) {
-            Text("Total Saved")
-                .font(.subheadline)
-                .foregroundColor(.gray)
+            Text("TOTAL SAVED")
+                .font(.system(size: 12, weight: .semibold, design: .serif))
+                .foregroundColor(gold.opacity(0.7))
+                .tracking(1.5)
 
             Text(CostCalculator.formatCurrency(saved, currencyCode: addiction.currency))
-                .font(.system(size: 52, weight: .black, design: .rounded))
-                .foregroundColor(addictionType.color)
+                .font(.system(size: 48, weight: .black, design: .serif))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [lightGold, gold, Color(hex: "C5962C")],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .shadow(color: gold.opacity(0.3), radius: 12)
 
             Text("since quitting \(addiction.name?.lowercased() ?? "")")
-                .font(.caption)
-                .foregroundColor(.gray)
+                .font(.system(size: 12, design: .serif))
+                .foregroundColor(.white.opacity(0.35))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 32)
         .background(Color(hex: "111111"))
         .cornerRadius(20)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(gold.opacity(0.1), lineWidth: 1)
+        )
     }
 
     // MARK: - Projection Card
@@ -75,35 +90,39 @@ struct CostView: View {
         let projected = CostCalculator.projectedSavings(dailyCost: addiction.dailyCost, months: Int(projectionMonths))
 
         return VStack(spacing: 16) {
-            Text("Projected Savings")
-                .font(.headline)
-                .foregroundColor(.white)
+            Text("PROJECTED SAVINGS")
+                .font(.system(size: 12, weight: .semibold, design: .serif))
+                .foregroundColor(gold.opacity(0.7))
+                .tracking(1.5)
 
             Text(CostCalculator.formatCurrency(projected, currencyCode: addiction.currency))
-                .font(.system(size: 36, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .font(.system(size: 34, weight: .bold, design: .serif))
+                .foregroundColor(lightGold)
 
-            // Slider
             VStack(spacing: 8) {
                 Slider(value: $projectionMonths, in: 1...60, step: 1)
-                    .tint(addictionType.color)
+                    .tint(gold)
 
                 HStack {
                     Text("1 month")
                     Spacer()
                     Text("\(Int(projectionMonths)) months")
-                        .foregroundColor(addictionType.color)
-                        .font(.subheadline.weight(.semibold))
+                        .foregroundColor(gold)
+                        .font(.system(size: 14, weight: .bold, design: .serif))
                     Spacer()
                     Text("5 years")
                 }
-                .font(.caption)
-                .foregroundColor(.gray)
+                .font(.system(size: 11, design: .serif))
+                .foregroundColor(.white.opacity(0.35))
             }
         }
         .padding(20)
         .background(Color(hex: "111111"))
         .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.08), lineWidth: 1)
+        )
     }
 
     // MARK: - What You Could Buy
@@ -112,9 +131,10 @@ struct CostView: View {
         let items = CostCalculator.whatYouCouldBuy(amount: projected, currencyCode: addiction.currency)
 
         return VStack(alignment: .leading, spacing: 12) {
-            Text("What you could buy")
-                .font(.headline)
-                .foregroundColor(.white)
+            Text("WHAT YOU COULD BUY")
+                .font(.system(size: 12, weight: .semibold, design: .serif))
+                .foregroundColor(gold.opacity(0.7))
+                .tracking(1.5)
 
             ForEach(items, id: \.item) { item in
                 let canAfford = projected >= item.cost
@@ -125,31 +145,39 @@ struct CostView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.item)
-                            .font(.subheadline.weight(.medium))
-                            .foregroundColor(canAfford ? .white : .gray)
+                            .font(.system(size: 14, weight: .medium, design: .serif))
+                            .foregroundColor(canAfford ? .white : .white.opacity(0.4))
                         Text(CostCalculator.formatCurrency(item.cost, currencyCode: addiction.currency))
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                            .font(.system(size: 12, design: .serif))
+                            .foregroundColor(.white.opacity(0.3))
                     }
 
                     Spacer()
 
                     if canAfford {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
+                            .foregroundColor(gold)
                     } else {
                         Image(systemName: "circle")
-                            .foregroundColor(.gray.opacity(0.3))
+                            .foregroundColor(.white.opacity(0.1))
                     }
                 }
                 .padding(12)
-                .background(canAfford ? addictionType.color.opacity(0.1) : Color(hex: "1A1A1A"))
+                .background(canAfford ? gold.opacity(0.08) : Color(hex: "151515"))
                 .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(canAfford ? gold.opacity(0.2) : Color.white.opacity(0.04), lineWidth: 1)
+                )
             }
         }
         .padding(20)
         .background(Color(hex: "111111"))
         .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.08), lineWidth: 1)
+        )
     }
 
     // MARK: - Life Saved Card
@@ -163,29 +191,34 @@ struct CostView: View {
         return VStack(spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "heart.fill")
-                    .foregroundColor(.red)
-                Text("Life Saved")
-                    .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(Color(hex: "8B0000"))
+                Text("LIFE SAVED")
+                    .font(.system(size: 12, weight: .semibold, design: .serif))
+                    .foregroundColor(gold.opacity(0.7))
+                    .tracking(1.5)
             }
 
             Text(CostCalculator.formatHoursSaved(hours))
-                .font(.system(size: 36, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .font(.system(size: 34, weight: .bold, design: .serif))
+                .foregroundColor(lightGold)
 
             Text("of your life back")
-                .font(.subheadline)
-                .foregroundColor(.gray)
+                .font(.system(size: 13, design: .serif))
+                .foregroundColor(.white.opacity(0.35))
 
             if addictionType == .smoking {
                 Text("Each cigarette takes 11 minutes off your life")
-                    .font(.caption)
-                    .foregroundColor(.gray.opacity(0.7))
+                    .font(.system(size: 11, design: .serif))
+                    .foregroundColor(.white.opacity(0.25))
             }
         }
         .frame(maxWidth: .infinity)
         .padding(20)
         .background(Color(hex: "111111"))
         .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.08), lineWidth: 1)
+        )
     }
 }
