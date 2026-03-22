@@ -79,7 +79,7 @@ struct SettingsView: View {
                             .foregroundColor(gold.opacity(0.5))
                     }
 
-                    Link(destination: URL(string: "https://apoorvdarshan.github.io/quit-all-web/privacy")!) {
+                    Link(destination: URL(string: "https://quit-all.vercel.app/privacy")!) {
                         HStack {
                             Image(systemName: "hand.raised.fill")
                                 .foregroundColor(gold)
@@ -93,7 +93,7 @@ struct SettingsView: View {
                         }
                     }
 
-                    Link(destination: URL(string: "https://apoorvdarshan.github.io/quit-all-web/terms")!) {
+                    Link(destination: URL(string: "https://quit-all.vercel.app/terms")!) {
                         HStack {
                             Image(systemName: "doc.text.fill")
                                 .foregroundColor(gold)

@@ -6,7 +6,7 @@
 
 <p align="center">Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine — all in one app.</p>
 
-**Website:** [quit-all-web](https://github.com/apoorvdarshan/quit-all-web)
+**Website:** [quit-all.vercel.app](https://quit-all.vercel.app)
 
 ## Features
 
@@ -115,9 +115,9 @@ Quit All/
 
 ## Links
 
-- **Website:** [quit-all-web](https://github.com/apoorvdarshan/quit-all-web)
-- **Privacy Policy:** Available on the website
-- **Terms of Service:** Available on the website
+- **Website:** [quit-all.vercel.app](https://quit-all.vercel.app)
+- **Privacy Policy:** [quit-all.vercel.app/privacy](https://quit-all.vercel.app/privacy)
+- **Terms of Service:** [quit-all.vercel.app/terms](https://quit-all.vercel.app/terms)
 
 ## License
 
