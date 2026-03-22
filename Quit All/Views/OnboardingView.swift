@@ -124,7 +124,12 @@ struct OnboardingView: View {
     // MARK: - Step 0: Quiz — Addiction Selection
     private var quizStep: some View {
         VStack(spacing: 20) {
-            Spacer().frame(height: 30)
+            Spacer().frame(height: 16)
+
+            Image("app_logo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 80, height: 80)
 
             Text("What are you\nquitting?")
                 .font(.system(size: 32, weight: .bold, design: .serif))
