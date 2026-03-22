@@ -45,10 +45,16 @@ final class PaywallManager {
         isLoading = true
         do {
             let productIDs = SubscriptionProduct.allCases.map { $0.rawValue }
-            products = try await Product.products(for: productIDs)
-                .sorted { $0.price < $1.price }
+            print("[PaywallManager] Requesting products: \(productIDs)")
+            let fetched = try await Product.products(for: productIDs)
+            print("[PaywallManager] Fetched \(fetched.count) products: \(fetched.map { $0.id })")
+            products = fetched.sorted { $0.price < $1.price }
+            if products.isEmpty {
+                purchaseError = "No products found. Check StoreKit configuration."
+            }
         } catch {
-            purchaseError = "Failed to load subscription options."
+            print("[PaywallManager] Error loading products: \(error)")
+            purchaseError = "Failed to load: \(error.localizedDescription)"
         }
         isLoading = false
     }
