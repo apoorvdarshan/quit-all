@@ -29,7 +29,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(hex: "0A0A0A").ignoresSafeArea()
+                Color(hex: "080808").ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // Multiple addiction cards (horizontal scroll)
@@ -143,25 +143,27 @@ struct HomeView: View {
                             selectedAddiction = addiction
                         }
                     } label: {
-                        VStack(spacing: 4) {
+                        VStack(spacing: 5) {
                             Image(type.iconName)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 32, height: 32)
+                                .frame(width: 30, height: 30)
                             Text(addiction.name ?? "")
-                                .font(.system(size: 12, weight: .medium, design: .rounded))
-                                .foregroundColor(.white)
+                                .font(.system(size: 11, weight: .semibold, design: .serif))
+                                .foregroundColor(isSelected ? Color(hex: "D4AF37") : .white.opacity(0.7))
+                                .textCase(.uppercase)
+                                .tracking(0.5)
                             Text("\(StreakEngine.daysSince(addiction.startDate))d")
-                                .font(.system(size: 11, weight: .bold, design: .rounded))
+                                .font(.system(size: 13, weight: .black, design: .rounded))
                                 .foregroundColor(type.color)
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)
-                        .background(isSelected ? type.color.opacity(0.2) : Color(hex: "141414"))
-                        .cornerRadius(12)
+                        .background(isSelected ? Color(hex: "1A1608") : Color(hex: "111111"))
+                        .cornerRadius(14)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(isSelected ? type.color : Color.clear, lineWidth: 2)
+                            RoundedRectangle(cornerRadius: 14)
+                                .stroke(isSelected ? Color(hex: "D4AF37").opacity(0.6) : Color.white.opacity(0.06), lineWidth: 1)
                         )
                     }
                 }
@@ -186,30 +188,48 @@ struct HomeView: View {
             ZStack {
                 // Background ring
                 Circle()
-                    .stroke(Color.white.opacity(0.08), lineWidth: 12)
+                    .stroke(Color(hex: "1A1A1A"), lineWidth: 10)
                     .frame(width: 260, height: 260)
 
-                // Progress ring
+                // Subtle track
+                Circle()
+                    .stroke(Color(hex: "D4AF37").opacity(0.08), lineWidth: 10)
+                    .frame(width: 260, height: 260)
+
+                // Progress ring — gold gradient
                 Circle()
                     .trim(from: 0, to: progress.progress)
                     .stroke(
-                        type.color,
-                        style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                        LinearGradient(
+                            colors: [Color(hex: "D4AF37"), Color(hex: "F5E6A3"), Color(hex: "D4AF37")],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
                     )
                     .frame(width: 260, height: 260)
                     .rotationEffect(.degrees(-90))
+                    .shadow(color: Color(hex: "D4AF37").opacity(0.4), radius: 8)
                     .animation(.spring(duration: 1.0), value: progress.progress)
 
                 // Streak number
                 VStack(spacing: 4) {
                     Text(streak.value)
-                        .font(.system(size: 88, weight: .black, design: .rounded))
-                        .foregroundColor(.white)
+                        .font(.system(size: 92, weight: .black, design: .serif))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [Color(hex: "F5E6A3"), Color(hex: "D4AF37"), Color(hex: "C5962C")],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
                         .contentTransition(.numericText())
+                        .shadow(color: Color(hex: "D4AF37").opacity(0.3), radius: 12)
 
                     Text("\(streak.unit) clean from \(addiction.name?.lowercased() ?? "")")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
-                        .foregroundColor(.gray)
+                        .font(.system(size: 13, weight: .medium, design: .serif))
+                        .foregroundColor(.white.opacity(0.5))
+                        .tracking(1)
                         .multilineTextAlignment(.center)
                 }
             }
@@ -237,8 +257,9 @@ struct HomeView: View {
             // Next milestone hint
             if let nextMilestone = progress.nextMilestone {
                 Text("Next: \(nextMilestone.title)")
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
-                    .foregroundColor(type.color.opacity(0.8))
+                    .font(.system(size: 12, weight: .medium, design: .serif))
+                    .foregroundColor(Color(hex: "D4AF37").opacity(0.6))
+                    .tracking(0.5)
                     .padding(.top, 4)
             }
 
@@ -251,20 +272,25 @@ struct HomeView: View {
             Image(iconName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 28, height: 28)
+                .frame(width: 26, height: 26)
             Text(value)
-                .font(.system(size: 15, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .font(.system(size: 15, weight: .bold, design: .serif))
+                .foregroundColor(Color(hex: "F5E6A3"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
-            Text(label)
-                .font(.system(size: 10, weight: .medium, design: .rounded))
-                .foregroundColor(.gray)
+            Text(label.uppercased())
+                .font(.system(size: 9, weight: .semibold, design: .serif))
+                .foregroundColor(.white.opacity(0.35))
+                .tracking(1)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 14)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(14)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color(hex: "D4AF37").opacity(0.1), lineWidth: 1)
+        )
     }
 
     private func formatCleanSince(_ date: Date?) -> String {
@@ -284,25 +310,26 @@ struct HomeView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.title2)
                 Text("I'M CRAVING")
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.system(size: 16, weight: .bold, design: .serif))
+                    .tracking(2)
             }
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .frame(height: 64)
             .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color.red)
-                    .shadow(color: .red.opacity(0.4), radius: 12, y: 4)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
+                RoundedRectangle(cornerRadius: 18)
                     .fill(
                         LinearGradient(
-                            colors: [Color.white.opacity(0.2), Color.clear],
+                            colors: [Color(hex: "8B0000"), Color(hex: "5C0000")],
                             startPoint: .top,
                             endPoint: .bottom
                         )
                     )
+                    .shadow(color: Color(hex: "8B0000").opacity(0.5), radius: 16, y: 6)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(Color(hex: "D4AF37").opacity(0.3), lineWidth: 1)
             )
         }
         .padding(.horizontal, 20)
