@@ -262,7 +262,7 @@ struct OnboardingView: View {
                             }
 
                             inputField(label: "WHEN DID YOU LAST DO IT?") {
-                                DatePicker("", selection: dateBinding(for: type), in: ...Date(), displayedComponents: [.date, .hourAndMinute])
+                                DatePicker("", selection: dateBinding(for: type), in: ...Date(), displayedComponents: [.date])
                                     .datePickerStyle(.compact)
                                     .labelsHidden()
                                     .tint(gold)
