@@ -1,0 +1,72 @@
+{
+  "identifier" : "8B3B4F2E-3A1C-4D5E-9F8A-1B2C3D4E5F6A",
+  "type" : "com.apple.storekit.testing.configuration",
+  "version" : 3,
+  "subscriptionGroups" : [
+    {
+      "id" : "quit_all_premium",
+      "localizations" : [
+        {
+          "description" : "Unlock all features in Quit All",
+          "displayName" : "Quit All Premium",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "Quit All Premium",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "7.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "monthly_001",
+          "introductoryOffer" : {
+            "displayPrice" : "0",
+            "internalID" : "trial_monthly",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Full access to all Quit All features",
+              "displayName" : "Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.quitall.premium.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly",
+          "subscriptionGroupID" : "quit_all_premium",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "49.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "yearly_001",
+          "introductoryOffer" : {
+            "displayPrice" : "0",
+            "internalID" : "trial_yearly",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P3D"
+          },
+          "localizations" : [
+            {
+              "description" : "Full access to all Quit All features — best value",
+              "displayName" : "Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "com.quitall.premium.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Yearly",
+          "subscriptionGroupID" : "quit_all_premium",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ]
+}
