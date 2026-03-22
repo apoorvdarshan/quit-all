@@ -698,8 +698,6 @@ struct OnboardingView: View {
         }
 
         UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
-        withAnimation(.spring(duration: 0.5)) {
-            hasCompletedOnboarding = true
-        }
+        hasCompletedOnboarding = true
     }
 }

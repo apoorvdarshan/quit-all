@@ -19,9 +19,7 @@ struct Quit_AllApp: App {
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
             .preferredColorScheme(.dark)
             .onReceive(NotificationCenter.default.publisher(for: .resetApp)) { _ in
-                withAnimation(.spring(duration: 0.4)) {
-                    hasCompletedOnboarding = false
-                }
+                hasCompletedOnboarding = false
             }
         }
     }
