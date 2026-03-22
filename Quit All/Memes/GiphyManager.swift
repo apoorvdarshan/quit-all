@@ -1,5 +1,7 @@
 import Foundation
 import SwiftUI
+import UIKit
+import ImageIO
 
 // MARK: - Giphy Manager
 // Fetches GIFs from Giphy API for meme display.
@@ -7,29 +9,8 @@ import SwiftUI
 final class GiphyManager {
     static let shared = GiphyManager()
 
-    // Read from .env file (gitignored — never committed)
-    private let apiKey: String = {
-        // Try project root .env
-        let projectPaths = [
-            Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent(".env"),
-            URL(fileURLWithPath: #filePath)  // source file location
-                .deletingLastPathComponent() // Memes/
-                .deletingLastPathComponent() // Quit All/
-                .deletingLastPathComponent() // project root
-                .appendingPathComponent(".env")
-        ]
-        for path in projectPaths {
-            if let contents = try? String(contentsOf: path, encoding: .utf8) {
-                for line in contents.components(separatedBy: .newlines) {
-                    let trimmed = line.trimmingCharacters(in: .whitespaces)
-                    if trimmed.hasPrefix("GIPHY_API_KEY=") {
-                        return String(trimmed.dropFirst("GIPHY_API_KEY=".count))
-                    }
-                }
-            }
-        }
-        return ""
-    }()
+    // API key loaded from Env.swift (generated from .env at build time)
+    private let apiKey = EnvConfig.giphyAPIKey
     private let baseURL = "https://api.giphy.com/v1/gifs"
 
     var cachedGifs: [String: [GiphyGif]] = [:]
@@ -39,8 +20,8 @@ final class GiphyManager {
     struct GiphyGif: Identifiable {
         let id: String
         let title: String
-        let gifURL: URL       // actual animated GIF
-        let previewURL: URL   // smaller preview
+        let gifURL: URL
+        let previewURL: URL
     }
 
     // Search terms per addiction type
@@ -66,6 +47,8 @@ final class GiphyManager {
     }
 
     func searchGifs(query: String, limit: Int = 20) async -> [GiphyGif] {
+        guard !apiKey.isEmpty else { return [] }
+
         if let cached = cachedGifs[query], !cached.isEmpty {
             return cached
         }
@@ -132,45 +115,42 @@ struct GIFImageView: UIViewRepresentable {
         imageView.backgroundColor = .clear
         imageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        loadGif(into: imageView)
         return imageView
     }
 
-    func updateUIView(_ imageView: UIImageView, context: Context) {
-        // Load GIF data and animate
+    func updateUIView(_ imageView: UIImageView, context: Context) {}
+
+    private func loadGif(into imageView: UIImageView) {
         Task {
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
-                if let source = CGImageSourceCreateWithData(data as CFData, nil) {
-                    let frameCount = CGImageSourceGetCount(source)
-                    var images: [UIImage] = []
-                    var duration: Double = 0
+                guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return }
+                let frameCount = CGImageSourceGetCount(source)
+                var images: [UIImage] = []
+                var duration: Double = 0
 
-                    for i in 0..<frameCount {
-                        if let cgImage = CGImageSourceCreateImageAtIndex(source, i, nil) {
-                            images.append(UIImage(cgImage: cgImage))
+                for i in 0..<frameCount {
+                    guard let cgImage = CGImageSourceCreateImageAtIndex(source, i, nil) else { continue }
+                    images.append(UIImage(cgImage: cgImage))
 
-                            // Get frame duration
-                            if let properties = CGImageSourceCopyPropertiesAtIndex(source, i, nil) as? [String: Any],
-                               let gifProps = properties[kCGImagePropertyGIFDictionary as String] as? [String: Any] {
-                                let delay = gifProps[kCGImagePropertyGIFUnclampedDelayTime as String] as? Double
-                                    ?? gifProps[kCGImagePropertyGIFDelayTime as String] as? Double
-                                    ?? 0.1
-                                duration += delay
-                            }
-                        }
-                    }
-
-                    await MainActor.run {
-                        imageView.animationImages = images
-                        imageView.animationDuration = duration
-                        imageView.animationRepeatCount = 0
-                        imageView.startAnimating()
-                        imageView.image = images.first
+                    if let properties = CGImageSourceCopyPropertiesAtIndex(source, i, nil) as? [String: Any],
+                       let gifProps = properties[kCGImagePropertyGIFDictionary as String] as? [String: Any] {
+                        let delay = gifProps[kCGImagePropertyGIFUnclampedDelayTime as String] as? Double
+                            ?? gifProps[kCGImagePropertyGIFDelayTime as String] as? Double
+                            ?? 0.1
+                        duration += delay
                     }
                 }
-            } catch {
-                // Silently fail — fallback text meme is shown
-            }
+
+                await MainActor.run {
+                    imageView.animationImages = images
+                    imageView.animationDuration = duration
+                    imageView.animationRepeatCount = 0
+                    imageView.startAnimating()
+                    imageView.image = images.first
+                }
+            } catch {}
         }
     }
 }
