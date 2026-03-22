@@ -1,17 +1,26 @@
 import SwiftUI
 import CoreData
 
-// MARK: - Onboarding View
+// MARK: - Onboarding Funnel View
 struct OnboardingView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Binding var hasCompletedOnboarding: Bool
 
-    @State private var currentStep = 0
+    // Flow state
+    @State private var currentStep = 0  // 0-7
     @State private var selectedAddictions: Set<AddictionType> = []
     @State private var addictionCosts: [AddictionType: String] = [:]
     @State private var addictionMotivations: [AddictionType: String] = [:]
     @State private var addictionStartDates: [AddictionType: Date] = [:]
     @State private var currentDetailIndex = 0
+    @State private var selectedSymptoms: Set<String> = []
+    @State private var featurePageIndex = 0
+    @State private var analysisProgress: Double = 0
+    @State private var showConfetti = false
+
+    private let gold = Color(hex: "D4AF37")
+    private let lightGold = Color(hex: "F5E6A3")
+    private let totalSteps = 8
 
     private var sortedSelected: [AddictionType] {
         Array(selectedAddictions).sorted { $0.rawValue < $1.rawValue }
@@ -22,16 +31,34 @@ struct OnboardingView: View {
             Color(hex: "080808").ignoresSafeArea()
 
             VStack(spacing: 0) {
+                // Progress bar
                 progressBar
+                    .padding(.top, 8)
 
-                switch currentStep {
-                case 0:
-                    addictionSelectionStep
-                case 1:
-                    detailInputStep
-                default:
-                    EmptyView()
+                // Steps
+                Group {
+                    switch currentStep {
+                    case 0: quizStep
+                    case 1: detailStep
+                    case 2: analysisStep
+                    case 3: symptomsStep
+                    case 4: featuresStep
+                    case 5: reviewsStep
+                    case 6: planStep
+                    case 7: paywallStep
+                    default: EmptyView()
+                    }
                 }
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading).combined(with: .opacity)
+                ))
+            }
+
+            if showConfetti {
+                ConfettiView()
+                    .ignoresSafeArea()
+                    .allowsHitTesting(false)
             }
         }
         .preferredColorScheme(.dark)
@@ -39,41 +66,67 @@ struct OnboardingView: View {
 
     // MARK: - Progress Bar
     private var progressBar: some View {
-        let totalSteps = 1 + sortedSelected.count
-        let currentProgress = currentStep == 0 ? 0 : currentDetailIndex + 1
-
-        return GeometryReader { geo in
+        GeometryReader { geo in
             ZStack(alignment: .leading) {
                 Rectangle()
-                    .fill(Color.white.opacity(0.1))
-                    .frame(height: 4)
+                    .fill(Color.white.opacity(0.06))
+                    .frame(height: 3)
                 Rectangle()
-                    .fill(Color.white)
-                    .frame(width: geo.size.width * CGFloat(currentProgress) / CGFloat(max(1, totalSteps)), height: 4)
-                    .animation(.spring(duration: 0.4), value: currentProgress)
+                    .fill(
+                        LinearGradient(colors: [gold, lightGold], startPoint: .leading, endPoint: .trailing)
+                    )
+                    .frame(width: geo.size.width * CGFloat(currentStep + 1) / CGFloat(totalSteps), height: 3)
+                    .animation(.spring(duration: 0.5), value: currentStep)
             }
         }
-        .frame(height: 4)
-        .padding(.top, 8)
+        .frame(height: 3)
     }
 
-    // MARK: - Step 1: Select Addictions
-    private var addictionSelectionStep: some View {
-        VStack(spacing: 24) {
-            Spacer().frame(height: 40)
-
-            Text("What are you quitting?")
-                .font(.system(size: 32, weight: .bold, design: .rounded))
+    // MARK: - Gold CTA Button
+    private func goldButton(_ title: String, enabled: Bool = true, action: @escaping () -> Void) -> some View {
+        Button {
+            HapticManager.shared.impact(.medium)
+            action()
+        } label: {
+            Text(title)
+                .font(.system(size: 15, weight: .bold, design: .serif))
                 .foregroundColor(.white)
+                .tracking(1.5)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .background(
+                    LinearGradient(
+                        colors: enabled ? [gold.opacity(0.9), Color(hex: "8B6914")] : [Color.gray.opacity(0.3), Color.gray.opacity(0.2)],
+                        startPoint: .top, endPoint: .bottom
+                    )
+                )
+                .cornerRadius(16)
+                .shadow(color: enabled ? gold.opacity(0.3) : .clear, radius: 12, y: 6)
+        }
+        .disabled(!enabled)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 32)
+    }
 
-            Text("Select all that apply")
-                .font(.subheadline)
-                .foregroundColor(.gray)
+    // MARK: - Step 0: Quiz — Addiction Selection
+    private var quizStep: some View {
+        VStack(spacing: 20) {
+            Spacer().frame(height: 30)
+
+            Text("What are you\nquitting?")
+                .font(.system(size: 32, weight: .bold, design: .serif))
+                .foregroundColor(lightGold)
+                .multilineTextAlignment(.center)
+
+            Text("SELECT ALL THAT APPLY")
+                .font(.system(size: 11, weight: .semibold, design: .serif))
+                .foregroundColor(.white.opacity(0.3))
+                .tracking(2)
 
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                     ForEach(AddictionType.allCases, id: \.self) { type in
-                        addictionCard(type)
+                        quizCard(type)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -81,9 +134,7 @@ struct OnboardingView: View {
 
             Spacer()
 
-            Button {
-                HapticManager.shared.impact(.medium)
-                guard !selectedAddictions.isEmpty else { return }
+            goldButton("CONTINUE", enabled: !selectedAddictions.isEmpty) {
                 for type in selectedAddictions {
                     if addictionStartDates[type] == nil {
                         addictionStartDates[type] = Date()
@@ -93,123 +144,86 @@ struct OnboardingView: View {
                     currentStep = 1
                     currentDetailIndex = 0
                 }
-            } label: {
-                Text("Continue")
-                    .font(.headline)
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(selectedAddictions.isEmpty ? Color.gray : Color.white)
-                    .cornerRadius(16)
             }
-            .disabled(selectedAddictions.isEmpty)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 32)
         }
     }
 
-    private func addictionCard(_ type: AddictionType) -> some View {
+    private func quizCard(_ type: AddictionType) -> some View {
         let isSelected = selectedAddictions.contains(type)
 
         return Button {
             HapticManager.shared.selection()
             withAnimation(.spring(duration: 0.3)) {
-                if isSelected {
-                    selectedAddictions.remove(type)
-                } else {
-                    selectedAddictions.insert(type)
-                }
+                if isSelected { selectedAddictions.remove(type) }
+                else { selectedAddictions.insert(type) }
             }
         } label: {
-            VStack(spacing: 6) {
+            VStack(spacing: 8) {
                 Image(type.iconName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 64, height: 64)
-                Text(type.rawValue)
-                    .font(.subheadline.weight(.medium))
-                    .foregroundColor(.white)
+                    .frame(width: 44, height: 44)
+                Text(type.rawValue.uppercased())
+                    .font(.system(size: 11, weight: .semibold, design: .serif))
+                    .foregroundColor(isSelected ? lightGold : .white.opacity(0.5))
+                    .tracking(0.5)
             }
             .frame(maxWidth: .infinity)
             .frame(height: 100)
-            .background(isSelected ? type.color.opacity(0.3) : Color(hex: "111111"))
+            .background(isSelected ? gold.opacity(0.12) : Color(hex: "111111"))
             .cornerRadius(16)
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(isSelected ? type.color : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? gold.opacity(0.5) : Color.white.opacity(0.06), lineWidth: 1)
             )
         }
     }
 
-    // MARK: - Step 2: Details per addiction
-    private var detailInputStep: some View {
+    // MARK: - Step 1: Detail Input
+    private var detailStep: some View {
         let addictions = sortedSelected
-        guard currentDetailIndex < addictions.count else {
-            return AnyView(EmptyView())
-        }
+        guard currentDetailIndex < addictions.count else { return AnyView(EmptyView()) }
         let type = addictions[currentDetailIndex]
 
         return AnyView(
             VStack(spacing: 0) {
                 ScrollView {
                     VStack(spacing: 24) {
-                        Spacer().frame(height: 40)
+                        Spacer().frame(height: 20)
 
                         Image(type.iconName)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 100, height: 100)
+                            .frame(width: 72, height: 72)
 
                         Text("Quitting \(type.rawValue)")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
+                            .font(.system(size: 26, weight: .bold, design: .serif))
+                            .foregroundColor(lightGold)
 
                         VStack(alignment: .leading, spacing: 16) {
-                            // Cost input
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("How much do you spend per day?")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-
+                            inputField(label: "DAILY SPENDING") {
                                 HStack {
                                     Text(Locale.current.currencySymbol ?? "$")
-                                        .foregroundColor(.gray)
+                                        .font(.system(size: 16, design: .serif))
+                                        .foregroundColor(gold.opacity(0.5))
                                     TextField("0", text: binding(for: type, in: $addictionCosts))
                                         .keyboardType(.decimalPad)
-                                        .foregroundColor(.white)
-                                        .font(.title2.weight(.semibold))
+                                        .foregroundColor(lightGold)
+                                        .font(.system(size: 22, weight: .bold, design: .serif))
                                 }
-                                .padding()
-                                .background(Color(hex: "111111"))
-                                .cornerRadius(12)
                             }
 
-                            // Motivation input
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Why are you quitting?")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-
+                            inputField(label: "WHY ARE YOU QUITTING?") {
                                 TextField("For my health, family...", text: binding(for: type, in: $addictionMotivations))
-                                    .foregroundColor(.white)
-                                    .padding()
-                                    .background(Color(hex: "111111"))
-                                    .cornerRadius(12)
+                                    .font(.system(size: 15, design: .serif))
+                                    .foregroundColor(.white.opacity(0.8))
                             }
 
-                            // Last use date
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("When did you last do it?")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-
+                            inputField(label: "WHEN DID YOU LAST DO IT?") {
                                 DatePicker("", selection: dateBinding(for: type), in: ...Date(), displayedComponents: [.date, .hourAndMinute])
                                     .datePickerStyle(.compact)
                                     .labelsHidden()
-                                    .tint(type.color)
-                                    .padding()
-                                    .background(Color(hex: "111111"))
-                                    .cornerRadius(12)
+                                    .tint(gold)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -227,46 +241,372 @@ struct OnboardingView: View {
                         Button {
                             HapticManager.shared.selection()
                             withAnimation(.spring(duration: 0.3)) {
-                                if currentDetailIndex > 0 {
-                                    currentDetailIndex -= 1
-                                } else {
-                                    currentStep = 0
-                                }
+                                if currentDetailIndex > 0 { currentDetailIndex -= 1 }
+                                else { currentStep = 0 }
                             }
                         } label: {
-                            Text("Back")
-                                .font(.headline)
-                                .foregroundColor(.white)
+                            Text("BACK")
+                                .font(.system(size: 14, weight: .semibold, design: .serif))
+                                .foregroundColor(gold)
+                                .tracking(1)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 56)
                                 .background(Color(hex: "111111"))
                                 .cornerRadius(16)
+                                .overlay(RoundedRectangle(cornerRadius: 16).stroke(gold.opacity(0.15), lineWidth: 1))
                         }
                     }
 
-                    Button {
-                        HapticManager.shared.impact(.medium)
+                    goldButton(currentDetailIndex == addictions.count - 1 ? "ANALYZE" : "NEXT") {
                         if currentDetailIndex < addictions.count - 1 {
-                            withAnimation(.spring(duration: 0.3)) {
-                                currentDetailIndex += 1
-                            }
+                            withAnimation(.spring(duration: 0.3)) { currentDetailIndex += 1 }
                         } else {
                             saveAddictions()
+                            withAnimation(.spring(duration: 0.4)) { currentStep = 2 }
                         }
+                    }
+                }
+                .padding(.horizontal, currentDetailIndex > 0 || currentStep > 0 ? 20 : 0)
+            }
+        )
+    }
+
+    private func inputField<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(label)
+                .font(.system(size: 11, weight: .semibold, design: .serif))
+                .foregroundColor(gold.opacity(0.6))
+                .tracking(1.5)
+
+            content()
+                .padding()
+                .background(Color(hex: "111111"))
+                .cornerRadius(12)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(gold.opacity(0.1), lineWidth: 1))
+        }
+    }
+
+    // MARK: - Step 2: Analysis (fake loading)
+    private var analysisStep: some View {
+        VStack(spacing: 32) {
+            Spacer()
+
+            Text("ANALYZING YOUR HABITS")
+                .font(.system(size: 12, weight: .bold, design: .serif))
+                .foregroundColor(gold)
+                .tracking(3)
+
+            // Circular progress
+            ZStack {
+                Circle()
+                    .stroke(Color.white.opacity(0.06), lineWidth: 6)
+                    .frame(width: 160, height: 160)
+                Circle()
+                    .trim(from: 0, to: analysisProgress)
+                    .stroke(
+                        LinearGradient(colors: [gold, lightGold], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                    )
+                    .frame(width: 160, height: 160)
+                    .rotationEffect(.degrees(-90))
+
+                Text("\(Int(analysisProgress * 100))%")
+                    .font(.system(size: 40, weight: .black, design: .serif))
+                    .foregroundColor(lightGold)
+                    .contentTransition(.numericText())
+            }
+
+            VStack(spacing: 8) {
+                let totalCost = selectedAddictions.reduce(0.0) { $0 + (Double(addictionCosts[$1] ?? "0") ?? 0) }
+
+                Text("You spend \(CostCalculator.formatCurrency(totalCost * 30))/month")
+                    .font(.system(size: 16, weight: .semibold, design: .serif))
+                    .foregroundColor(.white.opacity(analysisProgress > 0.5 ? 0.8 : 0))
+
+                Text("That's \(CostCalculator.formatCurrency(totalCost * 365))/year you could save")
+                    .font(.system(size: 14, design: .serif))
+                    .foregroundColor(gold.opacity(analysisProgress > 0.8 ? 0.7 : 0))
+            }
+            .animation(.easeIn(duration: 0.3), value: analysisProgress)
+
+            Spacer()
+        }
+        .onAppear { runAnalysis() }
+    }
+
+    private func runAnalysis() {
+        analysisProgress = 0
+        let steps = 30
+        for i in 1...steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.1) {
+                withAnimation(.spring(duration: 0.2)) {
+                    analysisProgress = Double(i) / Double(steps)
+                }
+                if i == steps {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        withAnimation(.spring(duration: 0.4)) { currentStep = 3 }
+                    }
+                }
+            }
+        }
+    }
+
+    // MARK: - Step 3: Symptoms
+    private var symptomsStep: some View {
+        let symptoms = ["Anxiety & stress", "Sleep problems", "Financial stress", "Relationship issues",
+                        "Health concerns", "Guilt & shame", "Low energy", "Social pressure"]
+
+        return VStack(spacing: 20) {
+            Spacer().frame(height: 30)
+
+            Text("Do you experience\nany of these?")
+                .font(.system(size: 28, weight: .bold, design: .serif))
+                .foregroundColor(lightGold)
+                .multilineTextAlignment(.center)
+
+            Text("SELECT ALL THAT APPLY")
+                .font(.system(size: 11, weight: .semibold, design: .serif))
+                .foregroundColor(.white.opacity(0.3))
+                .tracking(2)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
+                ForEach(symptoms, id: \.self) { symptom in
+                    let isSelected = selectedSymptoms.contains(symptom)
+                    Button {
+                        HapticManager.shared.selection()
+                        if isSelected { selectedSymptoms.remove(symptom) }
+                        else { selectedSymptoms.insert(symptom) }
                     } label: {
-                        Text(currentDetailIndex == addictions.count - 1 ? "Start My Journey" : "Next")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 56)
-                            .background(type.color)
-                            .cornerRadius(16)
+                        HStack(spacing: 8) {
+                            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(isSelected ? gold : .white.opacity(0.2))
+                            Text(symptom)
+                                .font(.system(size: 13, weight: .medium, design: .serif))
+                                .foregroundColor(isSelected ? lightGold : .white.opacity(0.6))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, 14)
+                        .padding(.horizontal, 14)
+                        .background(isSelected ? gold.opacity(0.1) : Color(hex: "111111"))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(isSelected ? gold.opacity(0.4) : Color.white.opacity(0.06), lineWidth: 1)
+                        )
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+
+            Spacer()
+
+            goldButton("CONTINUE") {
+                withAnimation(.spring(duration: 0.4)) { currentStep = 4 }
+            }
+        }
+    }
+
+    // MARK: - Step 4: Features
+    private var featuresStep: some View {
+        let features: [(icon: String, title: String, desc: String)] = [
+            ("exclamationmark.triangle.fill", "SOS CRAVING BUTTON", "Instant GIF distraction when urges hit. Swipe through memes while the craving passes."),
+            ("chart.bar.fill", "SMART TRACKING", "Know your triggers, danger times, and patterns. Your data reveals what works."),
+            ("trophy.fill", "MILESTONE REWARDS", "Celebrate every win with health facts. Share your progress with shareable cards."),
+            ("arrow.counterclockwise", "NO JUDGMENT", "Log relapses without shame. Restart instantly. Your streak history is always saved."),
+        ]
+
+        return VStack(spacing: 20) {
+            Spacer().frame(height: 30)
+
+            Text("How Quit All\nhelps you")
+                .font(.system(size: 28, weight: .bold, design: .serif))
+                .foregroundColor(lightGold)
+                .multilineTextAlignment(.center)
+
+            TabView(selection: $featurePageIndex) {
+                ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
+                    VStack(spacing: 20) {
+                        Spacer()
+                        Image(systemName: feature.icon)
+                            .font(.system(size: 48))
+                            .foregroundColor(gold)
+
+                        Text(feature.title)
+                            .font(.system(size: 16, weight: .bold, design: .serif))
+                            .foregroundColor(.white)
+                            .tracking(2)
+
+                        Text(feature.desc)
+                            .font(.system(size: 15, design: .serif))
+                            .foregroundColor(.white.opacity(0.6))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 32)
+
+                        Spacer()
+                    }
+                    .tag(index)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .automatic))
+
+            goldButton("CONTINUE") {
+                withAnimation(.spring(duration: 0.4)) { currentStep = 5 }
+            }
+        }
+    }
+
+    // MARK: - Step 5: Reviews
+    private var reviewsStep: some View {
+        let reviews: [(text: String, author: String, days: String)] = [
+            ("This app literally saved my marriage. The SOS button got me through the worst nights.", "Mike R.", "127 days clean"),
+            ("47 days clean from smoking. Never thought I'd say that. The memes genuinely help.", "Sarah K.", "47 days clean"),
+            ("The no-shame relapse flow changed everything. I don't feel like a failure anymore.", "James L.", "89 days clean"),
+            ("I saved over $2,000 in 3 months. Seeing that number grow is addicting — in a good way.", "Priya M.", "94 days clean"),
+        ]
+
+        return VStack(spacing: 20) {
+            Spacer().frame(height: 30)
+
+            Text("People are\nquitting for good")
+                .font(.system(size: 28, weight: .bold, design: .serif))
+                .foregroundColor(lightGold)
+                .multilineTextAlignment(.center)
+
+            ScrollView {
+                VStack(spacing: 12) {
+                    ForEach(reviews, id: \.author) { review in
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack(spacing: 2) {
+                                ForEach(0..<5, id: \.self) { _ in
+                                    Image(systemName: "star.fill")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(gold)
+                                }
+                            }
+
+                            Text("\"\(review.text)\"")
+                                .font(.system(size: 14, design: .serif))
+                                .foregroundColor(.white.opacity(0.8))
+                                .italic()
+
+                            HStack {
+                                Text("— \(review.author)")
+                                    .font(.system(size: 12, weight: .semibold, design: .serif))
+                                    .foregroundColor(.white.opacity(0.5))
+                                Spacer()
+                                Text(review.days)
+                                    .font(.system(size: 11, weight: .bold, design: .serif))
+                                    .foregroundColor(gold.opacity(0.6))
+                            }
+                        }
+                        .padding(16)
+                        .background(Color(hex: "111111"))
+                        .cornerRadius(14)
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(gold.opacity(0.08), lineWidth: 1))
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 32)
             }
-        )
+
+            goldButton("CONTINUE") {
+                withAnimation(.spring(duration: 0.4)) { currentStep = 6 }
+            }
+        }
+    }
+
+    // MARK: - Step 6: Custom Plan
+    private var planStep: some View {
+        VStack(spacing: 20) {
+            Spacer().frame(height: 30)
+
+            Text("Your quit plan\nis ready")
+                .font(.system(size: 28, weight: .bold, design: .serif))
+                .foregroundColor(lightGold)
+                .multilineTextAlignment(.center)
+
+            ScrollView {
+                VStack(spacing: 12) {
+                    // Selected addictions summary
+                    ForEach(sortedSelected, id: \.self) { type in
+                        HStack(spacing: 12) {
+                            Image(type.iconName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(type.rawValue.uppercased())
+                                    .font(.system(size: 13, weight: .bold, design: .serif))
+                                    .foregroundColor(.white)
+                                    .tracking(0.5)
+                                let cost = Double(addictionCosts[type] ?? "0") ?? 0
+                                if cost > 0 {
+                                    Text("Saving \(CostCalculator.formatCurrency(cost))/day")
+                                        .font(.system(size: 12, design: .serif))
+                                        .foregroundColor(gold.opacity(0.6))
+                                }
+                            }
+                            Spacer()
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(gold)
+                        }
+                        .padding(14)
+                        .background(Color(hex: "111111"))
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal, 20)
+
+                    // Timeline
+                    VStack(alignment: .leading, spacing: 0) {
+                        timelineItem(time: "DAY 1", text: "Withdrawal peaks. SOS button is your best friend.", isFirst: true)
+                        timelineItem(time: "WEEK 1", text: "Worst is over. Your body is already healing.")
+                        timelineItem(time: "MONTH 1", text: "Habit officially broken. Brain rewired.")
+                        timelineItem(time: "YEAR 1", text: "You changed your life. Risk drops 50%.", isLast: true)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                }
+            }
+
+            goldButton("SEE MY PLAN") {
+                withAnimation(.spring(duration: 0.4)) { currentStep = 7 }
+            }
+        }
+    }
+
+    private func timelineItem(time: String, text: String, isFirst: Bool = false, isLast: Bool = false) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            VStack(spacing: 0) {
+                if !isFirst {
+                    Rectangle().fill(gold.opacity(0.2)).frame(width: 2, height: 12)
+                }
+                Circle().fill(gold).frame(width: 10, height: 10)
+                if !isLast {
+                    Rectangle().fill(gold.opacity(0.2)).frame(width: 2, height: 30)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(time)
+                    .font(.system(size: 11, weight: .bold, design: .serif))
+                    .foregroundColor(gold)
+                    .tracking(1)
+                Text(text)
+                    .font(.system(size: 13, design: .serif))
+                    .foregroundColor(.white.opacity(0.6))
+            }
+            .padding(.top, isFirst ? 0 : 4)
+        }
+    }
+
+    // MARK: - Step 7: Paywall
+    private var paywallStep: some View {
+        PaywallView {
+            HapticManager.shared.notification(.success)
+            showConfetti = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                completeOnboarding()
+            }
+        }
     }
 
     // MARK: - Helpers
@@ -300,10 +640,12 @@ struct OnboardingView: View {
                 context: viewContext
             )
         }
+    }
 
-        // Request notification permission
+    private func completeOnboarding() {
         Task {
             _ = await NotificationManager.shared.requestPermission()
+            AddictionTracker.shared.loadActiveAddictions(context: viewContext)
             let addictions = AddictionTracker.shared.activeAddictions
             for addiction in addictions {
                 let aType = AddictionTracker.shared.addictionType(for: addiction)
