@@ -114,6 +114,75 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Screenshots */}
+      <section className="screenshots">
+        <div className="container" style={{ marginBottom: 48 }}>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.p variants={fadeUp} custom={0} className="features-label">See it in action</motion.p>
+            <motion.h2 variants={fadeUp} custom={1} className="features-title">
+              Built for <em>real moments.</em>
+            </motion.h2>
+          </motion.div>
+        </div>
+        <motion.div className="screenshots-scroll"
+          initial="hidden" whileInView="visible" viewport={{ once: true }}>
+          {["ss-onboarding", "ss-sos2", "ss-sos1", "ss-stats", "ss-sos3", "ss-sos4"].map((ss, i) => (
+            <motion.div key={ss} className="screenshot-item" variants={fadeUp} custom={i * 0.5}>
+              <Image src={`/${ss}.png`} alt="App screenshot" width={260} height={563} style={{ width: "100%", height: "auto" }} />
+            </motion.div>
+          ))}
+        </motion.div>
+      </section>
+
+      {/* Pricing */}
+      <section className="pricing">
+        <div className="container" style={{ textAlign: "center" }}>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.p variants={fadeUp} custom={0} className="features-label">Pricing</motion.p>
+            <motion.h2 variants={fadeUp} custom={1} className="features-title" style={{ marginLeft: "auto", marginRight: "auto" }}>
+              Invest in <em>yourself.</em>
+            </motion.h2>
+            <motion.p variants={fadeUp} custom={2} className="features-subtitle" style={{ marginLeft: "auto", marginRight: "auto" }}>
+              Less than a pack of cigarettes. Less than a night out drinking. Worth more than both.
+            </motion.p>
+          </motion.div>
+
+          <motion.div className="pricing-grid"
+            initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.div variants={fadeUp} custom={0} className="pricing-card">
+              <p className="pricing-name">Monthly</p>
+              <p className="pricing-price">$7.99<span>/mo</span></p>
+              <p className="pricing-sub">Billed monthly</p>
+              <ul className="pricing-features">
+                <li>All 9 addiction types</li>
+                <li>SOS craving GIFs &amp; memes</li>
+                <li>Stats &amp; pattern detection</li>
+                <li>Milestones &amp; sharing</li>
+                <li>Smart notifications</li>
+              </ul>
+              <button className="pricing-btn pricing-btn-secondary">Get Started</button>
+            </motion.div>
+
+            <motion.div variants={fadeUp} custom={1} className="pricing-card featured">
+              <div className="pricing-badge">Save 48%</div>
+              <p className="pricing-name">Yearly</p>
+              <p className="pricing-price">$49.99<span>/yr</span></p>
+              <p className="pricing-sub">$4.17/month — best value</p>
+              <ul className="pricing-features">
+                <li>Everything in Monthly</li>
+                <li>Save $45.89 per year</li>
+                <li>Priority future features</li>
+                <li>Support development</li>
+                <li>Cancel anytime</li>
+              </ul>
+              <button className="pricing-btn pricing-btn-primary">Get Started</button>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      <div className="gold-line" />
+
       <section className="stats">
         <div className="container">
           <div className="stats-grid">
