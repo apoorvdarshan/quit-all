@@ -8,6 +8,11 @@ struct StatsView: View {
 
     let addiction: CDAddiction
 
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \CDAddiction.sortOrder, ascending: true)],
+        predicate: NSPredicate(format: "isActive == YES")
+    ) private var allAddictions: FetchedResults<CDAddiction>
+
     @State private var patterns: PatternDetector.Patterns = .init()
     @State private var cravings: [CDCravingEvent] = []
 
@@ -22,6 +27,12 @@ struct StatsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Overall summary
+                    if allAddictions.count > 1 {
+                        overallSummaryCard
+                            .padding(.horizontal, 20)
+                    }
+
                     calendarHeatmap
                         .padding(.horizontal, 20)
 
@@ -341,5 +352,115 @@ struct StatsView: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(gold.opacity(0.08), lineWidth: 1)
         )
+    }
+
+    // MARK: - Overall Summary
+    private var overallSummaryCard: some View {
+        let totalSaved = allAddictions.reduce(0.0) { $0 + CostCalculator.moneySaved(dailyCost: $1.dailyCost, startDate: $1.startDate) }
+        let currency = allAddictions.first?.currency
+        let streaks = allAddictions.map { StreakEngine.daysSince($0.startDate) }
+        let avgStreak = streaks.isEmpty ? 0 : streaks.reduce(0, +) / streaks.count
+        let totalCravingCount = allAddictions.reduce(0) { $0 + CravingLogger.shared.cravingCount(for: $1, context: viewContext) }
+        let totalSurvivedCount = allAddictions.reduce(0) { $0 + CravingLogger.shared.survivedCount(for: $1, context: viewContext) }
+        let survivalRate = totalCravingCount > 0 ? Int(Double(totalSurvivedCount) / Double(totalCravingCount) * 100) : 0
+
+        return VStack(spacing: 16) {
+            Text("OVERALL")
+                .font(.system(size: 12, weight: .semibold, design: .serif))
+                .foregroundColor(gold.opacity(0.7))
+                .tracking(1.5)
+
+            // Total saved hero
+            Text(CostCalculator.formatCurrency(totalSaved, currencyCode: currency))
+                .font(.system(size: 32, weight: .black, design: .serif))
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [Color(hex: "F5E6A3"), Color(hex: "D4AF37")],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+
+            Text("TOTAL SAVED")
+                .font(.system(size: 10, weight: .semibold, design: .serif))
+                .foregroundColor(.white.opacity(0.3))
+                .tracking(2)
+
+            // Stats grid
+            HStack(spacing: 0) {
+                overallStat(value: "\(allAddictions.count)", label: "TRACKING")
+                overallDivider
+                overallStat(value: "\(avgStreak)d", label: "AVG STREAK")
+                overallDivider
+                overallStat(value: "\(totalCravingCount)", label: "CRAVINGS")
+                overallDivider
+                overallStat(value: "\(survivalRate)%", label: "SURVIVED")
+            }
+
+            // Per-addiction mini bars
+            VStack(spacing: 8) {
+                ForEach(allAddictions) { a in
+                    let type = AddictionTracker.shared.addictionType(for: a)
+                    let days = StreakEngine.daysSince(a.startDate)
+                    let saved = CostCalculator.moneySaved(dailyCost: a.dailyCost, startDate: a.startDate)
+                    let maxDays = max(1, streaks.max() ?? 1)
+
+                    HStack(spacing: 8) {
+                        Image(type.iconName)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 18, height: 18)
+
+                        Text((a.name ?? "").uppercased())
+                            .font(.system(size: 10, weight: .semibold, design: .serif))
+                            .foregroundColor(.white.opacity(0.6))
+                            .tracking(0.5)
+                            .frame(width: 70, alignment: .leading)
+
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(Color.white.opacity(0.06))
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(type.color)
+                                    .frame(width: geo.size.width * CGFloat(days) / CGFloat(maxDays))
+                            }
+                        }
+                        .frame(height: 10)
+
+                        Text("\(days)d")
+                            .font(.system(size: 11, weight: .bold, design: .serif).monospacedDigit())
+                            .foregroundColor(lightGold)
+                            .frame(width: 32, alignment: .trailing)
+                    }
+                }
+            }
+        }
+        .padding(20)
+        .background(Color(hex: "111111"))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.15), lineWidth: 1)
+        )
+    }
+
+    private func overallStat(value: String, label: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 16, weight: .bold, design: .serif))
+                .foregroundColor(.white)
+            Text(label)
+                .font(.system(size: 7, weight: .semibold, design: .serif))
+                .foregroundColor(.white.opacity(0.3))
+                .tracking(0.5)
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var overallDivider: some View {
+        Rectangle()
+            .fill(gold.opacity(0.15))
+            .frame(width: 1, height: 30)
     }
 }
