@@ -44,7 +44,7 @@ const sections = [
   },
   {
     title: "Children\u2019s Privacy",
-    content: "Quit All is not intended for children under 17. We do not knowingly collect data from children.",
+    content: "Quit All is rated 18+ and is not intended for children. We do not knowingly collect data from children.",
   },
   {
     title: "Changes to This Policy",
