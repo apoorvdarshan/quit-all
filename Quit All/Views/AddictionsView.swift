@@ -27,44 +27,53 @@ struct AddictionsView: View {
                     let type = AddictionTracker.shared.addictionType(for: addiction)
                     let days = StreakEngine.daysSince(addiction.startDate)
 
-                    Button {
-                        editingAddiction = addiction
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(type.iconName)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 38, height: 38)
+                    HStack(spacing: 12) {
+                        Button {
+                            editingAddiction = addiction
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(type.iconName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: 38, height: 38)
 
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text((addiction.name ?? "").uppercased())
-                                    .font(.system(size: 14, weight: .semibold, design: .serif))
-                                    .foregroundColor(.white)
-                                    .tracking(0.5)
-                                Text("\(days) days clean")
-                                    .font(.system(size: 12, weight: .medium, design: .serif))
-                                    .foregroundColor(gold.opacity(0.6))
-                            }
-
-                            Spacer()
-
-                            if addiction.dailyCost > 0 {
-                                VStack(alignment: .trailing, spacing: 2) {
-                                    Text(CostCalculator.formatCurrency(addiction.dailyCost, currencyCode: addiction.currency) + "/day")
-                                        .font(.system(size: 11, design: .serif))
-                                        .foregroundColor(.white.opacity(0.3))
-                                    Text(CostCalculator.formatCurrency(
-                                        CostCalculator.moneySaved(dailyCost: addiction.dailyCost, startDate: addiction.startDate),
-                                        currencyCode: addiction.currency
-                                    ))
-                                    .font(.system(size: 14, weight: .bold, design: .serif))
-                                    .foregroundColor(lightGold)
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text((addiction.name ?? "").uppercased())
+                                        .font(.system(size: 14, weight: .semibold, design: .serif))
+                                        .foregroundColor(.white)
+                                        .tracking(0.5)
+                                    Text("\(days) days clean")
+                                        .font(.system(size: 12, weight: .medium, design: .serif))
+                                        .foregroundColor(gold.opacity(0.6))
                                 }
-                            }
 
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 11))
-                                .foregroundColor(gold.opacity(0.3))
+                                Spacer()
+
+                                if addiction.dailyCost > 0 {
+                                    VStack(alignment: .trailing, spacing: 2) {
+                                        Text(CostCalculator.formatCurrency(addiction.dailyCost, currencyCode: addiction.currency) + "/day")
+                                            .font(.system(size: 11, design: .serif))
+                                            .foregroundColor(.white.opacity(0.3))
+                                        Text(CostCalculator.formatCurrency(
+                                            CostCalculator.moneySaved(dailyCost: addiction.dailyCost, startDate: addiction.startDate),
+                                            currencyCode: addiction.currency
+                                        ))
+                                        .font(.system(size: 14, weight: .bold, design: .serif))
+                                        .foregroundColor(lightGold)
+                                    }
+                                }
+
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(gold.opacity(0.3))
+                            }
+                        }
+                    }
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            AddictionTracker.shared.deleteAddiction(addiction, context: viewContext)
+                        } label: {
+                            Image(systemName: "trash")
                         }
                     }
                     .listRowBackground(
@@ -75,7 +84,6 @@ struct AddictionsView: View {
                             )
                     )
                 }
-                .onDelete(perform: deleteAddictions)
                 .onMove(perform: moveAddictions)
             }
             .scrollContentBackground(.hidden)
@@ -93,9 +101,17 @@ struct AddictionsView: View {
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                        .font(.system(size: 15, design: .serif))
-                        .foregroundColor(gold)
+                    Menu {
+                        Button {
+                            resetOrder()
+                        } label: {
+                            Label("Reset Order", systemImage: "arrow.counterclockwise")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .font(.system(size: 15))
+                            .foregroundColor(gold)
+                    }
                 }
             }
             .sheet(item: $editingAddiction) { addiction in
@@ -110,6 +126,15 @@ struct AddictionsView: View {
             let addiction = addictions[index]
             AddictionTracker.shared.deleteAddiction(addiction, context: viewContext)
         }
+    }
+
+    private func resetOrder() {
+        let sorted = addictions.sorted { ($0.startDate ?? .distantPast) < ($1.startDate ?? .distantPast) }
+        for (index, item) in sorted.enumerated() {
+            item.sortOrder = Int32(index)
+        }
+        AddictionTracker.shared.saveContext(viewContext)
+        HapticManager.shared.notification(.success)
     }
 
     private func moveAddictions(from source: IndexSet, to destination: Int) {
