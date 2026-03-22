@@ -231,6 +231,9 @@ struct HomeView: View {
                         .foregroundColor(.white.opacity(0.5))
                         .tracking(1)
                         .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                        .frame(maxWidth: 200)
                 }
             }
             .onTapGesture {
