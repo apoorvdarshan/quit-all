@@ -1,12 +1,13 @@
 import SwiftUI
 import StoreKit
 
-// MARK: - Paywall View
+// MARK: - Hard Paywall View — No Skip, 3-Day Free Trial
 struct PaywallView: View {
     let onComplete: () -> Void
 
     @State private var selectedProduct: Product?
     @State private var isPurchasing = false
+    @State private var isRestoring = false
 
     private let gold = Color(hex: "D4AF37")
     private let lightGold = Color(hex: "F5E6A3")
@@ -19,54 +20,63 @@ struct PaywallView: View {
                 VStack(spacing: 24) {
                     Spacer().frame(height: 20)
 
+                    // Logo
+                    Image("app_logo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 60, height: 60)
+
                     // Header
-                    VStack(spacing: 8) {
-                        Text("UNLOCK EVERYTHING")
+                    VStack(spacing: 10) {
+                        Text("START YOUR 3-DAY")
                             .font(.system(size: 12, weight: .bold, design: .serif))
                             .foregroundColor(gold)
                             .tracking(3)
 
-                        Text("Start Your\nFree Trial")
-                            .font(.system(size: 34, weight: .bold, design: .serif))
+                        Text("Free Trial")
+                            .font(.system(size: 38, weight: .bold, design: .serif))
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [lightGold, gold],
+                                    colors: [lightGold, gold, Color(hex: "C5962C")],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )
                             )
-                            .multilineTextAlignment(.center)
+
+                        Text("Then unlock everything.")
+                            .font(.system(size: 15, design: .serif))
+                            .foregroundColor(.white.opacity(0.4))
                     }
 
                     // Features list
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: 16) {
                         featureRow(icon: "flame.fill", text: "SOS craving intervention with GIFs")
                         featureRow(icon: "chart.bar.fill", text: "Advanced stats & pattern detection")
                         featureRow(icon: "trophy.fill", text: "Milestones with shareable cards")
                         featureRow(icon: "dollarsign.circle.fill", text: "Cost calculator & savings projections")
                         featureRow(icon: "bell.fill", text: "Smart notifications at danger times")
                         featureRow(icon: "arrow.counterclockwise", text: "No-shame relapse tracking")
+                        featureRow(icon: "face.smiling.fill", text: "2,790+ motivational memes")
                     }
                     .padding(.horizontal, 24)
+                    .padding(.vertical, 8)
 
                     // Subscription options
                     VStack(spacing: 12) {
-                        // Yearly — recommended
                         subscriptionCard(
                             title: "YEARLY",
                             price: "$49.99/year",
-                            subtitle: "$4.17/month",
+                            subtitle: "$4.17/month — best value",
                             badge: "SAVE 48%",
                             isSelected: selectedProduct?.id == SubscriptionProduct.yearly.rawValue
                         ) {
                             selectProduct(id: SubscriptionProduct.yearly.rawValue)
                         }
 
-                        // Monthly
                         subscriptionCard(
                             title: "MONTHLY",
                             price: "$7.99/month",
-                            subtitle: "",
+                            subtitle: "Billed monthly",
                             badge: nil,
                             isSelected: selectedProduct?.id == SubscriptionProduct.monthly.rawValue
                         ) {
@@ -83,14 +93,14 @@ struct PaywallView: View {
                             if isPurchasing {
                                 ProgressView().tint(.white)
                             } else {
-                                Text("START FREE TRIAL")
-                                    .font(.system(size: 16, weight: .bold, design: .serif))
+                                Text("START 3-DAY FREE TRIAL")
+                                    .font(.system(size: 15, weight: .bold, design: .serif))
                                     .tracking(2)
                             }
                         }
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 56)
+                        .frame(height: 58)
                         .background(
                             LinearGradient(
                                 colors: [gold, Color(hex: "8B6914")],
@@ -104,35 +114,53 @@ struct PaywallView: View {
                     .disabled(isPurchasing)
                     .padding(.horizontal, 20)
 
-                    // Trial info
-                    Text("3-day free trial, then auto-renews.\nCancel anytime in Settings.")
-                        .font(.system(size: 11, design: .serif))
-                        .foregroundColor(.white.opacity(0.3))
-                        .multilineTextAlignment(.center)
+                    // Trial details
+                    VStack(spacing: 6) {
+                        Text("3 days free, then auto-renews.")
+                            .font(.system(size: 12, weight: .medium, design: .serif))
+                            .foregroundColor(.white.opacity(0.35))
+                        Text("Cancel anytime in iPhone Settings.")
+                            .font(.system(size: 11, design: .serif))
+                            .foregroundColor(.white.opacity(0.25))
+                    }
 
-                    // Restore + Skip
-                    HStack(spacing: 24) {
-                        Button {
-                            Task { await PaywallManager.shared.restorePurchases() }
-                        } label: {
+                    // Error message
+                    if let error = PaywallManager.shared.purchaseError {
+                        Text(error)
+                            .font(.system(size: 13, design: .serif))
+                            .foregroundColor(Color(hex: "8B0000"))
+                            .padding(.horizontal, 20)
+                    }
+
+                    // Restore purchases
+                    Button {
+                        Task { await restore() }
+                    } label: {
+                        HStack(spacing: 6) {
+                            if isRestoring {
+                                ProgressView().tint(gold.opacity(0.5)).scaleEffect(0.8)
+                            }
                             Text("Restore Purchases")
                                 .font(.system(size: 13, weight: .medium, design: .serif))
-                                .foregroundColor(gold.opacity(0.5))
-                        }
-
-                        Button {
-                            onComplete()
-                        } label: {
-                            Text("No thanks")
-                                .font(.system(size: 13, weight: .medium, design: .serif))
-                                .foregroundColor(.white.opacity(0.25))
+                                .foregroundColor(gold.opacity(0.4))
                         }
                     }
+                    .disabled(isRestoring)
+
+                    // Legal links
+                    HStack(spacing: 16) {
+                        Link("Privacy Policy", destination: URL(string: "https://quit-all.vercel.app/privacy")!)
+                        Text("·").foregroundColor(.white.opacity(0.15))
+                        Link("Terms of Service", destination: URL(string: "https://quit-all.vercel.app/terms")!)
+                    }
+                    .font(.system(size: 11, design: .serif))
+                    .foregroundColor(.white.opacity(0.2))
                     .padding(.bottom, 32)
                 }
             }
         }
         .preferredColorScheme(.dark)
+        .interactiveDismissDisabled()  // Prevent swipe to dismiss
         .task {
             await PaywallManager.shared.loadProducts()
             // Default select yearly
@@ -142,13 +170,15 @@ struct PaywallView: View {
 
     private func featureRow(icon: String, text: String) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
+            Image(systemName: "checkmark")
+                .font(.system(size: 11, weight: .bold))
                 .foregroundColor(gold)
-                .frame(width: 24)
+                .frame(width: 22, height: 22)
+                .background(gold.opacity(0.1))
+                .cornerRadius(6)
             Text(text)
-                .font(.system(size: 15, weight: .medium, design: .serif))
-                .foregroundColor(.white.opacity(0.8))
+                .font(.system(size: 14, weight: .medium, design: .serif))
+                .foregroundColor(.white.opacity(0.75))
         }
     }
 
@@ -174,18 +204,16 @@ struct PaywallView: View {
                     Text(price)
                         .font(.system(size: 13, design: .serif))
                         .foregroundColor(.white.opacity(0.5))
-                    if !subtitle.isEmpty {
-                        Text(subtitle)
-                            .font(.system(size: 12, design: .serif))
-                            .foregroundColor(gold.opacity(0.6))
-                    }
+                    Text(subtitle)
+                        .font(.system(size: 12, design: .serif))
+                        .foregroundColor(gold.opacity(0.5))
                 }
 
                 Spacer()
 
                 ZStack {
                     Circle()
-                        .stroke(isSelected ? gold : Color.white.opacity(0.2), lineWidth: 2)
+                        .stroke(isSelected ? gold : Color.white.opacity(0.15), lineWidth: 2)
                         .frame(width: 24, height: 24)
                     if isSelected {
                         Circle()
@@ -199,7 +227,7 @@ struct PaywallView: View {
             .cornerRadius(14)
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(isSelected ? gold.opacity(0.6) : Color.white.opacity(0.06), lineWidth: 1)
+                    .stroke(isSelected ? gold.opacity(0.5) : Color.white.opacity(0.06), lineWidth: 1)
             )
         }
     }
@@ -215,6 +243,17 @@ struct PaywallView: View {
         let success = await PaywallManager.shared.purchase(product)
         isPurchasing = false
         if success {
+            HapticManager.shared.notification(.success)
+            PaywallManager.shared.startTrial()
+            onComplete()
+        }
+    }
+
+    private func restore() async {
+        isRestoring = true
+        await PaywallManager.shared.restorePurchases()
+        isRestoring = false
+        if PaywallManager.shared.hasAccess {
             HapticManager.shared.notification(.success)
             onComplete()
         }

@@ -7,23 +7,55 @@ enum SubscriptionProduct: String, CaseIterable {
     case yearly = "com.quitall.premium.yearly"
 }
 
-// MARK: - Paywall Manager
+// MARK: - Paywall Manager — Hard Paywall with 3-Day Free Trial
 @Observable
 final class PaywallManager {
     static let shared = PaywallManager()
 
     var isSubscribed: Bool = false
+    var isInTrial: Bool = false
     var products: [Product] = []
     var purchaseError: String?
     var isLoading: Bool = false
 
+    private let trialStartKey = "trial_start_date"
+    private let trialDays = 3
+
     private init() {
-        // Check saved subscription state
         isSubscribed = UserDefaults.standard.bool(forKey: "isSubscribed")
+        checkTrialStatus()
     }
 
+    // MARK: - Access Check
     var hasAccess: Bool {
-        isSubscribed
+        isSubscribed || isInTrial
+    }
+
+    // MARK: - Trial Management
+    func startTrial() {
+        if UserDefaults.standard.object(forKey: trialStartKey) == nil {
+            UserDefaults.standard.set(Date(), forKey: trialStartKey)
+        }
+        checkTrialStatus()
+    }
+
+    func checkTrialStatus() {
+        guard let trialStart = UserDefaults.standard.object(forKey: trialStartKey) as? Date else {
+            isInTrial = false
+            return
+        }
+        let trialEnd = Calendar.current.date(byAdding: .day, value: trialDays, to: trialStart)!
+        isInTrial = Date() < trialEnd
+    }
+
+    var trialDaysRemaining: Int {
+        guard let trialStart = UserDefaults.standard.object(forKey: trialStartKey) as? Date else { return 0 }
+        let trialEnd = Calendar.current.date(byAdding: .day, value: trialDays, to: trialStart)!
+        return max(0, Calendar.current.dateComponents([.day], from: Date(), to: trialEnd).day ?? 0)
+    }
+
+    var hasUsedTrial: Bool {
+        UserDefaults.standard.object(forKey: trialStartKey) != nil
     }
 
     // MARK: - StoreKit 2
@@ -98,12 +130,6 @@ final class PaywallManager {
                 await transaction.finish()
             }
         }
-    }
-
-    // Skip paywall — free basic mode
-    func skipPaywall() {
-        // User proceeds without subscription
-        // Features will be gated elsewhere
     }
 
     private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
