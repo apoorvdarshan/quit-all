@@ -1,6 +1,10 @@
-# Quit All
+<p align="center">
+  <img src="logo.png" width="120" alt="Quit All Logo" />
+</p>
 
-Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine — all in one app.
+<h1 align="center">Quit All</h1>
+
+<p align="center">Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine — all in one app.</p>
 
 **Website:** [quit-all-web](https://github.com/apoorvdarshan/quit-all-web)
 
@@ -20,6 +24,15 @@ Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending,
 - **StoreKit 2 Paywall** — Monthly ($7.99) and Yearly ($49.99) subscription options
 - **Haptic Feedback** — Tactile feedback on all key interactions
 - **Dark Casino Gold Theme** — Luxury dark theme with gold accents, Cormorant serif fonts, and Gemini-generated icons
+
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/onboarding.png" width="180" />
+  <img src="screenshots/sos2.png" width="180" />
+  <img src="screenshots/sos1.png" width="180" />
+  <img src="screenshots/stats.png" width="180" />
+</p>
 
 ## Tech Stack
 

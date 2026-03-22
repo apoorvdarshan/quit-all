@@ -78,6 +78,34 @@ struct SettingsView: View {
                             .font(.system(size: 14, design: .serif))
                             .foregroundColor(gold.opacity(0.5))
                     }
+
+                    Link(destination: URL(string: "https://apoorvdarshan.github.io/quit-all-web/privacy")!) {
+                        HStack {
+                            Image(systemName: "hand.raised.fill")
+                                .foregroundColor(gold)
+                            Text("Privacy Policy")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+
+                    Link(destination: URL(string: "https://apoorvdarshan.github.io/quit-all-web/terms")!) {
+                        HStack {
+                            Image(systemName: "doc.text.fill")
+                                .foregroundColor(gold)
+                            Text("Terms of Service")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
                 } header: {
                     Text("ABOUT")
                         .font(.system(size: 11, weight: .semibold, design: .serif))
