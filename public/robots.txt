@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://quit-all.vercel.app/sitemap.xml

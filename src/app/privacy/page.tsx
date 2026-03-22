@@ -52,6 +52,8 @@ const sections = [
 export default function Privacy() {
   return (
     <>
+      <title>Privacy Policy — Quit All</title>
+      <meta name="description" content="Quit All Privacy Policy. All data stays on your device. No accounts, no analytics, no ads. 100% private addiction tracker." />
       <motion.nav className="nav"
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
