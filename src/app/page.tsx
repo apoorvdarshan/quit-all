@@ -42,7 +42,7 @@ export default function Home() {
             <Link href="#features">Features</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
-            <Link href="/support">Support</Link>
+            <Link href="mailto:ad13dtu@gmail.com">Contact</Link>
           </div>
         </div>
       </nav>
