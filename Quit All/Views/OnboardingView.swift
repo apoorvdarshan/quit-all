@@ -13,7 +13,20 @@ struct OnboardingView: View {
     @State private var addictionMotivations: [AddictionType: String] = [:]
     @State private var addictionStartDates: [AddictionType: Date] = [:]
     @State private var currentDetailIndex = 0
+    @State private var selectedCurrency = "USD"
     @State private var selectedSymptoms: Set<String> = []
+
+    private let currencies = [
+        ("USD", "$", "US Dollar"),
+        ("EUR", "€", "Euro"),
+        ("GBP", "£", "British Pound"),
+        ("INR", "₹", "Indian Rupee"),
+        ("CAD", "C$", "Canadian Dollar"),
+        ("AUD", "A$", "Australian Dollar"),
+        ("JPY", "¥", "Japanese Yen"),
+        ("CNY", "¥", "Chinese Yuan"),
+        ("BRL", "R$", "Brazilian Real"),
+    ]
     @State private var featurePageIndex = 0
     @State private var analysisProgress: Double = 0
     @State private var showConfetti = false
@@ -201,9 +214,40 @@ struct OnboardingView: View {
                             .foregroundColor(lightGold)
 
                         VStack(alignment: .leading, spacing: 16) {
+                            // Currency picker (show only on first addiction)
+                            if currentDetailIndex == 0 {
+                                inputField(label: "CURRENCY") {
+                                    Menu {
+                                        ForEach(currencies, id: \.0) { code, symbol, name in
+                                            Button {
+                                                selectedCurrency = code
+                                            } label: {
+                                                HStack {
+                                                    Text("\(symbol) \(name)")
+                                                    if selectedCurrency == code {
+                                                        Image(systemName: "checkmark")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } label: {
+                                        HStack {
+                                            let curr = currencies.first { $0.0 == selectedCurrency }
+                                            Text("\(curr?.1 ?? "$") \(curr?.2 ?? "US Dollar")")
+                                                .font(.system(size: 16, weight: .medium, design: .serif))
+                                                .foregroundColor(lightGold)
+                                            Spacer()
+                                            Image(systemName: "chevron.down")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(gold.opacity(0.5))
+                                        }
+                                    }
+                                }
+                            }
+
                             inputField(label: "DAILY SPENDING") {
                                 HStack {
-                                    Text(Locale.current.currencySymbol ?? "$")
+                                    Text(currencies.first { $0.0 == selectedCurrency }?.1 ?? "$")
                                         .font(.system(size: 16, design: .serif))
                                         .foregroundColor(gold.opacity(0.5))
                                     TextField("0", text: binding(for: type, in: $addictionCosts))
@@ -319,11 +363,11 @@ struct OnboardingView: View {
             VStack(spacing: 8) {
                 let totalCost = selectedAddictions.reduce(0.0) { $0 + (Double(addictionCosts[$1] ?? "0") ?? 0) }
 
-                Text("You spend \(CostCalculator.formatCurrency(totalCost * 30))/month")
+                Text("You spend \(CostCalculator.formatCurrency(totalCost * 30, currencyCode: selectedCurrency))/month")
                     .font(.system(size: 16, weight: .semibold, design: .serif))
                     .foregroundColor(.white.opacity(analysisProgress > 0.5 ? 0.8 : 0))
 
-                Text("That's \(CostCalculator.formatCurrency(totalCost * 365))/year you could save")
+                Text("That's \(CostCalculator.formatCurrency(totalCost * 365, currencyCode: selectedCurrency))/year you could save")
                     .font(.system(size: 14, design: .serif))
                     .foregroundColor(gold.opacity(analysisProgress > 0.8 ? 0.7 : 0))
             }
@@ -540,7 +584,7 @@ struct OnboardingView: View {
                                     .tracking(0.5)
                                 let cost = Double(addictionCosts[type] ?? "0") ?? 0
                                 if cost > 0 {
-                                    Text("Saving \(CostCalculator.formatCurrency(cost))/day")
+                                    Text("Saving \(CostCalculator.formatCurrency(cost, currencyCode: selectedCurrency))/day")
                                         .font(.system(size: 12, design: .serif))
                                         .foregroundColor(gold.opacity(0.6))
                                 }
@@ -631,7 +675,7 @@ struct OnboardingView: View {
             let motivation = addictionMotivations[type] ?? ""
             let startDate = addictionStartDates[type] ?? Date()
 
-            _ = AddictionTracker.shared.createAddiction(
+            let addiction = AddictionTracker.shared.createAddiction(
                 name: type.rawValue,
                 type: type,
                 startDate: startDate,
@@ -639,6 +683,8 @@ struct OnboardingView: View {
                 motivation: motivation,
                 context: viewContext
             )
+            addiction.currency = selectedCurrency
+            AddictionTracker.shared.saveContext(viewContext)
         }
     }
 
