@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://quit-all.vercel.app",
     siteName: "Quit All",
-    title: "Quit All — Quit Every Addiction in One App",
+    title: "Quit All - One App to Quit Smoking, Vaping, Alcohol & More",
     description: "One app to quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings, save money.",
     images: [
       {
         url: "/og.png",
-        width: 1920,
-        height: 1080,
+        width: 1200,
+        height: 630,
         alt: "Quit All - Break Every Habit",
       },
     ],
