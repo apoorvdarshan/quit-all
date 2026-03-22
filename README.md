@@ -2,7 +2,7 @@
   <img src="logo.png" width="120" alt="Quit All Logo" />
 </p>
 
-<h1 align="center">Quit All</h1>
+<h1 align="center">Quit All - Break Every Habit</h1>
 
 <p align="center">Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine — all in one app.</p>
 

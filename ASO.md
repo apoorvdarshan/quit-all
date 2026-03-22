@@ -6,7 +6,7 @@ Copy-paste ready for App Store Connect.
 
 ## App Name (30 chars max)
 ```
-Quit All: Break Every Habit
+Quit All - Break Every Habit
 ```
 
 ## Subtitle (30 chars max)
@@ -69,10 +69,10 @@ SUPPORTED ADDICTIONS
 • Caffeine
 
 SUBSCRIPTION
-Quit All Premium unlocks all features:
+Quit All Premium unlocks all features with a 3-day free trial:
 • Monthly: $7.99/month
 • Yearly: $49.99/year (save 48%)
-Cancel anytime. Payment charged to Apple ID.
+Try free for 3 days. Cancel anytime. Payment charged to Apple ID.
 ```
 
 ## Category
@@ -119,12 +119,13 @@ Secondary: Lifestyle
 - Avoid duplicating words already in title/subtitle in keywords field
 
 ### Screenshot Order (for conversion)
-1. Hero streak counter with gold ring
-2. SOS craving screen with GIF playing
-3. Onboarding addiction selection
-4. Stats dashboard with overall summary
-5. Cost calculator with savings projection
-6. Milestone celebration card
+1. Your streak. Your rules. — Home dashboard
+2. Craving? We got you. — SOS distraction
+3. Pick your battles. — Onboarding selection
+4. No cigarette > every cigarette. — Motivational meme
+5. Know your numbers. — Stats dashboard
+6. Break the cycle. — Stay motivated
+7. Laugh through it. — Relatable memes
 
 ### Localization Priority
 1. English (US) — primary
