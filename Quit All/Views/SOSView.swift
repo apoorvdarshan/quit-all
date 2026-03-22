@@ -404,7 +404,8 @@ struct ConfettiView: View {
     }
 }
 
-// MARK: - Notification Name
+// MARK: - Notification Names
 extension Notification.Name {
     static let showRelapseView = Notification.Name("showRelapseView")
+    static let resetApp = Notification.Name("resetApp")
 }

@@ -133,17 +133,25 @@ struct SettingsView: View {
     }
 
     private func resetAllData() {
-        let request: NSFetchRequest<NSFetchRequestResult> = CDAddiction.fetchRequest()
-        let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
-
-        do {
-            try viewContext.execute(deleteRequest)
-            try viewContext.save()
-        } catch {
-            print("Reset error: \(error)")
+        // Delete all entities
+        let entities = ["CDAddiction", "CDCravingEvent", "CDRelapseEvent", "CDMilestone"]
+        for entity in entities {
+            let request = NSFetchRequest<NSFetchRequestResult>(entityName: entity)
+            let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
+            try? viewContext.execute(deleteRequest)
         }
+        try? viewContext.save()
+        viewContext.reset()
 
+        // Clear all UserDefaults
         UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
+        UserDefaults.standard.removeObject(forKey: "isSubscribed")
         NotificationManager.shared.removeAllNotifications()
+
+        // Force app back to onboarding
+        dismiss()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            NotificationCenter.default.post(name: .resetApp, object: nil)
+        }
     }
 }

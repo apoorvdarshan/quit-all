@@ -32,7 +32,7 @@ struct CostCalculator {
     static func formatCurrency(_ amount: Double, currencyCode: String? = nil) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.currencyCode = currencyCode ?? Locale.current.currency?.identifier ?? "USD"
+        formatter.currencyCode = currencyCode ?? "USD"
         formatter.maximumFractionDigits = amount >= 100 ? 0 : 2
         return formatter.string(from: NSNumber(value: amount)) ?? "$\(Int(amount))"
     }

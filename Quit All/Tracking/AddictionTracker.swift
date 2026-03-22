@@ -39,7 +39,7 @@ final class AddictionTracker {
         addiction.type = type.rawValue
         addiction.startDate = startDate
         addiction.dailyCost = dailyCost
-        addiction.currency = Locale.current.currency?.identifier ?? "USD"
+        addiction.currency = "USD"
         addiction.isActive = true
         addiction.longestStreak = 0
         addiction.totalRelapses = 0
