@@ -2,23 +2,41 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
 
+// Richer animation variants
 const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
+  hidden: { opacity: 0, y: 50, filter: "blur(8px)" },
   visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.8, delay: i * 0.1, ease: [0.25, 0.46, 0.45, 0.94] }
+    opacity: 1, y: 0, filter: "blur(0px)",
+    transition: { duration: 1, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }
+  }),
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.9 },
+  visible: (i: number) => ({
+    opacity: 1, scale: 1,
+    transition: { duration: 0.8, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }
+  }),
+};
+
+const slideIn = {
+  hidden: { opacity: 0, x: -30 },
+  visible: (i: number) => ({
+    opacity: 1, x: 0,
+    transition: { duration: 0.7, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }
   }),
 };
 
 const features = [
-  { icon: "⚡", title: "SOS Craving Button", desc: "Instant GIF distraction when the urge hits. Swipe through memes while the craving passes. 5-minute timer keeps you grounded." },
-  { icon: "🔍", title: "Pattern Intelligence", desc: "Your cravings have patterns. We find them. Hourly heatmaps, trigger analysis, and danger zone alerts." },
-  { icon: "◆", title: "Milestone Rewards", desc: "From 1 hour to 1 year — 9 science-backed milestones. Each unlocks a health fact and a shareable card." },
-  { icon: "¤", title: "Money Tracker", desc: "See exactly how much you've saved. Project 5 years out. See what you could buy — from coffee to a car." },
-  { icon: "∞", title: "2,790+ Memes", desc: "Five categories. Nine types. Fresh GIFs every session. Motivational, roasts, consequences, distractions, relatable." },
-  { icon: "↺", title: "Zero-Shame Relapse", desc: "It happened. That's okay. Log it, learn from it, restart. Your history is saved. Progress is never lost." },
+  { icon: "⚡", title: "SOS Craving Button", desc: "Instant GIF distraction when the urge hits. Swipe through memes while the craving passes." },
+  { icon: "🔍", title: "Pattern Intelligence", desc: "Your cravings have patterns. We find them. Hourly heatmaps, trigger analysis, danger zone alerts." },
+  { icon: "◆", title: "Milestone Rewards", desc: "From 1 hour to 1 year — 9 science-backed milestones. Each unlocks a health fact and shareable card." },
+  { icon: "¤", title: "Money Tracker", desc: "Watch savings grow in real-time. Project 5 years out. See what you could buy with the money." },
+  { icon: "∞", title: "2,790+ Memes", desc: "Five categories. Nine types. Fresh GIFs every session. You'll never see the same one twice." },
+  { icon: "↺", title: "Zero-Shame Relapse", desc: "It happened. That's okay. Log it, learn, restart. Your history is saved. Progress is never lost." },
 ];
 
 const addictions = [
@@ -29,10 +47,21 @@ const addictions = [
   { name: "Caffeine", color: "#4E342E" },
 ];
 
+const screenshots = ["ss-onboarding", "ss-sos2", "ss-sos1", "ss-stats", "ss-sos3", "ss-sos4"];
+
 export default function Home() {
+  const heroRef = useRef(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
+
   return (
     <>
-      <nav className="nav">
+      {/* Nav */}
+      <motion.nav className="nav"
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.8, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}>
         <div className="nav-inner">
           <Link href="/" className="nav-logo">
             <Image src="/logo.png" alt="Quit All" width={32} height={32} />
@@ -40,17 +69,18 @@ export default function Home() {
           </Link>
           <div className="nav-links">
             <Link href="#features">Features</Link>
+            <Link href="#pricing">Pricing</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
-            <Link href="mailto:ad13dtu@gmail.com">Contact</Link>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
-      <section className="hero">
+      {/* Hero — parallax */}
+      <section className="hero" ref={heroRef}>
         <div className="hero-glow" />
         <div className="hero-line" />
-        <div className="hero-content">
+        <motion.div className="hero-content" style={{ y: heroY, opacity: heroOpacity }}>
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0} className="hero-badge">
             Break every chain
           </motion.div>
@@ -75,36 +105,40 @@ export default function Home() {
             </a>
           </motion.div>
 
-          <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={4} className="addiction-pills">
-            {addictions.map((a) => (
-              <span key={a.name} className="addiction-pill"
+          <motion.div initial="hidden" animate="visible" className="addiction-pills">
+            {addictions.map((a, i) => (
+              <motion.span key={a.name} className="addiction-pill"
+                variants={scaleIn} custom={i}
+                whileHover={{ scale: 1.12, transition: { duration: 0.2 } }}
                 style={{ background: `${a.color}10`, border: `1px solid ${a.color}25`, color: a.color }}>
                 {a.name}
-              </span>
+              </motion.span>
             ))}
           </motion.div>
-        </div>
+        </motion.div>
       </section>
 
       <div className="gold-line" />
 
+      {/* Features */}
       <section id="features" className="features">
         <div className="container">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }}>
-            <motion.p variants={fadeUp} custom={0} className="features-label">What&apos;s inside</motion.p>
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }}>
+            <motion.p variants={slideIn} custom={0} className="features-label">What&apos;s inside</motion.p>
             <motion.h2 variants={fadeUp} custom={1} className="features-title">
               Tools that actually <em>work.</em>
             </motion.h2>
             <motion.p variants={fadeUp} custom={2} className="features-subtitle">
-              No generic advice. No toxic positivity. Real tools built for people who are actually trying to quit.
+              No generic advice. No toxic positivity. Real tools for people actually trying to quit.
             </motion.p>
           </motion.div>
 
           <div className="features-grid">
             {features.map((f, i) => (
               <motion.div key={f.title} className="feature-card"
-                initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i * 0.5}>
+                initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }}
+                variants={scaleIn} custom={i}
+                whileHover={{ y: -6, transition: { duration: 0.3 } }}>
                 <div className="feature-icon">{f.icon}</div>
                 <h3>{f.title}</h3>
                 <p>{f.desc}</p>
@@ -118,7 +152,7 @@ export default function Home() {
       <section className="screenshots">
         <div className="container" style={{ marginBottom: 48 }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <motion.p variants={fadeUp} custom={0} className="features-label">See it in action</motion.p>
+            <motion.p variants={slideIn} custom={0} className="features-label">See it in action</motion.p>
             <motion.h2 variants={fadeUp} custom={1} className="features-title">
               Built for <em>real moments.</em>
             </motion.h2>
@@ -126,8 +160,10 @@ export default function Home() {
         </div>
         <motion.div className="screenshots-scroll"
           initial="hidden" whileInView="visible" viewport={{ once: true }}>
-          {["ss-onboarding", "ss-sos2", "ss-sos1", "ss-stats", "ss-sos3", "ss-sos4"].map((ss, i) => (
-            <motion.div key={ss} className="screenshot-item" variants={fadeUp} custom={i * 0.5}>
+          {screenshots.map((ss, i) => (
+            <motion.div key={ss} className="screenshot-item"
+              variants={scaleIn} custom={i}
+              whileHover={{ scale: 1.06, y: -8, transition: { duration: 0.3 } }}>
               <Image src={`/${ss}.png`} alt="App screenshot" width={220} height={476} style={{ width: "100%", height: "auto" }} />
             </motion.div>
           ))}
@@ -135,10 +171,10 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section className="pricing">
+      <section id="pricing" className="pricing">
         <div className="container" style={{ textAlign: "center" }}>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <motion.p variants={fadeUp} custom={0} className="features-label">Pricing</motion.p>
+            <motion.p variants={slideIn} custom={0} className="features-label">Pricing</motion.p>
             <motion.h2 variants={fadeUp} custom={1} className="features-title" style={{ marginLeft: "auto", marginRight: "auto" }}>
               Invest in <em>yourself.</em>
             </motion.h2>
@@ -147,9 +183,9 @@ export default function Home() {
             </motion.p>
           </motion.div>
 
-          <motion.div className="pricing-grid"
-            initial="hidden" whileInView="visible" viewport={{ once: true }}>
-            <motion.div variants={fadeUp} custom={0} className="pricing-card">
+          <motion.div className="pricing-grid" initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.div variants={fadeUp} custom={0} className="pricing-card"
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}>
               <p className="pricing-name">Monthly</p>
               <p className="pricing-price">$7.99<span>/mo</span></p>
               <p className="pricing-sub">Billed monthly</p>
@@ -163,7 +199,8 @@ export default function Home() {
               <button className="pricing-btn pricing-btn-secondary">Get Started</button>
             </motion.div>
 
-            <motion.div variants={fadeUp} custom={1} className="pricing-card featured">
+            <motion.div variants={fadeUp} custom={1} className="pricing-card featured"
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}>
               <div className="pricing-badge">Save 48%</div>
               <p className="pricing-name">Yearly</p>
               <p className="pricing-price">$49.99<span>/yr</span></p>
@@ -183,6 +220,7 @@ export default function Home() {
 
       <div className="gold-line" />
 
+      {/* Stats — counter-like feel */}
       <section className="stats">
         <div className="container">
           <div className="stats-grid">
@@ -190,7 +228,10 @@ export default function Home() {
               { v: "9", l: "Addictions" }, { v: "2,790", l: "Memes" },
               { v: "9", l: "Milestones" }, { v: "0", l: "Data Collected" },
             ].map((s, i) => (
-              <motion.div key={s.l} initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={i}>
+              <motion.div key={s.l}
+                initial="hidden" whileInView="visible" viewport={{ once: true }}
+                variants={scaleIn} custom={i}
+                whileHover={{ scale: 1.08, transition: { duration: 0.2 } }}>
                 <div className="stat-value">{s.v}</div>
                 <div className="stat-label">{s.l}</div>
               </motion.div>
@@ -199,16 +240,23 @@ export default function Home() {
         </div>
       </section>
 
+      {/* CTA */}
       <section className="cta">
         <div className="cta-glow" />
         <motion.div style={{ position: "relative", zIndex: 10 }} initial="hidden" whileInView="visible" viewport={{ once: true }}>
-          <motion.p variants={fadeUp} custom={0} className="cta-label">Your move</motion.p>
+          <motion.p variants={slideIn} custom={0} className="cta-label">Your move</motion.p>
           <motion.h2 variants={fadeUp} custom={1}>The best time to quit<br /><em>was yesterday.</em></motion.h2>
           <motion.p variants={fadeUp} custom={2} style={{ fontSize: 16, color: "var(--text-muted)", marginBottom: 48 }}>The second best time is right now.</motion.p>
-          <motion.a variants={fadeUp} custom={3} href="#" className="btn-gold">Download Quit All</motion.a>
+          <motion.a variants={fadeUp} custom={3} href="#"
+            className="btn-gold"
+            whileHover={{ scale: 1.04, transition: { duration: 0.2 } }}
+            whileTap={{ scale: 0.97 }}>
+            Download Quit All
+          </motion.a>
         </motion.div>
       </section>
 
+      {/* Footer */}
       <footer className="footer">
         <div className="container">
           <div className="footer-inner">
