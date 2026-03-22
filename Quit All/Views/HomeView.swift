@@ -350,9 +350,9 @@ struct PulsingModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .scaleEffect(isPulsing ? 1.02 : 1.0)
+            .shadow(color: Color(hex: "8B0000").opacity(isPulsing ? 0.6 : 0.15), radius: isPulsing ? 24 : 8, y: 4)
             .animation(
-                .easeInOut(duration: 1.5).repeatForever(autoreverses: true),
+                .easeInOut(duration: 1.8).repeatForever(autoreverses: true),
                 value: isPulsing
             )
             .onAppear { isPulsing = true }
