@@ -147,15 +147,15 @@ struct HomeView: View {
                             Image(type.iconName)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 52, height: 52)
+                                .frame(width: 32, height: 32)
                             Text(addiction.name ?? "")
-                                .font(.caption.weight(.medium))
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
                                 .foregroundColor(.white)
                             Text("\(StreakEngine.daysSince(addiction.startDate))d")
-                                .font(.caption2.weight(.bold))
+                                .font(.system(size: 11, weight: .bold, design: .rounded))
                                 .foregroundColor(type.color)
                         }
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 14)
                         .padding(.vertical, 10)
                         .background(isSelected ? type.color.opacity(0.2) : Color(hex: "141414"))
                         .cornerRadius(12)
@@ -203,12 +203,12 @@ struct HomeView: View {
                 // Streak number
                 VStack(spacing: 4) {
                     Text(streak.value)
-                        .font(.system(size: 96, weight: .black, design: .rounded))
+                        .font(.system(size: 88, weight: .black, design: .rounded))
                         .foregroundColor(.white)
                         .contentTransition(.numericText())
 
                     Text("\(streak.unit) clean from \(addiction.name?.lowercased() ?? "")")
-                        .font(.subheadline)
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                 }
@@ -237,7 +237,7 @@ struct HomeView: View {
             // Next milestone hint
             if let nextMilestone = progress.nextMilestone {
                 Text("Next: \(nextMilestone.title)")
-                    .font(.caption)
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
                     .foregroundColor(type.color.opacity(0.8))
                     .padding(.top, 4)
             }
@@ -247,24 +247,24 @@ struct HomeView: View {
     }
 
     private func statBadge(iconName: String, value: String, label: String) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 6) {
             Image(iconName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 40, height: 40)
+                .frame(width: 28, height: 28)
             Text(value)
-                .font(.subheadline.weight(.bold))
+                .font(.system(size: 15, weight: .bold, design: .rounded))
                 .foregroundColor(.white)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
             Text(label)
-                .font(.caption2)
+                .font(.system(size: 10, weight: .medium, design: .rounded))
                 .foregroundColor(.gray)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+        .padding(.vertical, 14)
         .background(Color(hex: "141414"))
-        .cornerRadius(12)
+        .cornerRadius(14)
     }
 
     private func formatCleanSince(_ date: Date?) -> String {
@@ -284,7 +284,7 @@ struct HomeView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.title2)
                 Text("I'M CRAVING")
-                    .font(.headline.weight(.bold))
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
             }
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
