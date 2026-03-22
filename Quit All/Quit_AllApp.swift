@@ -7,6 +7,7 @@ struct Quit_AllApp: App {
 
     @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
     @State private var showPaywall = false
+    @State private var hasCheckedAccess = false
 
     var body: some Scene {
         WindowGroup {
@@ -22,17 +23,23 @@ struct Quit_AllApp: App {
             .onReceive(NotificationCenter.default.publisher(for: .resetApp)) { _ in
                 hasCompletedOnboarding = false
             }
-            .onAppear {
-                // Check trial/subscription status on every launch
-                PaywallManager.shared.checkTrialStatus()
-
-                // If onboarding done but no access (trial expired + no subscription), show paywall
-                if hasCompletedOnboarding && !PaywallManager.shared.hasAccess {
-                    showPaywall = true
-                }
-
+            .task {
                 // Listen for StoreKit transaction updates
-                Task { await PaywallManager.shared.listenForTransactions() }
+                await PaywallManager.shared.listenForTransactions()
+            }
+            .onAppear {
+                guard !hasCheckedAccess else { return }
+                hasCheckedAccess = true
+
+                // Check subscription on every launch
+                Task {
+                    await PaywallManager.shared.checkEntitlements()
+
+                    // If onboarding done but no active subscription, show hard paywall
+                    if hasCompletedOnboarding && !PaywallManager.shared.hasAccess {
+                        showPaywall = true
+                    }
+                }
             }
             .fullScreenCover(isPresented: $showPaywall) {
                 PaywallView {

@@ -7,59 +7,40 @@ enum SubscriptionProduct: String, CaseIterable {
     case yearly = "com.quitall.premium.yearly"
 }
 
-// MARK: - Paywall Manager — Hard Paywall with 3-Day Free Trial
+// MARK: - Paywall Manager — Hard Paywall, Native StoreKit Trial
 @Observable
 final class PaywallManager {
     static let shared = PaywallManager()
 
     var isSubscribed: Bool = false
-    var isInTrial: Bool = false
     var products: [Product] = []
     var purchaseError: String?
     var isLoading: Bool = false
 
-    private let trialStartKey = "trial_start_date"
-    private let trialDays = 3
-
     private init() {
-        isSubscribed = UserDefaults.standard.bool(forKey: "isSubscribed")
-        checkTrialStatus()
+        // Check entitlements on init
+        Task { await checkEntitlements() }
     }
 
-    // MARK: - Access Check
     var hasAccess: Bool {
-        isSubscribed || isInTrial
+        isSubscribed
     }
 
-    // MARK: - Trial Management
-    func startTrial() {
-        if UserDefaults.standard.object(forKey: trialStartKey) == nil {
-            UserDefaults.standard.set(Date(), forKey: trialStartKey)
+    // MARK: - Check Entitlements (native StoreKit)
+    func checkEntitlements() async {
+        for await result in Transaction.currentEntitlements {
+            if let transaction = try? checkVerified(result) {
+                if transaction.productID == SubscriptionProduct.monthly.rawValue ||
+                    transaction.productID == SubscriptionProduct.yearly.rawValue {
+                    isSubscribed = true
+                    return
+                }
+            }
         }
-        checkTrialStatus()
+        isSubscribed = false
     }
 
-    func checkTrialStatus() {
-        guard let trialStart = UserDefaults.standard.object(forKey: trialStartKey) as? Date else {
-            isInTrial = false
-            return
-        }
-        let trialEnd = Calendar.current.date(byAdding: .day, value: trialDays, to: trialStart)!
-        isInTrial = Date() < trialEnd
-    }
-
-    var trialDaysRemaining: Int {
-        guard let trialStart = UserDefaults.standard.object(forKey: trialStartKey) as? Date else { return 0 }
-        let trialEnd = Calendar.current.date(byAdding: .day, value: trialDays, to: trialStart)!
-        return max(0, Calendar.current.dateComponents([.day], from: Date(), to: trialEnd).day ?? 0)
-    }
-
-    var hasUsedTrial: Bool {
-        UserDefaults.standard.object(forKey: trialStartKey) != nil
-    }
-
-    // MARK: - StoreKit 2
-
+    // MARK: - Load Products
     func loadProducts() async {
         isLoading = true
         do {
@@ -72,6 +53,7 @@ final class PaywallManager {
         isLoading = false
     }
 
+    // MARK: - Purchase
     func purchase(_ product: Product) async -> Bool {
         isLoading = true
         purchaseError = nil
@@ -83,7 +65,6 @@ final class PaywallManager {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
                 isSubscribed = true
-                UserDefaults.standard.set(true, forKey: "isSubscribed")
                 await transaction.finish()
                 isLoading = false
                 return true
@@ -108,28 +89,26 @@ final class PaywallManager {
         }
     }
 
+    // MARK: - Restore
     func restorePurchases() async {
         isLoading = true
-        for await result in Transaction.currentEntitlements {
-            if let transaction = try? checkVerified(result) {
-                if transaction.productID == SubscriptionProduct.monthly.rawValue ||
-                    transaction.productID == SubscriptionProduct.yearly.rawValue {
-                    isSubscribed = true
-                    UserDefaults.standard.set(true, forKey: "isSubscribed")
-                }
-            }
-        }
+        await checkEntitlements()
         isLoading = false
     }
 
+    // MARK: - Listen for Updates
     func listenForTransactions() async {
         for await result in Transaction.updates {
             if let transaction = try? checkVerified(result) {
                 isSubscribed = true
-                UserDefaults.standard.set(true, forKey: "isSubscribed")
                 await transaction.finish()
             }
         }
+    }
+
+    // MARK: - Check if eligible for introductory offer (free trial)
+    func isEligibleForTrial(_ product: Product) async -> Bool {
+        await product.subscription?.isEligibleForIntroOffer ?? false
     }
 
     private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
