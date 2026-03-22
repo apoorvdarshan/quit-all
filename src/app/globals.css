@@ -377,7 +377,30 @@ img { max-width: 100%; display: block; }
 .footer-copy { font-size: 11px; color: var(--text-muted); }
 
 /* Legal pages */
-.legal-header { margin-bottom: 64px; }
+/* Legal divider */
+.legal-divider {
+  height: 1px; margin: 0 0 48px;
+  background: linear-gradient(90deg, var(--gold), transparent);
+  transform-origin: left;
+  opacity: 0.25;
+}
+
+.legal-back {
+  margin-top: 64px; padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+.legal-back a {
+  font-family: var(--font-body); font-size: 14px; font-weight: 300;
+  color: var(--gold-dim); transition: color 0.3s; letter-spacing: 1px;
+}
+.legal-back a:hover { color: var(--gold); }
+.legal-back-arrow {
+  display: inline-block; margin-right: 8px;
+  transition: transform 0.3s;
+}
+.legal-back a:hover .legal-back-arrow { transform: translateX(-4px); }
+
+.legal-header { margin-bottom: 0; }
 .legal-label {
   font-family: var(--font-display); font-size: 11px;
   letter-spacing: 5px; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 20px;
@@ -387,20 +410,25 @@ img { max-width: 100%; display: block; }
   font-weight: 300; color: var(--gold-bright); margin-bottom: 8px;
 }
 .legal-date { font-size: 13px; color: var(--text-muted); }
-.legal-section { margin-bottom: 40px; }
+.legal-section {
+  margin-bottom: 40px; padding: 28px 32px; border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: border-color 0.4s;
+}
+.legal-section:hover { border-color: rgba(201,168,76,0.15); }
 .legal-section h2 {
   font-family: var(--font-display); font-size: 20px; font-weight: 500;
-  color: var(--text); margin-bottom: 16px;
+  color: var(--gold-bright); margin-bottom: 16px;
 }
 .legal-section p, .legal-section li {
   font-size: 15px; line-height: 1.9; color: var(--text-muted);
 }
 .legal-section li {
-  display: flex; gap: 12px; align-items: flex-start; margin-bottom: 8px;
+  display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px;
 }
 .legal-section li::before {
   content: ''; width: 4px; height: 4px; border-radius: 50%;
-  background: var(--gold-dim); margin-top: 10px; flex-shrink: 0;
+  background: var(--gold-dim); margin-top: 12px; flex-shrink: 0;
 }
 .legal-section a { color: var(--gold); transition: color 0.3s; }
 .legal-section a:hover { color: var(--gold-bright); }
