@@ -141,9 +141,12 @@ struct StatsView: View {
                 .tracking(1.5)
 
             let last7Days = cravingsPerDay(days: 7)
+            let maxBarCount = max(1, last7Days.map(\.count).max() ?? 1)
 
             HStack(alignment: .bottom, spacing: 6) {
                 ForEach(last7Days, id: \.date) { day in
+                    let barHeight = day.count > 0 ? CGFloat(day.count) / CGFloat(maxBarCount) * 80 : 4
+
                     VStack(spacing: 4) {
                         RoundedRectangle(cornerRadius: 3)
                             .fill(
@@ -153,7 +156,7 @@ struct StatsView: View {
                                     endPoint: .bottom
                                 )
                             )
-                            .frame(height: max(4, CGFloat(day.count) * 20))
+                            .frame(height: max(4, barHeight))
 
                         Text(dayLabel(day.date))
                             .font(.system(size: 9, weight: .medium, design: .serif))
