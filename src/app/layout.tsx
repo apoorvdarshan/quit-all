@@ -70,8 +70,9 @@ const jsonLd = {
   description: "Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine — all in one app.",
   offers: {
     "@type": "Offer",
-    price: "7.99",
+    price: "0",
     priceCurrency: "USD",
+    description: "3-day free trial, then $7.99/month or $49.99/year",
   },
   author: {
     "@type": "Person",

@@ -308,6 +308,11 @@ img { max-width: 100%; display: block; }
 .pricing-features li::before {
   content: '✓'; color: var(--gold); font-size: 12px; font-weight: 600;
 }
+.pricing-trial {
+  font-size: 12px; color: var(--gold); opacity: 0.6;
+  font-family: var(--font-display); margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
 .pricing-btn {
   display: block; width: 100%; padding: 14px; border-radius: 12px;
   text-align: center; font-family: var(--font-display);

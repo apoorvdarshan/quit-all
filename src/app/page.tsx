@@ -196,6 +196,7 @@ export default function Home() {
                 <li>Milestones &amp; sharing</li>
                 <li>Smart notifications</li>
               </ul>
+              <p className="pricing-trial">3-day free trial</p>
               <button className="pricing-btn pricing-btn-secondary">Get Started</button>
             </motion.div>
 
@@ -212,6 +213,7 @@ export default function Home() {
                 <li>Support development</li>
                 <li>Cancel anytime</li>
               </ul>
+              <p className="pricing-trial">3-day free trial</p>
               <button className="pricing-btn pricing-btn-primary">Get Started</button>
             </motion.div>
           </motion.div>
