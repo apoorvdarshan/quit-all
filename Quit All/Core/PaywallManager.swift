@@ -3,8 +3,8 @@ import SwiftUI
 
 // MARK: - Subscription Product IDs
 enum SubscriptionProduct: String, CaseIterable {
-    case monthly = "com.apoorvdarshan.Quit-All.premium.monthly"
-    case yearly = "com.apoorvdarshan.Quit-All.premium.yearly"
+    case monthly = "com.quitall.premium.monthly"
+    case yearly = "com.quitall.premium.yearly"
 }
 
 // MARK: - Paywall Manager — Hard Paywall, Native StoreKit Trial
