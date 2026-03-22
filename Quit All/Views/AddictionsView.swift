@@ -14,6 +14,9 @@ struct AddictionsView: View {
 
     @State private var editingAddiction: CDAddiction?
 
+    private let gold = Color(hex: "D4AF37")
+    private let lightGold = Color(hex: "F5E6A3")
+
     var body: some View {
         NavigationStack {
             List {
@@ -28,15 +31,16 @@ struct AddictionsView: View {
                             Image(type.iconName)
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 44, height: 44)
+                                .frame(width: 38, height: 38)
 
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(addiction.name ?? "")
-                                    .font(.headline)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text((addiction.name ?? "").uppercased())
+                                    .font(.system(size: 14, weight: .semibold, design: .serif))
                                     .foregroundColor(.white)
+                                    .tracking(0.5)
                                 Text("\(days) days clean")
-                                    .font(.caption)
-                                    .foregroundColor(type.color)
+                                    .font(.system(size: 12, weight: .medium, design: .serif))
+                                    .foregroundColor(gold.opacity(0.6))
                             }
 
                             Spacer()
@@ -44,36 +48,50 @@ struct AddictionsView: View {
                             if addiction.dailyCost > 0 {
                                 VStack(alignment: .trailing, spacing: 2) {
                                     Text(CostCalculator.formatCurrency(addiction.dailyCost, currencyCode: addiction.currency) + "/day")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
+                                        .font(.system(size: 11, design: .serif))
+                                        .foregroundColor(.white.opacity(0.3))
                                     Text(CostCalculator.formatCurrency(
                                         CostCalculator.moneySaved(dailyCost: addiction.dailyCost, startDate: addiction.startDate),
                                         currencyCode: addiction.currency
                                     ))
-                                    .font(.subheadline.weight(.semibold))
-                                    .foregroundColor(.green)
+                                    .font(.system(size: 14, weight: .bold, design: .serif))
+                                    .foregroundColor(lightGold)
                                 }
                             }
 
                             Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+                                .font(.system(size: 11))
+                                .foregroundColor(gold.opacity(0.3))
                         }
                     }
-                    .listRowBackground(Color(hex: "141414"))
+                    .listRowBackground(
+                        Color(hex: "111111")
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 0)
+                                    .stroke(gold.opacity(0.04), lineWidth: 0.5)
+                            )
+                    )
                 }
                 .onDelete(perform: deleteAddictions)
             }
             .scrollContentBackground(.hidden)
-            .background(Color(hex: "0A0A0A"))
+            .background(Color(hex: "080808"))
             .navigationTitle("My Addictions")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Done") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Done")
+                            .font(.system(size: 15, weight: .semibold, design: .serif))
+                            .foregroundColor(gold)
+                    }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
+                        .font(.system(size: 15, design: .serif))
+                        .foregroundColor(gold)
                 }
             }
             .sheet(item: $editingAddiction) { addiction in
@@ -101,6 +119,9 @@ struct EditAddictionView: View {
     @State private var dailyCost: String = ""
     @State private var motivation: String = ""
 
+    private let gold = Color(hex: "D4AF37")
+    private let lightGold = Color(hex: "F5E6A3")
+
     private var addictionType: AddictionType {
         AddictionTracker.shared.addictionType(for: addiction)
     }
@@ -108,71 +129,90 @@ struct EditAddictionView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(hex: "0A0A0A").ignoresSafeArea()
+                Color(hex: "080808").ignoresSafeArea()
 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Header
                         Image(addictionType.iconName)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 72, height: 72)
-                            .padding(.top, 20)
+                            .frame(width: 64, height: 64)
+                            .padding(.top, 24)
 
-                        Text(addiction.name ?? "")
-                            .font(.title2.weight(.bold))
-                            .foregroundColor(.white)
+                        Text((addiction.name ?? "").uppercased())
+                            .font(.system(size: 22, weight: .bold, design: .serif))
+                            .foregroundColor(lightGold)
+                            .tracking(2)
 
                         // Daily spending
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Daily spending")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                            Text("DAILY SPENDING")
+                                .font(.system(size: 11, weight: .semibold, design: .serif))
+                                .foregroundColor(gold.opacity(0.6))
+                                .tracking(1.5)
 
                             HStack {
                                 Text(Locale.current.currencySymbol ?? "$")
-                                    .foregroundColor(.gray)
+                                    .font(.system(size: 16, design: .serif))
+                                    .foregroundColor(gold.opacity(0.5))
                                 TextField("0", text: $dailyCost)
                                     .keyboardType(.decimalPad)
-                                    .foregroundColor(.white)
-                                    .font(.title2.weight(.semibold))
+                                    .foregroundColor(lightGold)
+                                    .font(.system(size: 22, weight: .bold, design: .serif))
                             }
                             .padding()
-                            .background(Color(hex: "141414"))
+                            .background(Color(hex: "111111"))
                             .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(gold.opacity(0.1), lineWidth: 1)
+                            )
                         }
                         .padding(.horizontal, 20)
 
                         // Motivation
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Why you're quitting")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                            Text("WHY YOU'RE QUITTING")
+                                .font(.system(size: 11, weight: .semibold, design: .serif))
+                                .foregroundColor(gold.opacity(0.6))
+                                .tracking(1.5)
 
                             TextField("Your motivation...", text: $motivation)
-                                .foregroundColor(.white)
+                                .font(.system(size: 15, design: .serif))
+                                .foregroundColor(.white.opacity(0.8))
                                 .padding()
-                                .background(Color(hex: "141414"))
+                                .background(Color(hex: "111111"))
                                 .cornerRadius(12)
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(gold.opacity(0.1), lineWidth: 1)
+                                )
                         }
                         .padding(.horizontal, 20)
 
-                        // Quit date (read only display)
+                        // Quit date
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Quit date")
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
+                            Text("QUIT DATE")
+                                .font(.system(size: 11, weight: .semibold, design: .serif))
+                                .foregroundColor(gold.opacity(0.6))
+                                .tracking(1.5)
 
                             HStack {
                                 Text(formatDate(addiction.startDate))
-                                    .foregroundColor(.white)
+                                    .font(.system(size: 15, weight: .medium, design: .serif))
+                                    .foregroundColor(.white.opacity(0.7))
                                 Spacer()
                                 Text("\(StreakEngine.daysSince(addiction.startDate)) days ago")
-                                    .foregroundColor(addictionType.color)
+                                    .font(.system(size: 14, weight: .bold, design: .serif))
+                                    .foregroundColor(gold.opacity(0.7))
                             }
                             .padding()
-                            .background(Color(hex: "141414"))
+                            .background(Color(hex: "111111"))
                             .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(gold.opacity(0.1), lineWidth: 1)
+                            )
                         }
                         .padding(.horizontal, 20)
 
@@ -188,14 +228,23 @@ struct EditAddictionView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Cancel")
+                            .font(.system(size: 15, design: .serif))
+                            .foregroundColor(.white.opacity(0.5))
+                    }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Save") {
+                    Button {
                         saveChanges()
                         dismiss()
+                    } label: {
+                        Text("Save")
+                            .font(.system(size: 15, weight: .bold, design: .serif))
+                            .foregroundColor(gold)
                     }
-                    .fontWeight(.semibold)
                 }
             }
             .onAppear {
