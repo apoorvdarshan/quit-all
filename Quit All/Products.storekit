@@ -34,7 +34,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.quitall.premium.monthly",
+          "productID" : "com.apoorvdarshan.Quit-All.premium.monthly",
           "recurringSubscriptionPeriod" : "P1M",
           "referenceName" : "Monthly",
           "subscriptionGroupID" : "quit_all_premium",
@@ -60,7 +60,7 @@
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.quitall.premium.yearly",
+          "productID" : "com.apoorvdarshan.Quit-All.premium.yearly",
           "recurringSubscriptionPeriod" : "P1Y",
           "referenceName" : "Yearly",
           "subscriptionGroupID" : "quit_all_premium",
