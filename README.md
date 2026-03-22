@@ -14,9 +14,13 @@ Open http://localhost:3000
 
 ## Pages
 
-- `/` — Landing page
+- `/` — Landing page with features, screenshots, pricing (3-day free trial), stats
 - `/privacy` — Privacy Policy
 - `/terms` — Terms of Service
+
+## Deployed
+
+[quit-all.vercel.app](https://quit-all.vercel.app)
 
 ## License
 
