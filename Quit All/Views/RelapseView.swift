@@ -267,8 +267,7 @@ struct RelapseView: View {
             Image(addictionType.iconName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 80, height: 80)
-                .cornerRadius(20)
+                .frame(width: 96, height: 96)
 
             Text("New streak begins now.")
                 .font(.title.weight(.bold))

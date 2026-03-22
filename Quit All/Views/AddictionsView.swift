@@ -25,8 +25,7 @@ struct AddictionsView: View {
                         Image(type.iconName)
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 36, height: 36)
-                            .cornerRadius(8)
+                            .frame(width: 44, height: 44)
 
                         VStack(alignment: .leading, spacing: 4) {
                             Text(addiction.name ?? "")

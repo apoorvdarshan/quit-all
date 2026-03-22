@@ -85,8 +85,7 @@ struct SOSView: View {
             Image(addictionType.iconName)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .frame(width: 28, height: 28)
-                .cornerRadius(6)
+                .frame(width: 36, height: 36)
         }
         .padding(.horizontal, 20)
         .padding(.top, 12)
