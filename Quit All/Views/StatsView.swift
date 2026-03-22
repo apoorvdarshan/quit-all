@@ -11,6 +11,9 @@ struct StatsView: View {
     @State private var patterns: PatternDetector.Patterns = .init()
     @State private var cravings: [CDCravingEvent] = []
 
+    private let gold = Color(hex: "D4AF37")
+    private let lightGold = Color(hex: "F5E6A3")
+
     private var addictionType: AddictionType {
         AddictionTracker.shared.addictionType(for: addiction)
     }
@@ -19,29 +22,24 @@ struct StatsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
-                    // Calendar heatmap
                     calendarHeatmap
                         .padding(.horizontal, 20)
 
-                    // Craving frequency
                     if !cravings.isEmpty {
                         cravingFrequencyCard
                             .padding(.horizontal, 20)
                     }
 
-                    // Top triggers
                     if !patterns.triggerBreakdown.isEmpty {
                         triggerBreakdownCard
                             .padding(.horizontal, 20)
                     }
 
-                    // Hour heatmap
                     if !patterns.hourlyHeatmap.isEmpty {
                         hourlyHeatmapCard
                             .padding(.horizontal, 20)
                     }
 
-                    // Pattern insights
                     if !patterns.insights.isEmpty {
                         insightsCard
                             .padding(.horizontal, 20)
@@ -51,12 +49,18 @@ struct StatsView: View {
                 }
                 .padding(.top, 16)
             }
-            .background(Color(hex: "0A0A0A"))
+            .background(Color(hex: "080808"))
             .navigationTitle("Stats")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Done")
+                            .font(.system(size: 15, weight: .semibold, design: .serif))
+                            .foregroundColor(gold)
+                    }
                 }
             }
             .task {
@@ -70,9 +74,10 @@ struct StatsView: View {
     // MARK: - Calendar Heatmap
     private var calendarHeatmap: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Last 30 Days")
-                .font(.headline)
-                .foregroundColor(.white)
+            Text("LAST 30 DAYS")
+                .font(.system(size: 12, weight: .semibold, design: .serif))
+                .foregroundColor(gold.opacity(0.7))
+                .tracking(1.5)
 
             let dateMap = CravingLogger.shared.cravingDateMap(for: addiction, context: viewContext)
             let today = Calendar.current.startOfDay(for: Date())
@@ -87,33 +92,37 @@ struct StatsView: View {
                         .frame(height: 32)
                         .overlay(
                             Text("\(Calendar.current.component(.day, from: date))")
-                                .font(.system(size: 10, weight: .medium))
-                                .foregroundColor(.white.opacity(0.7))
+                                .font(.system(size: 10, weight: .medium, design: .serif))
+                                .foregroundColor(.white.opacity(0.6))
                         )
                 }
             }
 
             HStack(spacing: 16) {
-                legendDot(color: .green.opacity(0.6), label: "Clean")
-                legendDot(color: .red.opacity(0.6), label: "Craving")
-                legendDot(color: Color(hex: "141414"), label: "No data")
+                legendDot(color: gold.opacity(0.5), label: "Clean")
+                legendDot(color: Color(hex: "8B0000").opacity(0.6), label: "Craving")
+                legendDot(color: Color(hex: "151515"), label: "No data")
             }
-            .font(.caption)
-            .foregroundColor(.gray)
+            .font(.system(size: 11, design: .serif))
+            .foregroundColor(.white.opacity(0.4))
         }
         .padding(16)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.08), lineWidth: 1)
+        )
     }
 
     private func dayColor(status: Bool?, isToday: Bool) -> Color {
         if isToday {
-            return addictionType.color.opacity(0.4)
+            return gold.opacity(0.3)
         }
         guard let survived = status else {
-            return Color(hex: "1A1A1A")
+            return Color(hex: "151515")
         }
-        return survived ? .green.opacity(0.4) : .red.opacity(0.4)
+        return survived ? gold.opacity(0.25) : Color(hex: "8B0000").opacity(0.4)
     }
 
     private func legendDot(color: Color, label: String) -> some View {
@@ -126,23 +135,29 @@ struct StatsView: View {
     // MARK: - Craving Frequency
     private var cravingFrequencyCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Craving Frequency")
-                .font(.headline)
-                .foregroundColor(.white)
+            Text("CRAVING FREQUENCY")
+                .font(.system(size: 12, weight: .semibold, design: .serif))
+                .foregroundColor(gold.opacity(0.7))
+                .tracking(1.5)
 
-            // Simple bar chart for last 7 days
             let last7Days = cravingsPerDay(days: 7)
 
             HStack(alignment: .bottom, spacing: 6) {
                 ForEach(last7Days, id: \.date) { day in
                     VStack(spacing: 4) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(addictionType.color)
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(
+                                LinearGradient(
+                                    colors: [gold, gold.opacity(0.5)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
                             .frame(height: max(4, CGFloat(day.count) * 20))
 
                         Text(dayLabel(day.date))
-                            .font(.system(size: 9))
-                            .foregroundColor(.gray)
+                            .font(.system(size: 9, weight: .medium, design: .serif))
+                            .foregroundColor(.white.opacity(0.4))
                     }
                     .frame(maxWidth: .infinity)
                 }
@@ -151,13 +166,17 @@ struct StatsView: View {
 
             if let avg = patterns.averageCravingsPerDay {
                 Text("Avg: \(String(format: "%.1f", avg)) cravings/day")
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                    .font(.system(size: 12, design: .serif))
+                    .foregroundColor(.white.opacity(0.4))
             }
         }
         .padding(16)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.08), lineWidth: 1)
+        )
     }
 
     private struct DayCount: Hashable {
@@ -187,9 +206,10 @@ struct StatsView: View {
     // MARK: - Trigger Breakdown
     private var triggerBreakdownCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Top Triggers")
-                .font(.headline)
-                .foregroundColor(.white)
+            Text("TOP TRIGGERS")
+                .font(.system(size: 12, weight: .semibold, design: .serif))
+                .foregroundColor(gold.opacity(0.7))
+                .tracking(1.5)
 
             let total = patterns.triggerBreakdown.values.reduce(0, +)
             let sorted = patterns.triggerBreakdown.sorted { $0.value > $1.value }
@@ -199,39 +219,50 @@ struct StatsView: View {
 
                 HStack {
                     Text(trigger)
-                        .font(.subheadline)
-                        .foregroundColor(.white)
-                        .frame(width: 120, alignment: .leading)
+                        .font(.system(size: 14, weight: .medium, design: .serif))
+                        .foregroundColor(.white.opacity(0.8))
+                        .frame(width: 110, alignment: .leading)
 
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.white.opacity(0.1))
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(addictionType.color)
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(Color.white.opacity(0.06))
+                            RoundedRectangle(cornerRadius: 3)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [gold, gold.opacity(0.5)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
                                 .frame(width: geo.size.width * pct)
                         }
                     }
-                    .frame(height: 16)
+                    .frame(height: 14)
 
                     Text("\(Int(pct * 100))%")
-                        .font(.caption.monospacedDigit())
-                        .foregroundColor(.gray)
+                        .font(.system(size: 12, weight: .bold, design: .serif).monospacedDigit())
+                        .foregroundColor(lightGold)
                         .frame(width: 36)
                 }
             }
         }
         .padding(16)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.08), lineWidth: 1)
+        )
     }
 
     // MARK: - Hourly Heatmap
     private var hourlyHeatmapCard: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Craving by Hour")
-                .font(.headline)
-                .foregroundColor(.white)
+            Text("CRAVING BY HOUR")
+                .font(.system(size: 12, weight: .semibold, design: .serif))
+                .foregroundColor(gold.opacity(0.7))
+                .tracking(1.5)
 
             let maxCount = patterns.hourlyHeatmap.values.max() ?? 1
 
@@ -242,13 +273,13 @@ struct StatsView: View {
 
                     VStack(spacing: 2) {
                         RoundedRectangle(cornerRadius: 2)
-                            .fill(addictionType.color.opacity(0.2 + intensity * 0.8))
+                            .fill(gold.opacity(0.15 + intensity * 0.85))
                             .frame(height: max(4, CGFloat(intensity) * 60))
 
                         if hour % 6 == 0 {
                             Text("\(hour)")
-                                .font(.system(size: 8))
-                                .foregroundColor(.gray)
+                                .font(.system(size: 8, design: .serif))
+                                .foregroundColor(.white.opacity(0.3))
                         }
                     }
                     .frame(maxWidth: .infinity)
@@ -257,14 +288,23 @@ struct StatsView: View {
             .frame(height: 80, alignment: .bottom)
 
             if let dangerZone = patterns.dangerZoneDescription {
-                Text("Danger zone: \(dangerZone)")
-                    .font(.caption)
-                    .foregroundColor(.orange)
+                HStack(spacing: 4) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(Color(hex: "8B0000"))
+                    Text("Danger zone: \(dangerZone)")
+                        .font(.system(size: 12, weight: .medium, design: .serif))
+                        .foregroundColor(Color(hex: "8B0000"))
+                }
             }
         }
         .padding(16)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.08), lineWidth: 1)
+        )
     }
 
     // MARK: - Insights
@@ -272,26 +312,31 @@ struct StatsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Image(systemName: "lightbulb.fill")
-                    .foregroundColor(.yellow)
-                Text("Pattern Insights")
-                    .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(gold)
+                Text("PATTERN INSIGHTS")
+                    .font(.system(size: 12, weight: .semibold, design: .serif))
+                    .foregroundColor(gold.opacity(0.7))
+                    .tracking(1.5)
             }
 
             ForEach(patterns.insights, id: \.self) { insight in
                 HStack(alignment: .top, spacing: 8) {
                     Circle()
-                        .fill(addictionType.color)
-                        .frame(width: 6, height: 6)
-                        .padding(.top, 6)
+                        .fill(gold.opacity(0.6))
+                        .frame(width: 5, height: 5)
+                        .padding(.top, 7)
                     Text(insight)
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.8))
+                        .font(.system(size: 14, weight: .regular, design: .serif))
+                        .foregroundColor(.white.opacity(0.7))
                 }
             }
         }
         .padding(16)
-        .background(Color(hex: "141414"))
+        .background(Color(hex: "111111"))
         .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.08), lineWidth: 1)
+        )
     }
 }

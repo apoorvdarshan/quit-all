@@ -10,6 +10,8 @@ struct SettingsView: View {
     @State private var showResetAlert = false
     @State private var notificationsEnabled = true
 
+    private let gold = Color(hex: "D4AF37")
+
     var body: some View {
         NavigationStack {
             List {
@@ -19,67 +21,100 @@ struct SettingsView: View {
                         showAddictions = true
                     } label: {
                         HStack {
-                            Label("My Addictions", systemImage: "list.bullet")
+                            Image(systemName: "list.bullet")
+                                .foregroundColor(gold)
+                            Text("My Addictions")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
                             Spacer()
                             Image(systemName: "chevron.right")
-                                .foregroundColor(.gray)
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
                         }
-                        .foregroundColor(.white)
                     }
                 } header: {
-                    Text("Tracking")
+                    Text("TRACKING")
+                        .font(.system(size: 11, weight: .semibold, design: .serif))
+                        .foregroundColor(gold.opacity(0.6))
+                        .tracking(1.5)
                 }
-                .listRowBackground(Color(hex: "141414"))
+                .listRowBackground(Color(hex: "111111"))
 
                 // Notifications
                 Section {
                     Toggle(isOn: $notificationsEnabled) {
-                        Label("Smart Notifications", systemImage: "bell.fill")
+                        HStack {
+                            Image(systemName: "bell.fill")
+                                .foregroundColor(gold)
+                            Text("Smart Notifications")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                        }
                     }
-                    .tint(.green)
+                    .tint(gold)
                     .onChange(of: notificationsEnabled) { _, newValue in
                         if !newValue {
                             NotificationManager.shared.removeAllNotifications()
                         }
                     }
                 } header: {
-                    Text("Notifications")
+                    Text("NOTIFICATIONS")
+                        .font(.system(size: 11, weight: .semibold, design: .serif))
+                        .foregroundColor(gold.opacity(0.6))
+                        .tracking(1.5)
                 } footer: {
                     Text("Pattern-based reminders at your highest risk times")
+                        .font(.system(size: 12, design: .serif))
+                        .foregroundColor(.white.opacity(0.3))
                 }
-                .listRowBackground(Color(hex: "141414"))
+                .listRowBackground(Color(hex: "111111"))
 
                 // About
                 Section {
                     HStack {
                         Text("Version")
+                            .font(.system(size: 15, weight: .medium, design: .serif))
                         Spacer()
                         Text("1.0.0")
-                            .foregroundColor(.gray)
+                            .font(.system(size: 14, design: .serif))
+                            .foregroundColor(gold.opacity(0.5))
                     }
                 } header: {
-                    Text("About")
+                    Text("ABOUT")
+                        .font(.system(size: 11, weight: .semibold, design: .serif))
+                        .foregroundColor(gold.opacity(0.6))
+                        .tracking(1.5)
                 }
-                .listRowBackground(Color(hex: "141414"))
+                .listRowBackground(Color(hex: "111111"))
 
                 // Reset
                 Section {
                     Button(role: .destructive) {
                         showResetAlert = true
                     } label: {
-                        Label("Reset All Data", systemImage: "trash")
-                            .foregroundColor(.red)
+                        HStack {
+                            Image(systemName: "trash")
+                                .foregroundColor(Color(hex: "8B0000"))
+                            Text("Reset All Data")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(Color(hex: "8B0000"))
+                        }
                     }
                 }
-                .listRowBackground(Color(hex: "141414"))
+                .listRowBackground(Color(hex: "111111"))
             }
             .scrollContentBackground(.hidden)
-            .background(Color(hex: "0A0A0A"))
+            .background(Color(hex: "080808"))
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Done")
+                            .font(.system(size: 15, weight: .semibold, design: .serif))
+                            .foregroundColor(gold)
+                    }
                 }
             }
             .sheet(isPresented: $showAddictions) {
@@ -98,7 +133,6 @@ struct SettingsView: View {
     }
 
     private func resetAllData() {
-        // Delete all addictions
         let request: NSFetchRequest<NSFetchRequestResult> = CDAddiction.fetchRequest()
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
 
@@ -109,9 +143,7 @@ struct SettingsView: View {
             print("Reset error: \(error)")
         }
 
-        // Clear user defaults
         UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
-
         NotificationManager.shared.removeAllNotifications()
     }
 }
