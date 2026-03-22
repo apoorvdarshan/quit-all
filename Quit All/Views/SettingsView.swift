@@ -133,15 +133,27 @@ struct SettingsView: View {
     }
 
     private func resetAllData() {
-        // Delete all entities
-        let entities = ["CDAddiction", "CDCravingEvent", "CDRelapseEvent", "CDMilestone"]
-        for entity in entities {
-            let request = NSFetchRequest<NSFetchRequestResult>(entityName: entity)
-            let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
-            try? viewContext.execute(deleteRequest)
+        // Delete all addictions (cascades to cravings, relapses, milestones)
+        let request: NSFetchRequest<CDAddiction> = CDAddiction.fetchRequest()
+        if let addictions = try? viewContext.fetch(request) {
+            for addiction in addictions {
+                viewContext.delete(addiction)
+            }
         }
+
+        // Delete any orphaned entities
+        let entities: [NSFetchRequest<NSFetchRequestResult>] = [
+            CDCravingEvent.fetchRequest(),
+            CDRelapseEvent.fetchRequest(),
+            CDMilestone.fetchRequest()
+        ]
+        for req in entities {
+            if let objects = try? viewContext.fetch(req) as? [NSManagedObject] {
+                for obj in objects { viewContext.delete(obj) }
+            }
+        }
+
         try? viewContext.save()
-        viewContext.reset()
 
         // Clear all UserDefaults
         UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")
