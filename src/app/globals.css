@@ -221,25 +221,36 @@ img { max-width: 100%; display: block; }
 /* Screenshots */
 .screenshots { padding: 128px 0; overflow: hidden; }
 .screenshots-scroll {
-  display: flex; gap: 20px; padding: 0 32px;
-  overflow-x: auto; scroll-snap-type: x mandatory;
+  display: flex; gap: 20px;
+  justify-content: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  padding: 0 calc((100vw - 1100px) / 2);
 }
 .screenshots-scroll::-webkit-scrollbar { display: none; }
 .screenshot-item {
-  flex: 0 0 auto; scroll-snap-align: center;
-  width: 260px; border-radius: 24px; overflow: hidden;
+  flex: 0 0 220px;
+  max-width: 220px;
+  scroll-snap-align: center;
+  border-radius: 28px; overflow: hidden;
   border: 1px solid var(--border);
   transition: transform 0.4s, border-color 0.4s;
   background: var(--card);
 }
 .screenshot-item:hover {
-  transform: scale(1.03);
-  border-color: rgba(201,168,76,0.2);
+  transform: scale(1.04);
+  border-color: rgba(201,168,76,0.25);
 }
 .screenshot-item img {
   width: 100%; height: auto; display: block;
+}
+
+@media (max-width: 768px) {
+  .screenshots-scroll { padding: 0 24px; justify-content: flex-start; }
+  .screenshot-item { flex: 0 0 180px; max-width: 180px; border-radius: 22px; }
 }
 
 /* Pricing */

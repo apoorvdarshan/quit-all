@@ -128,7 +128,7 @@ export default function Home() {
           initial="hidden" whileInView="visible" viewport={{ once: true }}>
           {["ss-onboarding", "ss-sos2", "ss-sos1", "ss-stats", "ss-sos3", "ss-sos4"].map((ss, i) => (
             <motion.div key={ss} className="screenshot-item" variants={fadeUp} custom={i * 0.5}>
-              <Image src={`/${ss}.png`} alt="App screenshot" width={260} height={563} style={{ width: "100%", height: "auto" }} />
+              <Image src={`/${ss}.png`} alt="App screenshot" width={220} height={476} style={{ width: "100%", height: "auto" }} />
             </motion.div>
           ))}
         </motion.div>
@@ -219,11 +219,15 @@ export default function Home() {
             <div className="footer-links">
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
-              <Link href="/support">Support</Link>
-              <Link href="#">Product Hunt</Link>
-              <Link href="https://github.com/apoorvdarshan/quit-all">GitHub</Link>
+              <Link href="mailto:ad13dtu@gmail.com">Contact</Link>
             </div>
-            <p className="footer-copy">© 2026</p>
+            <div className="footer-links">
+              <Link href="https://x.com/apoorvdarshan" target="_blank">𝕏</Link>
+              <Link href="https://linkedin.com/in/apoorvdarshan" target="_blank">in</Link>
+              <Link href="https://github.com/apoorvdarshan" target="_blank">gh</Link>
+              <Link href="#" target="_blank">ph</Link>
+            </div>
+            <p className="footer-copy">© 2026 Apoorv Darshan. All rights reserved.</p>
           </div>
         </div>
       </footer>
