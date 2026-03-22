@@ -67,19 +67,19 @@ struct RelapseView: View {
 
             Text("Okay. That happened.")
                 .font(.system(size: 28, weight: .bold, design: .serif))
-                .foregroundColor(.white)
+                .foregroundColor(Color(hex: "F5E6A3"))
 
             if streakBroken > 0 {
                 Text("Your streak of \(streakBroken) days is saved in history.")
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .font(.system(size: 14, weight: .medium, design: .serif))
+                    .foregroundColor(.white.opacity(0.4))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 20)
             }
 
             Text("Let's understand what happened.")
-                .font(.subheadline)
-                .foregroundColor(.gray)
+                .font(.system(size: 14, weight: .medium, design: .serif))
+                .foregroundColor(.white.opacity(0.35))
 
             Spacer()
 
@@ -89,9 +89,10 @@ struct RelapseView: View {
                     currentStep = 1
                 }
             } label: {
-                Text("Continue")
-                    .font(.headline)
-                    .foregroundColor(.white)
+                Text("CONTINUE")
+                    .font(.system(size: 14, weight: .bold, design: .serif))
+                    .foregroundColor(Color(hex: "D4AF37"))
+                    .tracking(1.5)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
                     .background(Color(hex: "111111"))
@@ -109,7 +110,7 @@ struct RelapseView: View {
 
             Text("What were you doing\nbefore it happened?")
                 .font(.system(size: 22, weight: .bold, design: .serif))
-                .foregroundColor(.white)
+                .foregroundColor(Color(hex: "F5E6A3"))
                 .multilineTextAlignment(.center)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
@@ -142,11 +143,15 @@ struct RelapseView: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
             }
-            .foregroundColor(selectedActivity == activity ? .black : .white)
+            .foregroundColor(selectedActivity == activity ? .black : .white.opacity(0.7))
             .frame(maxWidth: .infinity)
             .frame(height: 80)
-            .background(selectedActivity == activity ? addictionType.color : Color(hex: "111111"))
+            .background(selectedActivity == activity ? Color(hex: "D4AF37") : Color(hex: "111111"))
             .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(selectedActivity == activity ? Color(hex: "D4AF37") : Color(hex: "D4AF37").opacity(0.08), lineWidth: 1)
+            )
         }
     }
 
@@ -157,7 +162,7 @@ struct RelapseView: View {
 
             Text("How are you feeling\nright now?")
                 .font(.system(size: 22, weight: .bold, design: .serif))
-                .foregroundColor(.white)
+                .foregroundColor(Color(hex: "F5E6A3"))
                 .multilineTextAlignment(.center)
 
             HStack(spacing: 12) {
@@ -191,11 +196,11 @@ struct RelapseView: View {
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
-            .background(selectedMood == mood ? addictionType.color.opacity(0.3) : Color(hex: "111111"))
+            .background(selectedMood == mood ? Color(hex: "D4AF37").opacity(0.2) : Color(hex: "111111"))
             .cornerRadius(12)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(selectedMood == mood ? addictionType.color : Color.clear, lineWidth: 2)
+                    .stroke(selectedMood == mood ? Color(hex: "D4AF37").opacity(0.6) : Color(hex: "D4AF37").opacity(0.08), lineWidth: 1)
             )
         }
     }
@@ -207,7 +212,7 @@ struct RelapseView: View {
 
             Text("What will you do\ndifferently next time?")
                 .font(.system(size: 22, weight: .bold, design: .serif))
-                .foregroundColor(.white)
+                .foregroundColor(Color(hex: "F5E6A3"))
                 .multilineTextAlignment(.center)
 
             TextField("Type here...", text: $nextTimePlan, axis: .vertical)
@@ -224,9 +229,10 @@ struct RelapseView: View {
                 HapticManager.shared.impact(.heavy)
                 saveRelapse()
             } label: {
-                Text("Save & Start Over")
-                    .font(.headline)
-                    .foregroundColor(.black)
+                Text("SAVE & START OVER")
+                    .font(.system(size: 14, weight: .bold, design: .serif))
+                    .foregroundColor(.white)
+                    .tracking(1.5)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
                     .background(LinearGradient(colors: [Color(hex: "D4AF37").opacity(0.8), Color(hex: "8B6914")], startPoint: .top, endPoint: .bottom))
@@ -247,9 +253,10 @@ struct RelapseView: View {
             HapticManager.shared.impact(.medium)
             withAnimation(.spring(duration: 0.3)) { action() }
         } label: {
-            Text("Next")
-                .font(.headline)
-                .foregroundColor(.black)
+            Text("NEXT")
+                .font(.system(size: 14, weight: .bold, design: .serif))
+                .foregroundColor(.white)
+                .tracking(1.5)
                 .frame(maxWidth: .infinity)
                 .frame(height: 56)
                 .background(LinearGradient(colors: [Color(hex: "D4AF37").opacity(0.8), Color(hex: "8B6914")], startPoint: .top, endPoint: .bottom))
@@ -274,8 +281,8 @@ struct RelapseView: View {
                 .foregroundColor(Color(hex: "F5E6A3"))
 
             Text("You're not starting from zero.\nYou're starting from experience.")
-                .font(.subheadline)
-                .foregroundColor(.gray)
+                .font(.system(size: 14, weight: .medium, design: .serif))
+                .foregroundColor(.white.opacity(0.4))
                 .multilineTextAlignment(.center)
 
             Spacer()
@@ -283,9 +290,10 @@ struct RelapseView: View {
             Button {
                 dismiss()
             } label: {
-                Text("Let's Go")
-                    .font(.headline)
-                    .foregroundColor(.black)
+                Text("LET'S GO")
+                    .font(.system(size: 14, weight: .bold, design: .serif))
+                    .foregroundColor(.white)
+                    .tracking(1.5)
                     .frame(maxWidth: .infinity)
                     .frame(height: 56)
                     .background(LinearGradient(colors: [Color(hex: "D4AF37").opacity(0.8), Color(hex: "8B6914")], startPoint: .top, endPoint: .bottom))
