@@ -49,11 +49,7 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "46512E34",
-          "introductoryOffer" : {
-            "internalID" : "AB121676",
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P3D"
-          },
+          "introductoryOffer" : null,
           "localizations" : [
             {
               "description" : "",
@@ -81,11 +77,7 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "AD793DCF",
-          "introductoryOffer" : {
-            "internalID" : "FF194662",
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P3D"
-          },
+          "introductoryOffer" : null,
           "localizations" : [
             {
               "description" : "",

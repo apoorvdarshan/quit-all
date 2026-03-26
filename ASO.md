@@ -16,7 +16,7 @@ Quit Smoking, Vaping & More
 
 ## Keywords (100 chars max, comma separated)
 ```
-stop smoking,vaping,sober tracker,addiction,drinking,no fap,dopamine detox,craving,relapse,streaks
+stop smoking,vaping,sober tracker,addiction,drinking,dopamine detox,craving,relapse,streaks,wellness
 ```
 
 ## Promotional Text (170 chars max, can be updated without review)
@@ -26,7 +26,7 @@ Join thousands quitting smoking, vaping, alcohol, and more. Track streaks, survi
 
 ## Description (4000 chars max)
 ```
-Quit All helps you quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine — all in one app. No judgment. No shame. Just real tools that work.
+Quit All helps you quit smoking, vaping, alcohol, social media, weed, gambling, overspending, and caffeine — all in one app. No judgment. No shame. Just real tools that work.
 
 TRACK EVERY ADDICTION AT ONCE
 Add as many addictions as you want. Each one gets its own streak counter, savings tracker, and craving history. Reorder them however you like.
@@ -61,7 +61,6 @@ All data stays on your device. No accounts. No sign-up. No analytics. No ads. We
 SUPPORTED ADDICTIONS
 • Smoking & Vaping
 • Alcohol
-• Porn
 • Social Media & Phone
 • Weed
 • Gambling

@@ -186,10 +186,8 @@ struct PaywallView: View {
             // Default yearly selected — products may not load without StoreKit config
             selectedProductId = SubscriptionProduct.yearly.rawValue
 
-            // Check trial eligibility from StoreKit
-            if let yearly = PaywallManager.shared.products.last {
-                isTrialEligible = await PaywallManager.shared.isEligibleForTrial(yearly)
-            }
+            // Trial eligibility disabled until introductory offers are configured in App Store Connect
+            isTrialEligible = false
         }
     }
 
