@@ -14,7 +14,7 @@ Open http://localhost:3000
 
 ## Pages
 
-- `/` — Landing page with features, screenshots, pricing (3-day free trial), stats
+- `/` — Landing page with features, screenshots, pricing, stats
 - `/privacy` — Privacy Policy
 - `/terms` — Terms of Service
 
