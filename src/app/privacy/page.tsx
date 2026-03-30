@@ -34,7 +34,7 @@ const sections = [
     title: "Third-Party Services",
     items: [
       "Giphy API \u2014 Used to fetch GIF images for the SOS craving screen. Giphy may collect usage data per their own privacy policy. No personal data from Quit All is sent to Giphy.",
-      "Apple StoreKit \u2014 Used for in-app subscriptions. Payment processing is handled entirely by Apple.",
+      "Apple StoreKit \u2014 Used for in-app subscriptions (including 3-day free trial). Payment processing is handled entirely by Apple.",
       "Apple Push Notifications \u2014 Used for smart notifications at your highest-risk times. Notification data stays on your device.",
     ],
   },

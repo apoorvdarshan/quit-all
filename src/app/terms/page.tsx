@@ -26,11 +26,11 @@ const sections = [
   {
     title: "Subscriptions",
     items: [
-      "Quit All offers auto-renewable subscriptions: Monthly ($7.99/month) and Yearly ($49.99/year)",
-      "Payment is charged to your Apple ID account at confirmation of purchase",
+      "Quit All offers a 3-day free trial followed by auto-renewable subscriptions: Monthly ($7.99/month) and Yearly ($49.99/year)",
+      "Payment is charged to your Apple ID account at the end of the free trial period",
       "Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period",
       "You can manage and cancel subscriptions in your Apple ID account settings",
-      "Cancel anytime",
+      "If you cancel during the free trial, you will not be charged",
     ],
   },
   {
