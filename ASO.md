@@ -88,7 +88,15 @@ Secondary: Lifestyle
 18+ (Frequent/Intense: Alcohol, Tobacco, Drug References)
 ```
 
-## What's New (for updates)
+## What's New (for v1.0.1)
+```
+• 3-day free trial for all new users
+• Add or remove addictions from Settings
+• Manage subscription from Settings
+• Restore purchases support
+```
+
+## What's New (for v1.0)
 ```
 • 2,790+ motivational memes — you'll never see the same one twice
 • SOS craving screen with fresh GIFs every session
