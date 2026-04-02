@@ -116,7 +116,7 @@ struct SettingsView: View {
                             .foregroundColor(gold.opacity(0.5))
                     }
 
-                    Link(destination: URL(string: "https://quit-all.vercel.app/privacy")!) {
+                    Link(destination: URL(string: "https://quit-all.com/privacy")!) {
                         HStack {
                             Image(systemName: "hand.raised.fill")
                                 .foregroundColor(gold)
@@ -130,7 +130,7 @@ struct SettingsView: View {
                         }
                     }
 
-                    Link(destination: URL(string: "https://quit-all.vercel.app/terms")!) {
+                    Link(destination: URL(string: "https://quit-all.com/terms")!) {
                         HStack {
                             Image(systemName: "doc.text.fill")
                                 .foregroundColor(gold)

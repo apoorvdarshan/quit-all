@@ -168,9 +168,9 @@ struct PaywallView: View {
 
                     // Legal
                     HStack(spacing: 16) {
-                        Link("Privacy Policy", destination: URL(string: "https://quit-all.vercel.app/privacy")!)
+                        Link("Privacy Policy", destination: URL(string: "https://quit-all.com/privacy")!)
                         Text("·").foregroundColor(.white.opacity(0.15))
-                        Link("Terms of Service", destination: URL(string: "https://quit-all.vercel.app/terms")!)
+                        Link("Terms of Service", destination: URL(string: "https://quit-all.com/terms")!)
                     }
                     .font(.system(size: 11, design: .serif))
                     .foregroundColor(.white.opacity(0.2))

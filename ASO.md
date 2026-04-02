@@ -73,8 +73,8 @@ Quit All Premium unlocks all features with a 3-day free trial:
 • Yearly: $49.99/year (save 48%)
 Try free for 3 days. Cancel anytime. Payment charged to Apple ID.
 
-Privacy Policy: https://quit-all.vercel.app/privacy
-Terms of Use: https://quit-all.vercel.app/terms
+Privacy Policy: https://quit-all.com/privacy
+Terms of Use: https://quit-all.com/terms
 ```
 
 ## Category
