@@ -260,6 +260,14 @@ export default function Home() {
         </motion.div>
       </section>
 
+      {/* SEO Content */}
+      <section className="seo-content">
+        <div className="container">
+          <h2>Quit Smoking, Vaping, Alcohol and More</h2>
+          <p>Quit All is the best app to quit smoking in 2026. Whether you want to stop vaping, quit drinking alcohol, break a gambling addiction, quit weed, reduce caffeine intake, stop overspending, or cut down on social media, Quit All tracks all your addictions in one place. Our sobriety counter and streak tracker help you stay accountable. The SOS craving button gives you instant distraction with motivational memes and GIFs when urges hit. Built-in pattern detection finds your danger zones so you know when cravings are most likely to strike. Track your money saved from quitting and see your health improve with science-backed milestones. No sign-up required. All data stays on your iPhone. Start your 3-day free trial today.</p>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="footer">
         <div className="container">

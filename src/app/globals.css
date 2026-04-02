@@ -381,6 +381,21 @@ img { max-width: 100%; display: block; }
 .footer-socials a:hover svg { opacity: 1; }
 .footer-copy { font-size: 11px; color: var(--text-muted); }
 
+/* SEO Content */
+.seo-content {
+  padding: 60px 0 40px;
+  border-top: 1px solid rgba(201,168,76,0.06);
+}
+.seo-content h2 {
+  font-family: var(--font-display);
+  font-size: 14px; font-weight: 500; color: var(--text-muted);
+  margin-bottom: 12px; letter-spacing: 0.5px;
+}
+.seo-content p {
+  font-size: 12px; line-height: 1.8; color: rgba(255,255,255,0.15);
+  max-width: 800px;
+}
+
 /* Legal pages */
 /* Legal divider */
 .legal-divider {
