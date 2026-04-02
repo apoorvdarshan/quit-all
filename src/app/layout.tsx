@@ -15,14 +15,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Apoorv Darshan" }],
   creator: "Apoorv Darshan",
   publisher: "Apoorv Darshan",
-  metadataBase: new URL("https://quit-all.vercel.app"),
+  metadataBase: new URL("https://quit-all.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://quit-all.vercel.app",
+    url: "https://quit-all.com",
     siteName: "Quit All",
     title: "Quit All - One App to Quit Smoking, Vaping, Alcohol & More",
     description: "One app to quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings, save money.",

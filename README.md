@@ -20,7 +20,7 @@ Open http://localhost:3000
 
 ## Deployed
 
-[quit-all.vercel.app](https://quit-all.vercel.app)
+[quit-all.com](https://quit-all.com)
 
 ## License
 
