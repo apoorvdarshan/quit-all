@@ -1,6 +1,6 @@
 # Quit All — Website
 
-Official website for the [Quit All](https://github.com/apoorvdarshan/quit-all) iOS app. Hosts the landing page, Privacy Policy, and Terms of Service.
+Official website for the Quit All iOS app. Hosts the landing page, Privacy Policy, and Terms of Service. Part of the Quit All monorepo.
 
 Built with Next.js + vanilla CSS. No Tailwind.
 
