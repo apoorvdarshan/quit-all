@@ -6,7 +6,7 @@
 
 <p align="center">Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine — all in one app.</p>
 
-**Website:** [quit-all.com](https://quit-all.com)
+**Website:** [quit-all.com](https://quit-all.com) · Part of the Quit All monorepo
 
 ## Features
 
