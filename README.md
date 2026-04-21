@@ -28,13 +28,14 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 └── web/    # Next.js marketing site → quit-all.com
 ```
 
-## Screenshots
+## Preview
 
 <p align="center">
-  <img src="ios/screenshots/onboarding.png" width="170" />
-  <img src="ios/screenshots/sos2.png" width="170" />
-  <img src="ios/screenshots/sos1.png" width="170" />
-  <img src="ios/screenshots/stats.png" width="170" />
+  <img src="ios/screenshots/preview.gif" width="320" alt="Quit All app preview — onboarding, SOS craving screen, stats" />
+</p>
+
+<p align="center">
+  <sub>Onboarding · SOS meme intervention · Motivational cards · Trigger logging · Stats</sub>
 </p>
 
 ## What's inside
