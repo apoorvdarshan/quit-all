@@ -52,8 +52,6 @@ npm run dev   # http://localhost:3000
 
 Deployed on Vercel → [quit-all.com](https://quit-all.com)
 
-Full details → [`web/README.md`](web/README.md)
-
 ## License
 
 All rights reserved. © 2026 Apoorv Darshan.
