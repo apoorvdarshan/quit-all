@@ -1,1 +1,30 @@
-Secrets.xcconfig
+# macOS
+.DS_Store
+
+# iOS secrets
+ios/Secrets.xcconfig
+ios/Quit All/EnvConfig.swift
+
+# Xcode user data
+**/xcuserdata/
+**/*.xcuserstate
+
+# Node / Next.js (web)
+web/node_modules/
+web/.next/
+web/out/
+web/.vercel/
+web/build/
+web/coverage/
+web/*.tsbuildinfo
+web/next-env.d.ts
+
+# Env files
+web/.env*
+!web/.env.example
+
+# Logs
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+web/.pnpm-debug.log*
