@@ -67,7 +67,7 @@ struct PaywallView: View {
 
                     // Features
                     VStack(alignment: .leading, spacing: 16) {
-                        featureRow(icon: "flame.fill", text: "SOS craving intervention with GIFs")
+                        featureRow(icon: "flame.fill", text: "SOS craving intervention with video loops")
                         featureRow(icon: "chart.bar.fill", text: "Advanced stats & pattern detection")
                         featureRow(icon: "trophy.fill", text: "Milestones with shareable cards")
                         featureRow(icon: "dollarsign.circle.fill", text: "Cost calculator & savings projections")

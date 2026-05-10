@@ -6,7 +6,7 @@
 
 <p align="center">
   Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine —<br/>
-  all in one app. Powered by streaks, GIFs, 2,790+ memes, and no shame.
+  all in one app. Powered by streaks, local video loops, 2,790+ memes, and no shame.
 </p>
 
 <p align="center">
@@ -43,7 +43,7 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 ### Features
 
 - **9 addictions, one app** — smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, caffeine
-- **SOS craving button** — full-screen takeover with animated Giphy GIFs + 2,790+ curated memes (motivational, roast, consequence, distraction, relatable)
+- **SOS craving button** — full-screen takeover with bundled local video loops + 2,790+ curated memes (motivational, roast, consequence, distraction, relatable)
 - **Streak tracking** — giant counter with gold gradient progress ring toward the next milestone
 - **Pattern detection** — on-device hourly heatmaps and trigger analysis of your cravings
 - **Cost calculator** — money saved, life hours reclaimed, 5-year projection slider, "what you could buy" cards
@@ -60,7 +60,7 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 | CoreData (local-only, no backend) | Vanilla CSS (no Tailwind) |
 | StoreKit 2 (subscriptions) | Framer Motion (animations) |
 | UserNotifications | JSON-LD structured data for SEO |
-| Giphy API (SOS GIFs) | Vercel hosting |
+| Bundled MP4/MOV video loops | Vercel hosting |
 | Dark casino-gold theme, Cormorant serif | Same theme system as iOS |
 
 ## Running locally
@@ -72,13 +72,7 @@ cd ios
 open "Quit All.xcodeproj"
 ```
 
-Create `ios/Secrets.xcconfig` (gitignored) with your Giphy key:
-
-```
-GIPHY_API_KEY = your_key_here
-```
-
-A pre-build script injects this into `EnvConfig.swift` at build time, so no keys are committed.
+Optional SOS video loops are manifest-driven. Add compressed silent MP4/MOV clips under `ios/Quit All/Memes/VideoLoops/` and list them in `ios/Quit All/Memes/VideoLoops.json`.
 
 Full setup → [`ios/README.md`](ios/README.md)
 

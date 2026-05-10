@@ -1,14 +1,13 @@
 import SwiftUI
 
 // MARK: - Meme Browse View
-// Browsable library with GIFs + text memes, filterable by type and category.
+// Browsable library with local video loops + text memes, filterable by type and category.
 struct MemeBrowseView: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedType: AddictionType? = nil
     @State private var selectedCategory: MemeCategory? = nil
-    @State private var gifs: [GiphyManager.GiphyGif] = []
-    @State private var isLoadingGifs = false
+    @State private var videoLoops: [LocalVideoLoop] = []
 
     private var filteredMemes: [MemeItem] {
         MemeLibrary.shared.filteredMemes(type: selectedType, category: selectedCategory)
@@ -22,7 +21,7 @@ struct MemeBrowseView: View {
                     HStack(spacing: 8) {
                         filterChip(label: "All", isSelected: selectedType == nil) {
                             selectedType = nil
-                            gifs = []
+                            videoLoops = []
                         }
                         ForEach(AddictionType.allCases, id: \.self) { type in
                             filterChip(
@@ -32,9 +31,9 @@ struct MemeBrowseView: View {
                             ) {
                                 selectedType = selectedType == type ? nil : type
                                 if let t = selectedType {
-                                    loadGifs(for: t)
+                                    loadLoops(for: t)
                                 } else {
-                                    gifs = []
+                                    videoLoops = []
                                 }
                             }
                         }
@@ -65,18 +64,18 @@ struct MemeBrowseView: View {
                 // Content
                 ScrollView {
                     VStack(spacing: 16) {
-                        // GIF section (if a type is selected)
-                        if !gifs.isEmpty {
+                        // Video loop section (if a type is selected)
+                        if !videoLoops.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("GIFs")
+                                Text("Loops")
                                     .font(.headline)
                                     .foregroundColor(.white)
                                     .padding(.horizontal, 16)
 
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 12) {
-                                        ForEach(gifs) { gif in
-                                            GIFImageView(url: gif.gifURL)
+                                        ForEach(videoLoops) { loop in
+                                            LoopingVideoView(url: loop.url)
                                                 .frame(width: 180, height: 180)
                                                 .cornerRadius(12)
                                                 .clipped()
@@ -86,13 +85,6 @@ struct MemeBrowseView: View {
                                 }
                                 .frame(height: 180)
                             }
-                        } else if isLoadingGifs && selectedType != nil {
-                            HStack {
-                                Spacer()
-                                ProgressView().tint(.gray)
-                                Spacer()
-                            }
-                            .frame(height: 100)
                         }
 
                         // Text memes grid
@@ -156,11 +148,7 @@ struct MemeBrowseView: View {
         .cornerRadius(16)
     }
 
-    private func loadGifs(for type: AddictionType) {
-        isLoadingGifs = true
-        Task {
-            gifs = await GiphyManager.shared.randomGifs(for: type, count: 20)
-            isLoadingGifs = false
-        }
+    private func loadLoops(for type: AddictionType) {
+        videoLoops = LocalVideoLoopLibrary.shared.loops(for: type)
     }
 }

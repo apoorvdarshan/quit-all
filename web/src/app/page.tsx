@@ -33,11 +33,11 @@ const slideIn = {
 };
 
 const features = [
-  { icon: "⚡", title: "SOS Craving Button", desc: "Instant GIF distraction when the urge hits. Swipe through memes while the craving passes." },
+  { icon: "⚡", title: "SOS Craving Button", desc: "Instant looped-video distraction when the urge hits. Swipe through memes while the craving passes." },
   { icon: "🔍", title: "Pattern Intelligence", desc: "Your cravings have patterns. We find them. Hourly heatmaps, trigger analysis, danger zone alerts." },
   { icon: "◆", title: "Milestone Rewards", desc: "From 1 hour to 1 year — 9 science-backed milestones. Each unlocks a health fact and shareable card." },
   { icon: "¤", title: "Money Tracker", desc: "Watch savings grow in real-time. Project 5 years out. See what you could buy with the money." },
-  { icon: "∞", title: "2,790+ Memes", desc: "Five categories. Nine types. Fresh GIFs every session. You'll never see the same one twice." },
+  { icon: "∞", title: "2,790+ Memes", desc: "Five categories. Nine types. Local video loops can be bundled for offline SOS sessions." },
   { icon: "↺", title: "Zero-Shame Relapse", desc: "It happened. That's okay. Log it, learn, restart. Your history is saved. Progress is never lost." },
 ];
 
@@ -93,7 +93,7 @@ export default function Home() {
           </motion.h1>
 
           <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2}>
-            Nine addictions. One app. Track your streaks, survive cravings with memes and GIFs, watch your money grow, and never feel ashamed of a setback.
+            Nine addictions. One app. Track your streaks, survive cravings with memes and local video loops, watch your money grow, and never feel ashamed of a setback.
           </motion.p>
 
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="hero-buttons">
@@ -193,7 +193,7 @@ export default function Home() {
               <p className="pricing-sub">Billed monthly</p>
               <ul className="pricing-features">
                 <li>All 9 addiction types</li>
-                <li>SOS craving GIFs &amp; memes</li>
+                <li>SOS craving video loops &amp; memes</li>
                 <li>Stats &amp; pattern detection</li>
                 <li>Milestones &amp; sharing</li>
                 <li>Smart notifications</li>
@@ -264,7 +264,7 @@ export default function Home() {
       <section className="seo-content">
         <div className="container">
           <h2>Quit Smoking, Vaping, Alcohol and More</h2>
-          <p>Quit All is the best app to quit smoking in 2026. Whether you want to stop vaping, quit drinking alcohol, break a gambling addiction, quit weed, reduce caffeine intake, stop overspending, or cut down on social media, Quit All tracks all your addictions in one place. Our sobriety counter and streak tracker help you stay accountable. The SOS craving button gives you instant distraction with motivational memes and GIFs when urges hit. Built-in pattern detection finds your danger zones so you know when cravings are most likely to strike. Track your money saved from quitting and see your health improve with science-backed milestones. No sign-up required. All data stays on your iPhone. Start your 3-day free trial today.</p>
+          <p>Quit All is the best app to quit smoking in 2026. Whether you want to stop vaping, quit drinking alcohol, break a gambling addiction, quit weed, reduce caffeine intake, stop overspending, or cut down on social media, Quit All tracks all your addictions in one place. Our sobriety counter and streak tracker help you stay accountable. The SOS craving button gives you instant distraction with motivational memes and local video loops when urges hit. Built-in pattern detection finds your danger zones so you know when cravings are most likely to strike. Track your money saved from quitting and see your health improve with science-backed milestones. No sign-up required. All data stays on your iPhone. Start your 3-day free trial today.</p>
         </div>
       </section>
 

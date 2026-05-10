@@ -2,7 +2,7 @@ import SwiftUI
 import CoreData
 
 // MARK: - SOS Craving Screen
-// Full screen takeover with GIF distraction + countdown + trigger + outcome.
+// Full screen takeover with local video loops + countdown + trigger + outcome.
 struct SOSView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
@@ -14,11 +14,10 @@ struct SOSView: View {
     @State private var timer: Timer?
     @State private var currentMemeIndex = 0
     @State private var memes: [MemeItem] = []
-    @State private var gifs: [GiphyManager.GiphyGif] = []
+    @State private var videoLoops: [LocalVideoLoop] = []
     @State private var selectedTrigger: CravingTrigger?
     @State private var showConfetti = false
     @State private var elapsedSeconds = 0
-    @State private var isLoadingGifs = true
 
     private var addictionType: AddictionType {
         AddictionTracker.shared.addictionType(for: addiction)
@@ -95,7 +94,7 @@ struct SOSView: View {
         .padding(.top, 12)
     }
 
-    // MARK: - Phase 1: GIF + Meme Distraction (TikTok-style swipe)
+    // MARK: - Phase 1: Video Loop + Meme Distraction (TikTok-style swipe)
     private var memePhase: some View {
         VStack(spacing: 0) {
             TabView(selection: $currentMemeIndex) {
@@ -103,19 +102,13 @@ struct SOSView: View {
                     VStack(spacing: 16) {
                         Spacer()
 
-                        // Show GIF if available, otherwise big emoji
-                        if index < gifs.count {
-                            GIFImageView(url: gifs[index].gifURL)
+                        // Show bundled loop if available, otherwise big emoji.
+                        if index < videoLoops.count {
+                            LoopingVideoView(url: videoLoops[index].url)
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 260)
                                 .cornerRadius(16)
                                 .clipped()
-                                .padding(.horizontal, 20)
-                        } else if isLoadingGifs {
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(hex: "141414"))
-                                .frame(height: 200)
-                                .overlay(ProgressView().tint(.gray))
                                 .padding(.horizontal, 20)
                         } else {
                             Text(meme.category.emoji)
@@ -322,12 +315,7 @@ struct SOSView: View {
 
     private func startSession() {
         memes = MemeLibrary.shared.randomMemes(for: addictionType, count: 15)
-
-        // Load GIFs from Giphy
-        Task {
-            gifs = await GiphyManager.shared.randomGifs(for: addictionType, count: 15)
-            isLoadingGifs = false
-        }
+        videoLoops = LocalVideoLoopLibrary.shared.randomLoops(for: addictionType, count: 15)
 
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if timerSeconds > 0 {

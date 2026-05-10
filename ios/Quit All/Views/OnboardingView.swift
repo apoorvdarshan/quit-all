@@ -451,7 +451,7 @@ struct OnboardingView: View {
     // MARK: - Step 4: Features
     private var featuresStep: some View {
         let features: [(icon: String, title: String, desc: String)] = [
-            ("exclamationmark.triangle.fill", "SOS CRAVING BUTTON", "Instant GIF distraction when urges hit. Swipe through memes while the craving passes."),
+            ("exclamationmark.triangle.fill", "SOS CRAVING BUTTON", "Local video loops and memes when urges hit. Swipe while the craving passes."),
             ("chart.bar.fill", "SMART TRACKING", "Know your triggers, danger times, and patterns. Your data reveals what works."),
             ("trophy.fill", "MILESTONE REWARDS", "Celebrate every win with health facts. Share your progress with shareable cards."),
             ("arrow.counterclockwise", "NO JUDGMENT", "Log relapses without shame. Restart instantly. Your streak history is always saved."),

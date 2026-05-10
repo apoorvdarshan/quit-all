@@ -21,7 +21,7 @@ stop smoking,vaping,sober tracker,addiction,drinking,dopamine detox,craving,rela
 
 ## Promotional Text (170 chars max, can be updated without review)
 ```
-Join thousands quitting smoking, vaping, alcohol, and more. Track streaks, survive cravings with GIFs, and watch your savings grow. Your journey starts now.
+Join thousands quitting smoking, vaping, alcohol, and more. Track streaks, survive cravings with memes and video loops, and watch your savings grow. Your journey starts now.
 ```
 
 ## Description (4000 chars max)
@@ -32,10 +32,10 @@ TRACK EVERY ADDICTION AT ONCE
 Add as many addictions as you want. Each one gets its own streak counter, savings tracker, and craving history. Reorder them however you like.
 
 SOS CRAVING BUTTON
-When the urge hits, tap the SOS button. You'll get instant distraction — animated GIFs and motivational memes while a 5-minute timer counts down. Log your trigger, then report if you made it through. Most cravings pass in 3 minutes.
+When the urge hits, tap the SOS button. You'll get instant distraction — local video loops and motivational memes while a 5-minute timer counts down. Log your trigger, then report if you made it through. Most cravings pass in 3 minutes.
 
 2,790+ MOTIVATIONAL MEMES
-Five categories: Motivational, Roast, Consequence, Distraction, and Relatable. Fresh GIFs from Giphy every session. You'll never see the same one twice.
+Five categories: Motivational, Roast, Consequence, Distraction, and Relatable. Bundled video loops can add offline motion without a third-party media API.
 
 SMART PATTERN DETECTION
 Your cravings have patterns. We find them. See hourly heatmaps, trigger breakdowns, craving frequency charts, and danger zone alerts. Know your weakest moments before they hit.
@@ -99,7 +99,7 @@ Secondary: Lifestyle
 ## What's New (for v1.0)
 ```
 • 2,790+ motivational memes — you'll never see the same one twice
-• SOS craving screen with fresh GIFs every session
+• SOS craving screen with local video loops and memes
 • Smart pattern detection finds your danger zones
 • 9 currencies supported
 • Drag-to-reorder your addictions

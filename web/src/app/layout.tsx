@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Quit All — Quit Smoking, Vaping, Alcohol & More in One App",
-  description: "Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings with GIFs & memes, save money. 100% private, all data on your device.",
+  description: "Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings with local video loops and memes, save money. 100% private, all data on your device.",
   keywords: [
     "quit smoking app", "stop smoking", "quit smoking tracker", "smoking cessation",
     "stop vaping", "quit vaping app", "vape free",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Quit All — Quit Every Addiction in One App",
-    description: "Quit smoking, vaping, alcohol & 6 more addictions. Track streaks, survive cravings with GIFs, save money. 100% private.",
+    description: "Quit smoking, vaping, alcohol & 6 more addictions. Track streaks, survive cravings with local video loops, save money. 100% private.",
     creator: "@apoorvdarshan",
     images: ["/og.png"],
   },
@@ -84,7 +84,7 @@ const jsonLd = {
   operatingSystem: "iOS 17+",
   applicationCategory: "HealthApplication",
   applicationSubCategory: "Addiction Recovery",
-  description: "Best app to quit smoking, stop vaping, quit drinking alcohol, quit weed, stop gambling, quit caffeine, and break social media addiction. Track sobriety streaks, survive cravings with memes and GIFs, see money saved, and get pattern-based alerts. 3-day free trial. 100% private.",
+  description: "Best app to quit smoking, stop vaping, quit drinking alcohol, quit weed, stop gambling, quit caffeine, and break social media addiction. Track sobriety streaks, survive cravings with memes and local video loops, see money saved, and get pattern-based alerts. 3-day free trial. 100% private.",
   offers: {
     "@type": "Offer",
     price: "0",

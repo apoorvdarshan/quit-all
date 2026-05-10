@@ -40,7 +40,7 @@ const sections = [
   },
   {
     title: "Content",
-    content: "Memes, GIFs, and motivational text in the app are for entertainment and motivation purposes only. Some content may contain humor about addiction. All GIF content is SFW (safe for work) and sourced from Giphy\u2019s PG-rated library.",
+    content: "Memes, local video loops, and motivational text in the app are for entertainment and motivation purposes only. Some content may contain humor about addiction.",
   },
   {
     title: "User Responsibility",

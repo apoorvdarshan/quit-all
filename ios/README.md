@@ -13,7 +13,7 @@
 - **8-Step Onboarding Funnel** — Quiz, personalized analysis, symptom check, feature showcase, reviews, custom quit plan, and paywall
 - **Streak Tracking** — Giant streak counter with gold gradient progress ring toward next milestone
 - **Multiple Addictions** — Track as many as you want with drag-to-reorder horizontal scroll cards
-- **SOS Craving Screen** — Full-screen takeover with animated GIFs from Giphy, 2,790+ motivational memes, trigger logging, and outcome tracking
+- **SOS Craving Screen** — Full-screen takeover with bundled local video loops, 2,790+ motivational memes, trigger logging, and outcome tracking
 - **Stats & Patterns** — Overall summary, calendar heatmap, craving frequency charts, hourly heatmaps, trigger breakdown, and pattern insights
 - **Cost Calculator** — Money saved, projection slider up to 5 years, "what you could buy" cards, life time saved
 - **Currency Selection** — 9 currencies (USD, EUR, GBP, INR, CAD, AUD, JPY, CNY, BRL), chosen during onboarding via dropdown
@@ -40,22 +40,27 @@
 - CoreData (all data local, no server)
 - StoreKit 2 (subscriptions)
 - UserNotifications (smart alerts)
-- Giphy API (GIF search for SOS screen)
-- ImageIO (animated GIF rendering)
+- AVFoundation (silent looping MP4/MOV playback)
 - No backend, no sign-in required
 
 ## Setup
 
 1. Clone the repo
-2. Create `Secrets.xcconfig` in the project root:
-   ```
-   GIPHY_API_KEY = your_giphy_api_key
-   ```
-   Get a free key at [developers.giphy.com](https://developers.giphy.com)
-3. Open `Quit All.xcodeproj` in Xcode
-4. Build and run
+2. Open `Quit All.xcodeproj` in Xcode
+3. Build and run
 
-The pre-build script reads `Secrets.xcconfig` and generates `EnvConfig.swift` automatically. Both files are gitignored — no API keys in the repo.
+Optional SOS video loops are local-only. Add compressed silent MP4/MOV files under `Quit All/Memes/VideoLoops/` and list them in `Quit All/Memes/VideoLoops.json`.
+
+Example manifest entry:
+
+```json
+{
+  "id": "smoking-001",
+  "addictionType": "Smoking",
+  "fileName": "smoking_001.mp4",
+  "title": "Smoking urge loop"
+}
+```
 
 ## Project Structure
 
@@ -63,7 +68,6 @@ The pre-build script reads `Secrets.xcconfig` and generates `EnvConfig.swift` au
 Quit All/
 ├── Quit_AllApp.swift              # App entry point
 ├── Persistence.swift              # CoreData stack
-├── EnvConfig.swift                # API key config (auto-generated, gitignored)
 ├── Core/
 │   ├── HapticManager.swift        # Haptic feedback
 │   ├── NotificationManager.swift  # Smart pattern-based notifications
@@ -72,7 +76,7 @@ Quit All/
 │   ├── PatternDetector.swift      # Craving pattern analysis (on-device)
 │   └── RelapseAnalyzer.swift      # Relapse trend analysis
 ├── Memes/
-│   ├── GiphyManager.swift         # Giphy API + animated GIF renderer
+│   ├── LocalVideoLoopLibrary.swift # Bundled video loop loading + playback
 │   ├── MemeData.swift             # 2,790 curated text memes
 │   └── MemeLibrary.swift          # Meme filtering & selection
 ├── Tracking/
@@ -89,7 +93,7 @@ Quit All/
 │   ├── OnboardingView.swift       # 8-step conversion funnel
 │   ├── PaywallView.swift          # Subscription paywall
 │   ├── HomeView.swift             # Dashboard + gold streak ring
-│   ├── SOSView.swift              # Craving intervention + GIFs + confetti
+│   ├── SOSView.swift              # Craving intervention + video loops + confetti
 │   ├── StatsView.swift            # Overall summary + charts + insights
 │   ├── CostView.swift             # Savings calculator + projections
 │   ├── MilestonesView.swift       # Progressive milestones + share cards

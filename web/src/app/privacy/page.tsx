@@ -33,7 +33,6 @@ const sections = [
   {
     title: "Third-Party Services",
     items: [
-      "Giphy API \u2014 Used to fetch GIF images for the SOS craving screen. Giphy may collect usage data per their own privacy policy. No personal data from Quit All is sent to Giphy.",
       "Apple StoreKit \u2014 Used for in-app subscriptions (including 3-day free trial). Payment processing is handled entirely by Apple.",
       "Apple Push Notifications \u2014 Used for smart notifications at your highest-risk times. Notification data stays on your device.",
     ],
@@ -83,7 +82,7 @@ export default function Privacy() {
         <motion.div className="legal-divider" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
           transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }} />
 
-        {sections.map((section, i) => (
+        {sections.map((section) => (
           <motion.div key={section.title} className="legal-section"
             initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }}
             variants={fadeUp} custom={0}>
