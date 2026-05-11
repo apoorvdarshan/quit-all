@@ -108,6 +108,20 @@ struct AboutView: View {
                                 .foregroundColor(gold.opacity(0.4))
                         }
                     }
+
+                    Link(destination: URL(string: "https://x.com/apoorvdarshan")!) {
+                        HStack {
+                            Image(systemName: "at")
+                                .foregroundColor(gold)
+                            Text("Follow on X")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
                 } header: {
                     Text("SOCIAL")
                         .font(.system(size: 11, weight: .semibold, design: .serif))
@@ -122,6 +136,34 @@ struct AboutView: View {
                             Image(systemName: "heart.fill")
                                 .foregroundColor(gold)
                             Text("Support on Ko-fi")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+
+                    Link(destination: URL(string: "https://www.producthunt.com/products/quit-all-break-every-habit")!) {
+                        HStack {
+                            Image(systemName: "hand.thumbsup.fill")
+                                .foregroundColor(gold)
+                            Text("Vote on Product Hunt")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+
+                    Link(destination: URL(string: "mailto:ad13dtu@gmail.com")!) {
+                        HStack {
+                            Image(systemName: "envelope.fill")
+                                .foregroundColor(gold)
+                            Text("Contact Us")
                                 .font(.system(size: 15, weight: .medium, design: .serif))
                                 .foregroundColor(.white)
                             Spacer()
