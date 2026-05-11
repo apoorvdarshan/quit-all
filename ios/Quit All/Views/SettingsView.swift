@@ -5,6 +5,7 @@ import CoreData
 struct SettingsView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var updateChecker = AppUpdateChecker.shared
 
     @State private var showAddictions = false
     @State private var showResetAlert = false
@@ -99,10 +100,32 @@ struct SettingsView: View {
                         Text("Version")
                             .font(.system(size: 15, weight: .medium, design: .serif))
                         Spacer()
-                        Text("1.0.0")
+                        Text(updateChecker.currentVersion)
                             .font(.system(size: 14, design: .serif))
                             .foregroundColor(gold.opacity(0.5))
                     }
+
+                    Button {
+                        handleUpdateTap()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "arrow.down.circle.fill")
+                                .foregroundColor(gold)
+
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text("App Update")
+                                    .font(.system(size: 15, weight: .medium, design: .serif))
+                                    .foregroundColor(.white)
+                                Text(updateChecker.displayStatus)
+                                    .font(.system(size: 12, design: .serif))
+                                    .foregroundColor(updateChecker.isUpdateAvailable ? gold : .white.opacity(0.4))
+                            }
+
+                            Spacer()
+                            updateAccessory
+                        }
+                    }
+                    .buttonStyle(.plain)
 
                     Link(destination: URL(string: "https://quit-all.com/privacy")!) {
                         HStack {
@@ -181,8 +204,42 @@ struct SettingsView: View {
             } message: {
                 Text("This will permanently delete all your tracking data, streaks, and history. This cannot be undone.")
             }
+            .task {
+                await updateChecker.checkForUpdate()
+            }
         }
         .preferredColorScheme(.dark)
+    }
+
+    @ViewBuilder
+    private var updateAccessory: some View {
+        if updateChecker.isChecking {
+            ProgressView()
+                .tint(gold)
+        } else if updateChecker.isUpdateAvailable {
+            Text("UPDATE")
+                .font(.system(size: 10, weight: .bold, design: .serif))
+                .foregroundColor(.black)
+                .tracking(0.8)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(gold)
+                .cornerRadius(10)
+        } else {
+            Image(systemName: "arrow.clockwise")
+                .font(.caption)
+                .foregroundColor(gold.opacity(0.4))
+        }
+    }
+
+    private func handleUpdateTap() {
+        if updateChecker.isUpdateAvailable {
+            updateChecker.openAppStore()
+        } else {
+            Task {
+                await updateChecker.checkForUpdate(force: true)
+            }
+        }
     }
 
     private func manageSubscription() {

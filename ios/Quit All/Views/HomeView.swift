@@ -5,6 +5,7 @@ import Combine
 // MARK: - Home Dashboard View
 struct HomeView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @ObservedObject private var updateChecker = AppUpdateChecker.shared
 
     @FetchRequest(
         sortDescriptors: [
@@ -58,8 +59,17 @@ struct HomeView: View {
                     Button {
                         showSettings = true
                     } label: {
-                        Image(systemName: "gearshape.fill")
-                            .foregroundColor(.gray)
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "gearshape.fill")
+                                .foregroundColor(.gray)
+
+                            if updateChecker.isUpdateAvailable {
+                                Circle()
+                                    .fill(Color(hex: "D4AF37"))
+                                    .frame(width: 8, height: 8)
+                                    .offset(x: 4, y: -4)
+                            }
+                        }
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -79,6 +89,9 @@ struct HomeView: View {
                 if selectedAddiction == nil {
                     selectedAddiction = addictions.first
                 }
+            }
+            .task {
+                await updateChecker.checkForUpdate()
             }
             .fullScreenCover(isPresented: $showSOS) {
                 if let addiction = selectedAddiction ?? addictions.first {
