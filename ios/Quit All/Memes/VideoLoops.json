@@ -1531,6 +1531,414 @@
       "addictionType": "Caffeine",
       "fileName": "caffeine_030.mp4",
       "title": "Uopx Coffee Caffeine Uopx"
+    },
+    {
+      "id": "smoking-031",
+      "addictionType": "Smoking",
+      "fileName": "smoking_031.mp4",
+      "title": "Smoking loop 31"
+    },
+    {
+      "id": "smoking-032",
+      "addictionType": "Smoking",
+      "fileName": "smoking_032.mp4",
+      "title": "Smoking loop 32"
+    },
+    {
+      "id": "smoking-033",
+      "addictionType": "Smoking",
+      "fileName": "smoking_033.mp4",
+      "title": "Smoking loop 33"
+    },
+    {
+      "id": "smoking-034",
+      "addictionType": "Smoking",
+      "fileName": "smoking_034.mp4",
+      "title": "Smoking loop 34"
+    },
+    {
+      "id": "smoking-035",
+      "addictionType": "Smoking",
+      "fileName": "smoking_035.mp4",
+      "title": "Smoking loop 35"
+    },
+    {
+      "id": "smoking-036",
+      "addictionType": "Smoking",
+      "fileName": "smoking_036.mp4",
+      "title": "Smoking loop 36"
+    },
+    {
+      "id": "smoking-037",
+      "addictionType": "Smoking",
+      "fileName": "smoking_037.mp4",
+      "title": "Smoking loop 37"
+    },
+    {
+      "id": "smoking-038",
+      "addictionType": "Smoking",
+      "fileName": "smoking_038.mp4",
+      "title": "Smoking loop 38"
+    },
+    {
+      "id": "vaping-031",
+      "addictionType": "Vaping",
+      "fileName": "vaping_031.mp4",
+      "title": "Vaping loop 31"
+    },
+    {
+      "id": "vaping-032",
+      "addictionType": "Vaping",
+      "fileName": "vaping_032.mp4",
+      "title": "Vaping loop 32"
+    },
+    {
+      "id": "vaping-033",
+      "addictionType": "Vaping",
+      "fileName": "vaping_033.mp4",
+      "title": "Vaping loop 33"
+    },
+    {
+      "id": "vaping-034",
+      "addictionType": "Vaping",
+      "fileName": "vaping_034.mp4",
+      "title": "Vaping loop 34"
+    },
+    {
+      "id": "vaping-035",
+      "addictionType": "Vaping",
+      "fileName": "vaping_035.mp4",
+      "title": "Vaping loop 35"
+    },
+    {
+      "id": "vaping-036",
+      "addictionType": "Vaping",
+      "fileName": "vaping_036.mp4",
+      "title": "Vaping loop 36"
+    },
+    {
+      "id": "vaping-037",
+      "addictionType": "Vaping",
+      "fileName": "vaping_037.mp4",
+      "title": "Vaping loop 37"
+    },
+    {
+      "id": "vaping-038",
+      "addictionType": "Vaping",
+      "fileName": "vaping_038.mp4",
+      "title": "Vaping loop 38"
+    },
+    {
+      "id": "alcohol-031",
+      "addictionType": "Alcohol",
+      "fileName": "alcohol_031.mp4",
+      "title": "Alcohol loop 31"
+    },
+    {
+      "id": "alcohol-032",
+      "addictionType": "Alcohol",
+      "fileName": "alcohol_032.mp4",
+      "title": "Alcohol loop 32"
+    },
+    {
+      "id": "alcohol-033",
+      "addictionType": "Alcohol",
+      "fileName": "alcohol_033.mp4",
+      "title": "Alcohol loop 33"
+    },
+    {
+      "id": "alcohol-034",
+      "addictionType": "Alcohol",
+      "fileName": "alcohol_034.mp4",
+      "title": "Alcohol loop 34"
+    },
+    {
+      "id": "alcohol-035",
+      "addictionType": "Alcohol",
+      "fileName": "alcohol_035.mp4",
+      "title": "Alcohol loop 35"
+    },
+    {
+      "id": "alcohol-036",
+      "addictionType": "Alcohol",
+      "fileName": "alcohol_036.mp4",
+      "title": "Alcohol loop 36"
+    },
+    {
+      "id": "alcohol-037",
+      "addictionType": "Alcohol",
+      "fileName": "alcohol_037.mp4",
+      "title": "Alcohol loop 37"
+    },
+    {
+      "id": "alcohol-038",
+      "addictionType": "Alcohol",
+      "fileName": "alcohol_038.mp4",
+      "title": "Alcohol loop 38"
+    },
+    {
+      "id": "porn-031",
+      "addictionType": "Porn",
+      "fileName": "porn_031.mp4",
+      "title": "Porn loop 31"
+    },
+    {
+      "id": "porn-032",
+      "addictionType": "Porn",
+      "fileName": "porn_032.mp4",
+      "title": "Porn loop 32"
+    },
+    {
+      "id": "porn-033",
+      "addictionType": "Porn",
+      "fileName": "porn_033.mp4",
+      "title": "Porn loop 33"
+    },
+    {
+      "id": "porn-034",
+      "addictionType": "Porn",
+      "fileName": "porn_034.mp4",
+      "title": "Porn loop 34"
+    },
+    {
+      "id": "porn-035",
+      "addictionType": "Porn",
+      "fileName": "porn_035.mp4",
+      "title": "Porn loop 35"
+    },
+    {
+      "id": "porn-036",
+      "addictionType": "Porn",
+      "fileName": "porn_036.mp4",
+      "title": "Porn loop 36"
+    },
+    {
+      "id": "porn-037",
+      "addictionType": "Porn",
+      "fileName": "porn_037.mp4",
+      "title": "Porn loop 37"
+    },
+    {
+      "id": "social-media-031",
+      "addictionType": "Social Media",
+      "fileName": "social_media_031.mp4",
+      "title": "Social Media loop 31"
+    },
+    {
+      "id": "social-media-032",
+      "addictionType": "Social Media",
+      "fileName": "social_media_032.mp4",
+      "title": "Social Media loop 32"
+    },
+    {
+      "id": "social-media-033",
+      "addictionType": "Social Media",
+      "fileName": "social_media_033.mp4",
+      "title": "Social Media loop 33"
+    },
+    {
+      "id": "social-media-034",
+      "addictionType": "Social Media",
+      "fileName": "social_media_034.mp4",
+      "title": "Social Media loop 34"
+    },
+    {
+      "id": "social-media-035",
+      "addictionType": "Social Media",
+      "fileName": "social_media_035.mp4",
+      "title": "Social Media loop 35"
+    },
+    {
+      "id": "social-media-036",
+      "addictionType": "Social Media",
+      "fileName": "social_media_036.mp4",
+      "title": "Social Media loop 36"
+    },
+    {
+      "id": "social-media-037",
+      "addictionType": "Social Media",
+      "fileName": "social_media_037.mp4",
+      "title": "Social Media loop 37"
+    },
+    {
+      "id": "weed-031",
+      "addictionType": "Weed",
+      "fileName": "weed_031.mp4",
+      "title": "Weed loop 31"
+    },
+    {
+      "id": "weed-032",
+      "addictionType": "Weed",
+      "fileName": "weed_032.mp4",
+      "title": "Weed loop 32"
+    },
+    {
+      "id": "weed-033",
+      "addictionType": "Weed",
+      "fileName": "weed_033.mp4",
+      "title": "Weed loop 33"
+    },
+    {
+      "id": "weed-034",
+      "addictionType": "Weed",
+      "fileName": "weed_034.mp4",
+      "title": "Weed loop 34"
+    },
+    {
+      "id": "weed-035",
+      "addictionType": "Weed",
+      "fileName": "weed_035.mp4",
+      "title": "Weed loop 35"
+    },
+    {
+      "id": "weed-036",
+      "addictionType": "Weed",
+      "fileName": "weed_036.mp4",
+      "title": "Weed loop 36"
+    },
+    {
+      "id": "weed-037",
+      "addictionType": "Weed",
+      "fileName": "weed_037.mp4",
+      "title": "Weed loop 37"
+    },
+    {
+      "id": "gambling-024",
+      "addictionType": "Gambling",
+      "fileName": "gambling_024.mp4",
+      "title": "Gambling loop 24"
+    },
+    {
+      "id": "gambling-025",
+      "addictionType": "Gambling",
+      "fileName": "gambling_025.mp4",
+      "title": "Gambling loop 25"
+    },
+    {
+      "id": "gambling-026",
+      "addictionType": "Gambling",
+      "fileName": "gambling_026.mp4",
+      "title": "Gambling loop 26"
+    },
+    {
+      "id": "gambling-027",
+      "addictionType": "Gambling",
+      "fileName": "gambling_027.mp4",
+      "title": "Gambling loop 27"
+    },
+    {
+      "id": "gambling-028",
+      "addictionType": "Gambling",
+      "fileName": "gambling_028.mp4",
+      "title": "Gambling loop 28"
+    },
+    {
+      "id": "gambling-029",
+      "addictionType": "Gambling",
+      "fileName": "gambling_029.mp4",
+      "title": "Gambling loop 29"
+    },
+    {
+      "id": "gambling-030",
+      "addictionType": "Gambling",
+      "fileName": "gambling_030.mp4",
+      "title": "Gambling loop 30"
+    },
+    {
+      "id": "gambling-031",
+      "addictionType": "Gambling",
+      "fileName": "gambling_031.mp4",
+      "title": "Gambling loop 31"
+    },
+    {
+      "id": "overspending-023",
+      "addictionType": "Overspending",
+      "fileName": "overspending_023.mp4",
+      "title": "Overspending loop 23"
+    },
+    {
+      "id": "overspending-024",
+      "addictionType": "Overspending",
+      "fileName": "overspending_024.mp4",
+      "title": "Overspending loop 24"
+    },
+    {
+      "id": "overspending-025",
+      "addictionType": "Overspending",
+      "fileName": "overspending_025.mp4",
+      "title": "Overspending loop 25"
+    },
+    {
+      "id": "overspending-026",
+      "addictionType": "Overspending",
+      "fileName": "overspending_026.mp4",
+      "title": "Overspending loop 26"
+    },
+    {
+      "id": "overspending-027",
+      "addictionType": "Overspending",
+      "fileName": "overspending_027.mp4",
+      "title": "Overspending loop 27"
+    },
+    {
+      "id": "overspending-028",
+      "addictionType": "Overspending",
+      "fileName": "overspending_028.mp4",
+      "title": "Overspending loop 28"
+    },
+    {
+      "id": "overspending-029",
+      "addictionType": "Overspending",
+      "fileName": "overspending_029.mp4",
+      "title": "Overspending loop 29"
+    },
+    {
+      "id": "overspending-030",
+      "addictionType": "Overspending",
+      "fileName": "overspending_030.mp4",
+      "title": "Overspending loop 30"
+    },
+    {
+      "id": "caffeine-031",
+      "addictionType": "Caffeine",
+      "fileName": "caffeine_031.mp4",
+      "title": "Caffeine loop 31"
+    },
+    {
+      "id": "caffeine-032",
+      "addictionType": "Caffeine",
+      "fileName": "caffeine_032.mp4",
+      "title": "Caffeine loop 32"
+    },
+    {
+      "id": "caffeine-033",
+      "addictionType": "Caffeine",
+      "fileName": "caffeine_033.mp4",
+      "title": "Caffeine loop 33"
+    },
+    {
+      "id": "caffeine-034",
+      "addictionType": "Caffeine",
+      "fileName": "caffeine_034.mp4",
+      "title": "Caffeine loop 34"
+    },
+    {
+      "id": "caffeine-035",
+      "addictionType": "Caffeine",
+      "fileName": "caffeine_035.mp4",
+      "title": "Caffeine loop 35"
+    },
+    {
+      "id": "caffeine-036",
+      "addictionType": "Caffeine",
+      "fileName": "caffeine_036.mp4",
+      "title": "Caffeine loop 36"
+    },
+    {
+      "id": "caffeine-037",
+      "addictionType": "Caffeine",
+      "fileName": "caffeine_037.mp4",
+      "title": "Caffeine loop 37"
     }
   ]
 }
