@@ -84,7 +84,7 @@ struct PaywallView: View {
                             title: "YEARLY",
                             price: formattedPrice(for: SubscriptionProduct.yearly.rawValue, fallback: "$49.99/year"),
                             subtitle: yearlySubtitle,
-                            badge: "SAVE 48%",
+                            badge: "SAVE 58%",
                             isSelected: selectedProductId == SubscriptionProduct.yearly.rawValue
                         ) {
                             selectProduct(id: SubscriptionProduct.yearly.rawValue)
@@ -92,7 +92,7 @@ struct PaywallView: View {
 
                         subscriptionCard(
                             title: "MONTHLY",
-                            price: formattedPrice(for: SubscriptionProduct.monthly.rawValue, fallback: "$7.99/month"),
+                            price: formattedPrice(for: SubscriptionProduct.monthly.rawValue, fallback: "$9.99/month"),
                             subtitle: "Billed monthly",
                             badge: nil,
                             isSelected: selectedProductId == SubscriptionProduct.monthly.rawValue

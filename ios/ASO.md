@@ -69,8 +69,8 @@ SUPPORTED ADDICTIONS
 
 SUBSCRIPTION
 Quit All Premium unlocks all features with a 3-day free trial:
-• Monthly: $7.99/month
-• Yearly: $49.99/year (save 48%)
+• Monthly: $9.99/month
+• Yearly: $49.99/year (save 58%)
 Try free for 3 days. Cancel anytime. Payment charged to Apple ID.
 
 Privacy Policy: https://quit-all.com/privacy
