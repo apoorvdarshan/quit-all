@@ -1,3 +1,4 @@
+import StoreKit
 import SwiftUI
 
 // MARK: - About View
@@ -40,6 +41,37 @@ struct AboutView: View {
                         }
                     }
                     .buttonStyle(.plain)
+
+                    Button {
+                        requestAppReview()
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "star.fill")
+                                .foregroundColor(gold)
+                            Text("Rate the App")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "star.circle")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+                    .buttonStyle(.plain)
+
+                    ShareLink(item: appShareURL) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "square.and.arrow.up.fill")
+                                .foregroundColor(gold)
+                            Text("Share the App")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
                 } header: {
                     Text("APP")
                         .font(.system(size: 11, weight: .semibold, design: .serif))
@@ -78,6 +110,28 @@ struct AboutView: View {
                     }
                 } header: {
                     Text("SOCIAL")
+                        .font(.system(size: 11, weight: .semibold, design: .serif))
+                        .foregroundColor(gold.opacity(0.6))
+                        .tracking(1.5)
+                }
+                .listRowBackground(Color(hex: "111111"))
+
+                Section {
+                    Link(destination: URL(string: "https://ko-fi.com/apoorvdarshan")!) {
+                        HStack {
+                            Image(systemName: "heart.fill")
+                                .foregroundColor(gold)
+                            Text("Support on Ko-fi")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+                } header: {
+                    Text("SUPPORT")
                         .font(.system(size: 11, weight: .semibold, design: .serif))
                         .foregroundColor(gold.opacity(0.6))
                         .tracking(1.5)
@@ -152,6 +206,10 @@ struct AboutView: View {
         }
     }
 
+    private var appShareURL: URL {
+        updateChecker.appStoreURL ?? URL(string: "https://quit-all.com")!
+    }
+
     private func handleUpdateTap() {
         if updateChecker.isUpdateAvailable {
             updateChecker.openAppStore()
@@ -160,5 +218,15 @@ struct AboutView: View {
                 await updateChecker.checkForUpdate(force: true)
             }
         }
+    }
+
+    private func requestAppReview() {
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first(where: { $0.activationState == .foregroundActive }) else {
+            return
+        }
+
+        SKStoreReviewController.requestReview(in: windowScene)
     }
 }
