@@ -7,6 +7,7 @@ struct StatsView: View {
     @Environment(\.dismiss) private var dismiss
 
     let addiction: CDAddiction
+    let showsDoneButton: Bool
 
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \CDAddiction.sortOrder, ascending: true)],
@@ -21,6 +22,11 @@ struct StatsView: View {
 
     private var addictionType: AddictionType {
         AddictionTracker.shared.addictionType(for: addiction)
+    }
+
+    init(addiction: CDAddiction, showsDoneButton: Bool = true) {
+        self.addiction = addiction
+        self.showsDoneButton = showsDoneButton
     }
 
     var body: some View {
@@ -64,17 +70,19 @@ struct StatsView: View {
             .navigationTitle("Stats")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Done")
-                            .font(.system(size: 15, weight: .semibold, design: .serif))
-                            .foregroundColor(gold)
+                if showsDoneButton {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Done")
+                                .font(.system(size: 15, weight: .semibold, design: .serif))
+                                .foregroundColor(gold)
+                        }
                     }
                 }
             }
-            .task {
+            .task(id: addiction.objectID) {
                 cravings = CravingLogger.shared.fetchCravings(for: addiction, context: viewContext)
                 patterns = await PatternDetector.shared.analyzePatterns(for: addictionType, context: viewContext)
             }
@@ -402,7 +410,6 @@ struct StatsView: View {
                 ForEach(allAddictions) { a in
                     let type = AddictionTracker.shared.addictionType(for: a)
                     let days = StreakEngine.daysSince(a.startDate)
-                    let saved = CostCalculator.moneySaved(dailyCost: a.dailyCost, startDate: a.startDate)
                     let maxDays = max(1, streaks.max() ?? 1)
 
                     HStack(spacing: 8) {

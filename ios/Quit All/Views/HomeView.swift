@@ -18,8 +18,6 @@ struct HomeView: View {
 
     @State private var selectedAddiction: CDAddiction?
     @State private var showSOS = false
-    @State private var showStats = false
-    @State private var showSettings = false
     @State private var showMilestones = false
     @State private var showCost = false
     @State private var showMemes = false
@@ -31,6 +29,31 @@ struct HomeView: View {
     @State private var refreshID = UUID()
 
     var body: some View {
+        TabView {
+            dashboardTab
+                .tabItem {
+                    Label("Home", systemImage: "house.fill")
+                }
+
+            statsTab
+                .tabItem {
+                    Label("Stats", systemImage: "chart.bar.fill")
+                }
+
+            SettingsView(showsDoneButton: false)
+                .tabItem {
+                    Label("Settings", systemImage: "gearshape.fill")
+                }
+                .badge(updateChecker.isUpdateAvailable ? Text("") : nil)
+        }
+        .tint(Color(hex: "D4AF37"))
+        .preferredColorScheme(.dark)
+        .task {
+            await updateChecker.checkForUpdate()
+        }
+    }
+
+    private var dashboardTab: some View {
         NavigationStack {
             ZStack {
                 Color(hex: "080808").ignoresSafeArea()
@@ -54,33 +77,6 @@ struct HomeView: View {
                 .id(refreshID)
             }
             .preferredColorScheme(.dark)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        showSettings = true
-                    } label: {
-                        ZStack(alignment: .topTrailing) {
-                            Image(systemName: "gearshape.fill")
-                                .foregroundColor(.gray)
-
-                            if updateChecker.isUpdateAvailable {
-                                Circle()
-                                    .fill(Color(hex: "D4AF37"))
-                                    .frame(width: 8, height: 8)
-                                    .offset(x: 4, y: -4)
-                            }
-                        }
-                    }
-                }
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showStats = true
-                    } label: {
-                        Image(systemName: "chart.bar.fill")
-                            .foregroundColor(.gray)
-                    }
-                }
-            }
             .onReceive(streakTimer) { _ in
                 refreshID = UUID()
             }
@@ -90,21 +86,10 @@ struct HomeView: View {
                     selectedAddiction = addictions.first
                 }
             }
-            .task {
-                await updateChecker.checkForUpdate()
-            }
             .fullScreenCover(isPresented: $showSOS) {
                 if let addiction = selectedAddiction ?? addictions.first {
                     SOSView(addiction: addiction)
                 }
-            }
-            .sheet(isPresented: $showStats) {
-                if let addiction = selectedAddiction ?? addictions.first {
-                    StatsView(addiction: addiction)
-                }
-            }
-            .sheet(isPresented: $showSettings) {
-                SettingsView()
             }
             .sheet(isPresented: $showMilestones) {
                 if let addiction = selectedAddiction ?? addictions.first {
@@ -142,6 +127,32 @@ struct HomeView: View {
                     relapseAddiction = nil
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var statsTab: some View {
+        if let addiction = selectedAddiction ?? addictions.first {
+            StatsView(addiction: addiction, showsDoneButton: false)
+        } else {
+            NavigationStack {
+                VStack(spacing: 12) {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.system(size: 40))
+                        .foregroundColor(Color(hex: "D4AF37").opacity(0.7))
+                    Text("No stats yet")
+                        .font(.system(size: 20, weight: .bold, design: .serif))
+                        .foregroundColor(.white)
+                    Text("Add a habit to start tracking progress.")
+                        .font(.system(size: 14, design: .serif))
+                        .foregroundColor(.white.opacity(0.45))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color(hex: "080808"))
+                .navigationTitle("Stats")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+            .preferredColorScheme(.dark)
         }
     }
 

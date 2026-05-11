@@ -7,11 +7,17 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject private var updateChecker = AppUpdateChecker.shared
 
+    let showsDoneButton: Bool
+
     @State private var showAddictions = false
     @State private var showResetAlert = false
     @State private var notificationsEnabled = true
 
     private let gold = Color(hex: "D4AF37")
+
+    init(showsDoneButton: Bool = true) {
+        self.showsDoneButton = showsDoneButton
+    }
 
     var body: some View {
         NavigationStack {
@@ -183,13 +189,15 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Done")
-                            .font(.system(size: 15, weight: .semibold, design: .serif))
-                            .foregroundColor(gold)
+                if showsDoneButton {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Done")
+                                .font(.system(size: 15, weight: .semibold, design: .serif))
+                                .foregroundColor(gold)
+                        }
                     }
                 }
             }
