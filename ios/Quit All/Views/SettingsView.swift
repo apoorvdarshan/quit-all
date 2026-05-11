@@ -76,25 +76,13 @@ struct SettingsView: View {
                         HStack {
                             Image(systemName: "crown.fill")
                                 .foregroundColor(gold)
-                            Text("Manage Subscription")
+                            Text("Manage Purchase")
                                 .font(.system(size: 15, weight: .medium, design: .serif))
                                 .foregroundColor(.white)
                             Spacer()
                             Image(systemName: "arrow.up.right")
                                 .font(.caption)
                                 .foregroundColor(gold.opacity(0.4))
-                        }
-                    }
-
-                    Button {
-                        Task { await PaywallManager.shared.restorePurchases() }
-                    } label: {
-                        HStack {
-                            Image(systemName: "arrow.counterclockwise")
-                                .foregroundColor(gold)
-                            Text("Restore Purchases")
-                                .font(.system(size: 15, weight: .medium, design: .serif))
-                                .foregroundColor(.white)
                         }
                     }
                 } header: {
