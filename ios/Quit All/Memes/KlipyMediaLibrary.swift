@@ -14,22 +14,45 @@ final class KlipyMediaLibrary {
 
     private let endpoint = URL(string: "https://www.quit-all.com/api/klipy/v2/search")!
     private let recentItemLimit = 80
+    private let maxPageRequestsPerLoad = 3
 
     private init() {}
 
     func searchLoops(for type: AddictionType, count: Int) async -> [KlipyMediaItem] {
-        let fetchLimit = min(max(count * 4, count), 50)
+        let savedState = searchState(for: type)
+        let activeQuery = savedState.position == nil
+            ? queryVariants(for: type).randomElement() ?? query(for: type)
+            : savedState.query ?? query(for: type)
+        var nextPosition = savedState.position
+        var collectedItems: [KlipyMediaItem] = []
 
-        var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false)
-        components?.queryItems = [
-            URLQueryItem(name: "q", value: queryVariants(for: type).randomElement() ?? query(for: type)),
-            URLQueryItem(name: "limit", value: "\(fetchLimit)"),
-            URLQueryItem(name: "media_filter", value: "tinygif,nanogif,gifpreview"),
-            URLQueryItem(name: "client_nonce", value: UUID().uuidString)
-        ]
+        for _ in 0..<maxPageRequestsPerLoad {
+            guard let page = await fetchPage(query: activeQuery, limit: count, position: nextPosition) else {
+                break
+            }
 
-        guard let url = components?.url else { return [] }
+            collectedItems.append(contentsOf: page.items)
+            nextPosition = page.nextPosition
+            storeSearchState(query: activeQuery, position: nextPosition, for: type)
 
+            if uniqueItems(from: collectedItems).count >= count || nextPosition == nil {
+                break
+            }
+        }
+
+        if collectedItems.isEmpty, savedState.position != nil {
+            clearSearchState(for: type)
+            let fallbackQuery = queryVariants(for: type).randomElement() ?? query(for: type)
+            guard let page = await fetchPage(query: fallbackQuery, limit: count, position: nil) else { return [] }
+            collectedItems = page.items
+            storeSearchState(query: fallbackQuery, position: page.nextPosition, for: type)
+        }
+
+        return selectFreshItems(collectedItems, for: type, count: count)
+    }
+
+    private func fetchPage(query: String, limit: Int, position: String?) async -> KlipySearchPage? {
+        guard let url = pageURL(query: query, limit: limit, position: position) else { return nil }
         var request = URLRequest(url: url)
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.timeoutInterval = 10
@@ -38,7 +61,7 @@ final class KlipyMediaLibrary {
             let (data, response) = try await URLSession.shared.data(for: request)
             guard let httpResponse = response as? HTTPURLResponse,
                   (200..<300).contains(httpResponse.statusCode) else {
-                return []
+                return nil
             }
 
             let decoded = try JSONDecoder().decode(KlipySearchResponse.self, from: data)
@@ -53,10 +76,27 @@ final class KlipyMediaLibrary {
                 )
             }
 
-            return selectFreshItems(items, for: type, count: count)
+            return KlipySearchPage(items: items, nextPosition: decoded.next)
         } catch {
-            return []
+            return nil
         }
+    }
+
+    private func pageURL(query: String, limit: Int, position: String?) -> URL? {
+        var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false)
+        var queryItems = [
+            URLQueryItem(name: "q", value: query),
+            URLQueryItem(name: "limit", value: "\(limit)"),
+            URLQueryItem(name: "media_filter", value: "tinygif,nanogif,gifpreview"),
+            URLQueryItem(name: "client_nonce", value: UUID().uuidString)
+        ]
+
+        if let position {
+            queryItems.append(URLQueryItem(name: "pos", value: position))
+        }
+
+        components?.queryItems = queryItems
+        return components?.url
     }
 
     private func selectFreshItems(_ items: [KlipyMediaItem], for type: AddictionType, count: Int) -> [KlipyMediaItem] {
@@ -95,6 +135,36 @@ final class KlipyMediaLibrary {
 
     private func recentDefaultsKey(for type: AddictionType) -> String {
         "klipy_recent_items_\(type.rawValue)"
+    }
+
+    private func searchState(for type: AddictionType) -> (query: String?, position: String?) {
+        (
+            UserDefaults.standard.string(forKey: searchQueryDefaultsKey(for: type)),
+            UserDefaults.standard.string(forKey: searchPositionDefaultsKey(for: type))
+        )
+    }
+
+    private func storeSearchState(query: String, position: String?, for type: AddictionType) {
+        UserDefaults.standard.set(query, forKey: searchQueryDefaultsKey(for: type))
+
+        if let position {
+            UserDefaults.standard.set(position, forKey: searchPositionDefaultsKey(for: type))
+        } else {
+            UserDefaults.standard.removeObject(forKey: searchPositionDefaultsKey(for: type))
+        }
+    }
+
+    private func clearSearchState(for type: AddictionType) {
+        UserDefaults.standard.removeObject(forKey: searchQueryDefaultsKey(for: type))
+        UserDefaults.standard.removeObject(forKey: searchPositionDefaultsKey(for: type))
+    }
+
+    private func searchQueryDefaultsKey(for type: AddictionType) -> String {
+        "klipy_search_query_\(type.rawValue)"
+    }
+
+    private func searchPositionDefaultsKey(for type: AddictionType) -> String {
+        "klipy_search_position_\(type.rawValue)"
     }
 
     private func query(for type: AddictionType) -> String {
@@ -144,8 +214,14 @@ final class KlipyMediaLibrary {
     }
 }
 
+private struct KlipySearchPage {
+    let items: [KlipyMediaItem]
+    let nextPosition: String?
+}
+
 private struct KlipySearchResponse: Decodable {
     let results: [KlipyResult]
+    let next: String?
 }
 
 private struct KlipyResult: Decodable {
