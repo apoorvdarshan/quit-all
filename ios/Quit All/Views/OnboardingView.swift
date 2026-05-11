@@ -28,6 +28,8 @@ struct OnboardingView: View {
         ("BRL", "R$", "Brazilian Real"),
     ]
     @State private var featurePageIndex = 0
+    @State private var onboardingPreviewGIF: KlipyMediaItem?
+    @State private var isLoadingOnboardingPreview = false
     @State private var analysisProgress: Double = 0
     @State private var showConfetti = false
 
@@ -451,7 +453,7 @@ struct OnboardingView: View {
     // MARK: - Step 4: Features
     private var featuresStep: some View {
         let features: [(icon: String, title: String, desc: String)] = [
-            ("exclamationmark.triangle.fill", "SOS CRAVING BUTTON", "Local video loops and memes when urges hit. Swipe while the craving passes."),
+            ("exclamationmark.triangle.fill", "SOS CRAVING BUTTON", "Klipy GIF loops and memes when urges hit. Swipe while the craving passes."),
             ("chart.bar.fill", "SMART TRACKING", "Know your triggers, danger times, and patterns. Your data reveals what works."),
             ("trophy.fill", "MILESTONE REWARDS", "Celebrate every win with health facts. Share your progress with shareable cards."),
             ("arrow.counterclockwise", "NO JUDGMENT", "Log relapses without shame. Restart instantly. Your streak history is always saved."),
@@ -469,9 +471,13 @@ struct OnboardingView: View {
                 ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
                     VStack(spacing: 20) {
                         Spacer()
-                        Image(systemName: feature.icon)
-                            .font(.system(size: 48))
-                            .foregroundColor(gold)
+                        if index == 0 {
+                            onboardingGIFPreview
+                        } else {
+                            Image(systemName: feature.icon)
+                                .font(.system(size: 48))
+                                .foregroundColor(gold)
+                        }
 
                         Text(feature.title)
                             .font(.system(size: 16, weight: .bold, design: .serif))
@@ -495,6 +501,66 @@ struct OnboardingView: View {
                 withAnimation(.spring(duration: 0.4)) { currentStep = 5 }
             }
         }
+        .task {
+            await loadOnboardingPreviewGIF()
+        }
+    }
+
+    private var onboardingGIFPreview: some View {
+        ZStack(alignment: .topTrailing) {
+            if let onboardingPreviewGIF {
+                RemoteGIFView(url: onboardingPreviewGIF.gifURL)
+                    .frame(width: 240, height: 150)
+                    .background(Color(hex: "111111"))
+                    .clipped()
+            } else {
+                VStack(spacing: 12) {
+                    if isLoadingOnboardingPreview {
+                        ProgressView()
+                            .tint(gold)
+                    } else {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 28))
+                            .foregroundColor(gold)
+                    }
+                    Text("LOADING GIF PREVIEW")
+                        .font(.system(size: 10, weight: .bold, design: .serif))
+                        .foregroundColor(.white.opacity(0.45))
+                        .tracking(1.2)
+                }
+                .frame(width: 240, height: 150)
+                .background(Color(hex: "111111"))
+            }
+
+            Text("KLIPY")
+                .font(.system(size: 9, weight: .bold, design: .serif))
+                .foregroundColor(.black)
+                .tracking(0.8)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(gold)
+                .cornerRadius(10)
+                .padding(8)
+        }
+        .frame(width: 240, height: 150)
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(gold.opacity(0.18), lineWidth: 1)
+        )
+    }
+
+    private func loadOnboardingPreviewGIF() async {
+        guard onboardingPreviewGIF == nil, !isLoadingOnboardingPreview else { return }
+
+        isLoadingOnboardingPreview = true
+        defer { isLoadingOnboardingPreview = false }
+
+        let type = sortedSelected.randomElement() ?? .smoking
+        let loops = await KlipyMediaLibrary.shared.searchLoops(for: type, count: 6)
+        guard !Task.isCancelled else { return }
+
+        onboardingPreviewGIF = loops.randomElement()
     }
 
     // MARK: - Step 5: Reviews

@@ -8,7 +8,7 @@ struct PaywallView: View {
     @State private var selectedProductId: String = SubscriptionProduct.yearly.rawValue
     @State private var isPurchasing = false
     @State private var isRestoring = false
-    @State private var isTrialEligible = false
+    @State private var trialEligibleProductIDs = Set<String>()
 
     private let gold = Color(hex: "D4AF37")
     private let lightGold = Color(hex: "F5E6A3")
@@ -27,7 +27,7 @@ struct PaywallView: View {
                         .frame(width: 60, height: 60)
 
                     VStack(spacing: 10) {
-                        if isTrialEligible {
+                        if selectedProductIsTrialEligible {
                             Text("START YOUR FREE TRIAL")
                                 .font(.system(size: 12, weight: .bold, design: .serif))
                                 .foregroundColor(gold)
@@ -110,7 +110,7 @@ struct PaywallView: View {
                             if isPurchasing {
                                 ProgressView().tint(.white)
                             } else {
-                                Text(isTrialEligible ? "START FREE TRIAL" : "SUBSCRIBE NOW")
+                                Text(selectedProductIsTrialEligible ? "START FREE TRIAL" : "SUBSCRIBE NOW")
                                     .font(.system(size: 15, weight: .bold, design: .serif))
                                     .tracking(2)
                             }
@@ -133,7 +133,7 @@ struct PaywallView: View {
 
                     // Trial/billing info
                     VStack(spacing: 6) {
-                        if isTrialEligible {
+                        if selectedProductIsTrialEligible {
                             Text("3 days free, then auto-renews.")
                                 .font(.system(size: 12, weight: .medium, design: .serif))
                                 .foregroundColor(.white.opacity(0.35))
@@ -187,13 +187,21 @@ struct PaywallView: View {
             selectedProductId = SubscriptionProduct.yearly.rawValue
 
             // Check trial eligibility from StoreKit
-            if let yearly = PaywallManager.shared.products.first(where: { $0.id == SubscriptionProduct.yearly.rawValue }) {
-                isTrialEligible = await PaywallManager.shared.isEligibleForTrial(yearly)
+            var eligibleIDs = Set<String>()
+            for product in PaywallManager.shared.products {
+                if await PaywallManager.shared.isEligibleForTrial(product) {
+                    eligibleIDs.insert(product.id)
+                }
             }
+            trialEligibleProductIDs = eligibleIDs
         }
     }
 
     // MARK: - Helpers
+
+    private var selectedProductIsTrialEligible: Bool {
+        trialEligibleProductIDs.contains(selectedProductId)
+    }
 
     private var yearlySubtitle: String {
         if let product = PaywallManager.shared.products.first(where: { $0.id == SubscriptionProduct.yearly.rawValue }) {

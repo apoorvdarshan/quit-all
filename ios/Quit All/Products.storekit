@@ -49,11 +49,6 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "46512E34",
-          "introductoryOffer" : {
-            "internalID" : "AB121676",
-            "paymentMode" : "free",
-            "subscriptionPeriod" : "P3D"
-          },
           "localizations" : [
             {
               "description" : "",
