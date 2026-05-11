@@ -86,6 +86,8 @@ npm run dev    # http://localhost:3000
 
 The `web/` folder is the Vercel root — pushes that don't touch `web/` skip deployment.
 
+Klipy requests can be proxied through Vercel at `/api/klipy/...` so the iOS app never ships the API key. Configure `KLIPY_API_KEY` in Vercel, then call endpoints like `/api/klipy/v2/search?q=smoking`. Optional overrides: `KLIPY_API_BASE_URL` and `KLIPY_API_KEY_PARAM`.
+
 ## Links
 
 - **App Store:** https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934
