@@ -375,7 +375,7 @@ struct AddNewAddictionView: View {
                                                 .resizable()
                                                 .aspectRatio(contentMode: .fit)
                                                 .frame(width: 36, height: 36)
-                                            Text(type.rawValue)
+                                            Text(type.localizedName)
                                                 .font(.system(size: 11, weight: .medium, design: .serif))
                                                 .foregroundColor(.white.opacity(0.8))
                                                 .lineLimit(1)

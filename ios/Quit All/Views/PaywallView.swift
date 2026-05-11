@@ -231,7 +231,7 @@ struct PaywallView: View {
                 .frame(width: 22, height: 22)
                 .background(gold.opacity(0.1))
                 .cornerRadius(6)
-            Text(text)
+            Text(localized(text))
                 .font(.system(size: 14, weight: .medium, design: .serif))
                 .foregroundColor(.white.opacity(0.75))
         }
@@ -242,12 +242,12 @@ struct PaywallView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
-                        Text(title)
+                        Text(localized(title))
                             .font(.system(size: 14, weight: .bold, design: .serif))
                             .foregroundColor(.white)
                             .tracking(1)
                         if let badge = badge {
-                            Text(badge)
+                            Text(localized(badge))
                                 .font(.system(size: 10, weight: .bold, design: .serif))
                                 .foregroundColor(.black)
                                 .padding(.horizontal, 8)
@@ -259,7 +259,7 @@ struct PaywallView: View {
                     Text(price)
                         .font(.system(size: 13, design: .serif))
                         .foregroundColor(.white.opacity(0.5))
-                    Text(subtitle)
+                    Text(localized(subtitle))
                         .font(.system(size: 12, design: .serif))
                         .foregroundColor(gold.opacity(0.5))
                 }
@@ -312,5 +312,9 @@ struct PaywallView: View {
             HapticManager.shared.notification(.success)
             onComplete()
         }
+    }
+
+    private func localized(_ key: String) -> String {
+        NSLocalizedString(key, comment: "")
     }
 }

@@ -29,7 +29,7 @@ struct MemeBrowseView: View {
                         }
                         ForEach(AddictionType.allCases, id: \.self) { type in
                             filterChip(
-                                label: "\(type.emoji) \(type.rawValue)",
+                                label: "\(type.emoji) \(type.localizedName)",
                                 isSelected: selectedType == type,
                                 color: type.color
                             ) {
@@ -56,7 +56,7 @@ struct MemeBrowseView: View {
                         }
                         ForEach(MemeCategory.allCases, id: \.self) { cat in
                             filterChip(
-                                label: "\(cat.emoji) \(cat.rawValue)",
+                                label: "\(cat.emoji) \(cat.localizedName)",
                                 isSelected: selectedCategory == cat
                             ) {
                                 selectedCategory = selectedCategory == cat ? nil : cat
@@ -164,7 +164,7 @@ struct MemeBrowseView: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(4)
 
-            Text(meme.category.rawValue)
+            Text(meme.category.localizedName)
                 .font(.system(size: 9, weight: .medium))
                 .foregroundColor(type.color)
         }

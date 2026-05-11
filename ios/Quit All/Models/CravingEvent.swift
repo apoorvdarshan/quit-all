@@ -10,6 +10,10 @@ enum CravingTrigger: String, CaseIterable, Codable {
     case emotional = "Emotional"
     case other = "Other"
 
+    var localizedName: String {
+        NSLocalizedString(rawValue, comment: "")
+    }
+
     var emoji: String {
         switch self {
         case .stress: return "😰"
@@ -30,6 +34,10 @@ enum Mood: String, CaseIterable, Codable {
     case okay = "Okay"
     case bad = "Bad"
     case terrible = "Terrible"
+
+    var localizedName: String {
+        NSLocalizedString(rawValue, comment: "")
+    }
 
     var emoji: String {
         switch self {

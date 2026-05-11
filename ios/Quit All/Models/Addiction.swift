@@ -15,6 +15,10 @@ enum AddictionType: String, CaseIterable, Codable, Identifiable {
 
     var id: String { rawValue }
 
+    var localizedName: String {
+        NSLocalizedString(rawValue, comment: "")
+    }
+
     var emoji: String {
         switch self {
         case .smoking: return "🚬"

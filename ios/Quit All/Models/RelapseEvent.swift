@@ -12,6 +12,10 @@ enum RelapseActivity: String, CaseIterable, Codable {
     case sad = "Feeling sad"
     case other = "Something else"
 
+    var localizedName: String {
+        NSLocalizedString(rawValue, comment: "")
+    }
+
     var emoji: String {
         switch self {
         case .drinking: return "🍻"

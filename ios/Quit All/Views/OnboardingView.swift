@@ -106,7 +106,7 @@ struct OnboardingView: View {
             HapticManager.shared.impact(.medium)
             action()
         } label: {
-            Text(title)
+            Text(localized(title))
                 .font(.system(size: 15, weight: .bold, design: .serif))
                 .foregroundColor(.white)
                 .tracking(1.5)
@@ -186,7 +186,7 @@ struct OnboardingView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 44, height: 44)
-                Text(type.rawValue.uppercased())
+                Text(type.localizedName.uppercased(with: Locale.current))
                     .font(.system(size: 11, weight: .semibold, design: .serif))
                     .foregroundColor(isSelected ? lightGold : .white.opacity(0.5))
                     .tracking(0.5)
@@ -219,7 +219,7 @@ struct OnboardingView: View {
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 72, height: 72)
 
-                        Text("Quitting \(type.rawValue)")
+                        Text(String(format: localized("Quitting %@"), type.localizedName))
                             .font(.system(size: 26, weight: .bold, design: .serif))
                             .foregroundColor(lightGold)
 
@@ -233,7 +233,7 @@ struct OnboardingView: View {
                                                 selectedCurrency = code
                                             } label: {
                                                 HStack {
-                                                    Text("\(symbol) \(name)")
+                                                    Text("\(symbol) \(localized(name))")
                                                     if selectedCurrency == code {
                                                         Image(systemName: "checkmark")
                                                     }
@@ -320,7 +320,7 @@ struct OnboardingView: View {
 
     private func inputField<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(label)
+                                Text(localized(label))
                 .font(.system(size: 11, weight: .semibold, design: .serif))
                 .foregroundColor(gold.opacity(0.6))
                 .tracking(1.5)
@@ -427,7 +427,7 @@ struct OnboardingView: View {
                         HStack(spacing: 8) {
                             Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                                 .foregroundColor(isSelected ? gold : .white.opacity(0.2))
-                            Text(symptom)
+                            Text(localized(symptom))
                                 .font(.system(size: 13, weight: .medium, design: .serif))
                                 .foregroundColor(isSelected ? lightGold : .white.opacity(0.6))
                         }
@@ -482,12 +482,12 @@ struct OnboardingView: View {
                                 .foregroundColor(gold)
                         }
 
-                        Text(feature.title)
+                        Text(localized(feature.title))
                             .font(.system(size: 16, weight: .bold, design: .serif))
                             .foregroundColor(.white)
                             .tracking(2)
 
-                        Text(feature.desc)
+                        Text(localized(feature.desc))
                             .font(.system(size: 15, design: .serif))
                             .foregroundColor(.white.opacity(0.6))
                             .multilineTextAlignment(.center)
@@ -595,7 +595,7 @@ struct OnboardingView: View {
                                 }
                             }
 
-                            Text("\"\(review.text)\"")
+                            Text("\"\(localized(review.text))\"")
                                 .font(.system(size: 14, design: .serif))
                                 .foregroundColor(.white.opacity(0.8))
                                 .italic()
@@ -605,7 +605,7 @@ struct OnboardingView: View {
                                     .font(.system(size: 12, weight: .semibold, design: .serif))
                                     .foregroundColor(.white.opacity(0.5))
                                 Spacer()
-                                Text(review.days)
+                                Text(localized(review.days))
                                     .font(.system(size: 11, weight: .bold, design: .serif))
                                     .foregroundColor(gold.opacity(0.6))
                             }
@@ -645,7 +645,7 @@ struct OnboardingView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 32, height: 32)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(type.rawValue.uppercased())
+                                Text(type.localizedName.uppercased(with: Locale.current))
                                     .font(.system(size: 13, weight: .bold, design: .serif))
                                     .foregroundColor(.white)
                                     .tracking(0.5)
@@ -697,11 +697,11 @@ struct OnboardingView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text(time)
+                Text(localized(time))
                     .font(.system(size: 11, weight: .bold, design: .serif))
                     .foregroundColor(gold)
                     .tracking(1)
-                Text(text)
+                Text(localized(text))
                     .font(.system(size: 13, design: .serif))
                     .foregroundColor(.white.opacity(0.6))
             }
@@ -792,6 +792,10 @@ struct OnboardingView: View {
         }
 
         SKStoreReviewController.requestReview(in: windowScene)
+    }
+
+    private func localized(_ key: String) -> String {
+        NSLocalizedString(key, comment: "")
     }
 
     // MARK: - Helpers

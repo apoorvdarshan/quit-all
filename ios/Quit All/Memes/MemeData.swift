@@ -17,6 +17,10 @@ enum MemeCategory: String, CaseIterable {
     case distraction = "Distraction"
     case relatable = "Relatable"
 
+    var localizedName: String {
+        NSLocalizedString(rawValue, comment: "")
+    }
+
     var emoji: String {
         switch self {
         case .motivational: return "💪"

@@ -138,7 +138,7 @@ struct RelapseView: View {
             VStack(spacing: 6) {
                 Text(activity.emoji)
                     .font(.title2)
-                Text(activity.rawValue)
+                Text(activity.localizedName)
                     .font(.system(size: 11))
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
@@ -190,7 +190,7 @@ struct RelapseView: View {
             VStack(spacing: 6) {
                 Text(mood.emoji)
                     .font(.system(size: 36))
-                Text(mood.rawValue)
+                Text(mood.localizedName)
                     .font(.caption)
             }
             .foregroundColor(.white)

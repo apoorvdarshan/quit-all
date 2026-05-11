@@ -116,7 +116,7 @@ struct SOSView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal, 32)
 
-                        Text(meme.category.rawValue.uppercased())
+                        Text(meme.category.localizedName.uppercased(with: Locale.current))
                             .font(.system(size: 11, weight: .semibold, design: .serif))
                             .foregroundColor(gold.opacity(0.7))
                             .tracking(1.5)
@@ -185,7 +185,7 @@ struct SOSView: View {
                     } label: {
                         HStack(spacing: 8) {
                             Text(trigger.emoji)
-                            Text(trigger.rawValue)
+                            Text(trigger.localizedName)
                                 .font(.system(size: 14, weight: .medium, design: .serif))
                         }
                         .foregroundColor(selectedTrigger == trigger ? .black : .white.opacity(0.7))
