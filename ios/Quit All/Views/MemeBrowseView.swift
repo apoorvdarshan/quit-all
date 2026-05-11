@@ -7,7 +7,9 @@ struct MemeBrowseView: View {
 
     @State private var selectedType: AddictionType? = nil
     @State private var selectedCategory: MemeCategory? = nil
+    @State private var klipyLoops: [KlipyMediaItem] = []
     @State private var videoLoops: [LocalVideoLoop] = []
+    @State private var klipyLoadTask: Task<Void, Never>?
 
     private var filteredMemes: [MemeItem] {
         MemeLibrary.shared.filteredMemes(type: selectedType, category: selectedCategory)
@@ -21,6 +23,8 @@ struct MemeBrowseView: View {
                     HStack(spacing: 8) {
                         filterChip(label: "All", isSelected: selectedType == nil) {
                             selectedType = nil
+                            klipyLoadTask?.cancel()
+                            klipyLoops = []
                             videoLoops = []
                         }
                         ForEach(AddictionType.allCases, id: \.self) { type in
@@ -33,6 +37,8 @@ struct MemeBrowseView: View {
                                 if let t = selectedType {
                                     loadLoops(for: t)
                                 } else {
+                                    klipyLoadTask?.cancel()
+                                    klipyLoops = []
                                     videoLoops = []
                                 }
                             }
@@ -65,7 +71,7 @@ struct MemeBrowseView: View {
                 ScrollView {
                     VStack(spacing: 16) {
                         // Video loop section (if a type is selected)
-                        if !videoLoops.isEmpty {
+                        if !klipyLoops.isEmpty || !videoLoops.isEmpty {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Loops")
                                     .font(.headline)
@@ -74,11 +80,28 @@ struct MemeBrowseView: View {
 
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack(spacing: 12) {
-                                        ForEach(videoLoops) { loop in
-                                            LoopingVideoView(url: loop.url)
-                                                .frame(width: 180, height: 180)
-                                                .cornerRadius(12)
-                                                .clipped()
+                                        if !klipyLoops.isEmpty {
+                                            ForEach(klipyLoops) { loop in
+                                                RemoteGIFView(url: loop.gifURL)
+                                                    .frame(width: 180, height: 180)
+                                                    .background(Color(hex: "111111"))
+                                                    .cornerRadius(12)
+                                                    .overlay(alignment: .topTrailing) {
+                                                        sourceBadge("KLIPY")
+                                                    }
+                                                    .clipped()
+                                            }
+                                        } else {
+                                            ForEach(videoLoops) { loop in
+                                                LoopingVideoView(url: loop.url)
+                                                    .frame(width: 180, height: 180)
+                                                    .background(Color(hex: "111111"))
+                                                    .cornerRadius(12)
+                                                    .overlay(alignment: .topTrailing) {
+                                                        sourceBadge("OFFLINE")
+                                                    }
+                                                    .clipped()
+                                            }
                                         }
                                     }
                                     .padding(.horizontal, 16)
@@ -105,6 +128,9 @@ struct MemeBrowseView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") { dismiss() }
                 }
+            }
+            .onDisappear {
+                klipyLoadTask?.cancel()
             }
         }
         .preferredColorScheme(.dark)
@@ -149,6 +175,27 @@ struct MemeBrowseView: View {
     }
 
     private func loadLoops(for type: AddictionType) {
+        klipyLoadTask?.cancel()
+        klipyLoops = []
         videoLoops = LocalVideoLoopLibrary.shared.loops(for: type)
+        klipyLoadTask = Task {
+            let remoteLoops = await KlipyMediaLibrary.shared.searchLoops(for: type, count: 24)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                klipyLoops = remoteLoops
+            }
+        }
+    }
+
+    private func sourceBadge(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 9, weight: .bold, design: .serif))
+            .foregroundColor(text == "KLIPY" ? .black : .white.opacity(0.75))
+            .tracking(0.8)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(text == "KLIPY" ? Color(hex: "D4AF37") : Color.black.opacity(0.55))
+            .cornerRadius(10)
+            .padding(8)
     }
 }

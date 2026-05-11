@@ -14,7 +14,9 @@ struct SOSView: View {
     @State private var timer: Timer?
     @State private var currentMemeIndex = 0
     @State private var memes: [MemeItem] = []
+    @State private var klipyLoops: [KlipyMediaItem] = []
     @State private var videoLoops: [LocalVideoLoop] = []
+    @State private var klipyLoadTask: Task<Void, Never>?
     @State private var selectedTrigger: CravingTrigger?
     @State private var showConfetti = false
     @State private var elapsedSeconds = 0
@@ -58,7 +60,10 @@ struct SOSView: View {
         }
         .preferredColorScheme(.dark)
         .onAppear { startSession() }
-        .onDisappear { timer?.invalidate() }
+        .onDisappear {
+            timer?.invalidate()
+            klipyLoadTask?.cancel()
+        }
     }
 
     // MARK: - Header
@@ -102,18 +107,7 @@ struct SOSView: View {
                     VStack(spacing: 16) {
                         Spacer()
 
-                        // Show bundled loop if available, otherwise big emoji.
-                        if index < videoLoops.count {
-                            LoopingVideoView(url: videoLoops[index].url)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 260)
-                                .cornerRadius(16)
-                                .clipped()
-                                .padding(.horizontal, 20)
-                        } else {
-                            Text(meme.category.emoji)
-                                .font(.system(size: 72))
-                        }
+                        mediaView(index: index, meme: meme)
 
                         // Meme text below
                         Text(meme.text)
@@ -316,6 +310,15 @@ struct SOSView: View {
     private func startSession() {
         memes = MemeLibrary.shared.randomMemes(for: addictionType, count: 15)
         videoLoops = LocalVideoLoopLibrary.shared.randomLoops(for: addictionType, count: 15)
+        klipyLoops = []
+        klipyLoadTask?.cancel()
+        klipyLoadTask = Task {
+            let remoteLoops = await KlipyMediaLibrary.shared.searchLoops(for: addictionType, count: 15)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                klipyLoops = remoteLoops
+            }
+        }
 
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             if timerSeconds > 0 {
@@ -323,6 +326,48 @@ struct SOSView: View {
             }
             elapsedSeconds += 1
         }
+    }
+
+    @ViewBuilder
+    private func mediaView(index: Int, meme: MemeItem) -> some View {
+        if index < klipyLoops.count {
+            RemoteGIFView(url: klipyLoops[index].gifURL)
+                .frame(maxWidth: .infinity)
+                .frame(height: 260)
+                .background(Color(hex: "111111"))
+                .cornerRadius(16)
+                .overlay(alignment: .topTrailing) {
+                    sourceBadge("KLIPY")
+                }
+                .clipped()
+                .padding(.horizontal, 20)
+        } else if index < videoLoops.count {
+            LoopingVideoView(url: videoLoops[index].url)
+                .frame(maxWidth: .infinity)
+                .frame(height: 260)
+                .background(Color(hex: "111111"))
+                .cornerRadius(16)
+                .overlay(alignment: .topTrailing) {
+                    sourceBadge("OFFLINE")
+                }
+                .clipped()
+                .padding(.horizontal, 20)
+        } else {
+            Text(meme.category.emoji)
+                .font(.system(size: 72))
+        }
+    }
+
+    private func sourceBadge(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 9, weight: .bold, design: .serif))
+            .foregroundColor(text == "KLIPY" ? .black : .white.opacity(0.75))
+            .tracking(0.8)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(text == "KLIPY" ? gold : Color.black.opacity(0.55))
+            .cornerRadius(10)
+            .padding(8)
     }
 
     private func handleOutcome(survived: Bool) {
