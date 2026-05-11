@@ -99,7 +99,7 @@ private struct VideoLoopRecord: Decodable {
 // MARK: - Looping Video View
 struct LoopingVideoView: UIViewRepresentable {
     let url: URL
-    var videoGravity: AVLayerVideoGravity = .resizeAspectFill
+    var videoGravity: AVLayerVideoGravity = .resizeAspect
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
