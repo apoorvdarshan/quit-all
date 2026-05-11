@@ -44,6 +44,11 @@ struct HomeView: View {
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
+
+            AboutView()
+                .tabItem {
+                    Label("About", systemImage: "info.circle.fill")
+                }
                 .badge(updateChecker.isUpdateAvailable ? Text("") : nil)
         }
         .tint(Color(hex: "D4AF37"))
