@@ -331,6 +331,7 @@ export default function Home() {
               <Link href="/#quit-guides">Guides</Link>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
+              <Link href="https://trustmrr.com/startup/quit-all-break-every-habit" target="_blank">TrustMRR</Link>
               <Link href="https://ko-fi.com/apoorvdarshan" target="_blank">Support</Link>
               <Link href="mailto:ad13dtu@gmail.com">Contact</Link>
             </div>

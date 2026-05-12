@@ -96,6 +96,7 @@ const jsonLd = {
     "https://www.instagram.com/quitall_com/",
     "https://www.linkedin.com/company/quit-all/",
     "https://x.com/apoorvdarshan",
+    "https://trustmrr.com/startup/quit-all-break-every-habit",
   ],
   offers: [
     {
