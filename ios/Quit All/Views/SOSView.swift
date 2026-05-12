@@ -1,6 +1,20 @@
 import SwiftUI
 import CoreData
 
+private enum SOSMediaSource {
+    case remote(KlipyMediaItem)
+    case local(LocalVideoLoop)
+
+    var sourceLabel: String {
+        switch self {
+        case .remote:
+            return "KLIPY"
+        case .local:
+            return "OFFLINE"
+        }
+    }
+}
+
 // MARK: - SOS Craving Screen
 // Full screen takeover with local video loops + countdown + trigger + outcome.
 struct SOSView: View {
@@ -14,8 +28,9 @@ struct SOSView: View {
     @State private var timer: Timer?
     @State private var currentMemeIndex = 0
     @State private var memes: [MemeItem] = []
-    @State private var klipyLoops: [KlipyMediaItem] = []
     @State private var videoLoops: [LocalVideoLoop] = []
+    @State private var mediaSources: [SOSMediaSource?] = []
+    @State private var highestPresentedMemeIndex = 0
     @State private var klipyLoadTask: Task<Void, Never>?
     @State private var selectedTrigger: CravingTrigger?
     @State private var showConfetti = false
@@ -135,6 +150,9 @@ struct SOSView: View {
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .automatic))
+            .onChange(of: currentMemeIndex) { _, newIndex in
+                highestPresentedMemeIndex = max(highestPresentedMemeIndex, newIndex)
+            }
 
             Text("SWIPE FOR MORE")
                 .font(.system(size: 10, weight: .medium, design: .serif))
@@ -308,16 +326,18 @@ struct SOSView: View {
     // MARK: - Logic
 
     private func startSession() {
+        currentMemeIndex = 0
+        highestPresentedMemeIndex = 0
         memes = MemeLibrary.shared.randomMemes(for: addictionType, count: 15)
         videoLoops = LocalVideoLoopLibrary.shared.randomLoops(for: addictionType, count: 15)
-        klipyLoops = []
+        mediaSources = videoLoops.map { .local($0) }
         klipyLoadTask?.cancel()
         klipyLoadTask = Task {
             let remoteLoops = await KlipyMediaLibrary.shared.searchLoops(for: addictionType, count: 15)
             await RemoteGIFCache.shared.preload(urls: remoteLoops.map(\.gifURL))
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, !remoteLoops.isEmpty else { return }
             await MainActor.run {
-                klipyLoops = remoteLoops
+                mergeRemoteMediaWithoutReplacingPresentedPages(remoteLoops)
             }
         }
 
@@ -331,31 +351,45 @@ struct SOSView: View {
 
     @ViewBuilder
     private func mediaView(index: Int, meme: MemeItem) -> some View {
-        if index < klipyLoops.count {
-            RemoteGIFView(url: klipyLoops[index].gifURL)
-                .frame(maxWidth: .infinity)
-                .frame(height: 260)
-                .background(Color(hex: "111111"))
-                .cornerRadius(16)
-                .overlay(alignment: .topTrailing) {
-                    sourceBadge("KLIPY")
-                }
-                .clipped()
-                .padding(.horizontal, 20)
-        } else if index < videoLoops.count {
-            LoopingVideoView(url: videoLoops[index].url)
-                .frame(maxWidth: .infinity)
-                .frame(height: 260)
-                .background(Color(hex: "111111"))
-                .cornerRadius(16)
-                .overlay(alignment: .topTrailing) {
-                    sourceBadge("OFFLINE")
-                }
-                .clipped()
-                .padding(.horizontal, 20)
+        if let media = mediaSources.indices.contains(index) ? mediaSources[index] : nil {
+            switch media {
+            case .remote(let item):
+                RemoteGIFView(url: item.gifURL)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 260)
+                    .background(Color(hex: "111111"))
+                    .cornerRadius(16)
+                    .overlay(alignment: .topTrailing) {
+                        sourceBadge(media.sourceLabel)
+                    }
+                    .clipped()
+                    .padding(.horizontal, 20)
+            case .local(let loop):
+                LoopingVideoView(url: loop.url)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 260)
+                    .background(Color(hex: "111111"))
+                    .cornerRadius(16)
+                    .overlay(alignment: .topTrailing) {
+                        sourceBadge(media.sourceLabel)
+                    }
+                    .clipped()
+                    .padding(.horizontal, 20)
+            }
         } else {
             Text(meme.category.emoji)
                 .font(.system(size: 72))
+        }
+    }
+
+    private func mergeRemoteMediaWithoutReplacingPresentedPages(_ remoteLoops: [KlipyMediaItem]) {
+        let targetCount = max(mediaSources.count, min(memes.count, remoteLoops.count))
+        if mediaSources.count < targetCount {
+            mediaSources.append(contentsOf: Array(repeating: nil, count: targetCount - mediaSources.count))
+        }
+
+        for index in mediaSources.indices where index > highestPresentedMemeIndex && index < remoteLoops.count {
+            mediaSources[index] = .remote(remoteLoops[index])
         }
     }
 
