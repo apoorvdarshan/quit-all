@@ -8,16 +8,60 @@
 
 /* Begin PBXBuildFile section */
 		BA90C0012FB1000000000001 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = BA90C0022FB1000000000001 /* RevenueCat */; };
+		C001000B2FB500000000000B /* Quit All Widget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C00100012FB5000000000001 /* Quit All Widget.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		C001000D2FB500000000000D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BA8210B52F6F292B00542FAB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C00100062FB5000000000006;
+			remoteInfo = "Quit All Widget";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		C001000A2FB500000000000A /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C001000B2FB500000000000B /* Quit All Widget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		BA8210BD2F6F292B00542FAB /* Quit All.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Quit All.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		C00100012FB5000000000001 /* Quit All Widget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Quit All Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C001000E2FB500000000000E /* Exceptions for "Quit All Widget" folder in "Quit All Widget" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C00100062FB5000000000006 /* Quit All Widget */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		BA8210BF2F6F292B00542FAB /* Quit All */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Quit All";
+			sourceTree = "<group>";
+		};
+		C00100022FB5000000000002 /* Quit All Widget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C001000E2FB500000000000E /* Exceptions for "Quit All Widget" folder in "Quit All Widget" target */,
+			);
+			path = "Quit All Widget";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -31,6 +75,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C00100032FB5000000000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -38,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				BA8210BF2F6F292B00542FAB /* Quit All */,
+				C00100022FB5000000000002 /* Quit All Widget */,
 				BA8210BE2F6F292B00542FAB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -46,6 +98,7 @@
 			isa = PBXGroup;
 			children = (
 				BA8210BD2F6F292B00542FAB /* Quit All.app */,
+				C00100012FB5000000000001 /* Quit All Widget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -60,10 +113,12 @@
 				BA8210B92F6F292B00542FAB /* Sources */,
 				BA8210BA2F6F292B00542FAB /* Frameworks */,
 				BA8210BB2F6F292B00542FAB /* Resources */,
+				C001000A2FB500000000000A /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C001000C2FB500000000000C /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				BA8210BF2F6F292B00542FAB /* Quit All */,
@@ -76,6 +131,28 @@
 			productReference = BA8210BD2F6F292B00542FAB /* Quit All.app */;
 			productType = "com.apple.product-type.application";
 		};
+		C00100062FB5000000000006 /* Quit All Widget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = C00100092FB5000000000009 /* Build configuration list for PBXNativeTarget "Quit All Widget" */;
+			buildPhases = (
+				C00100052FB5000000000005 /* Sources */,
+				C00100032FB5000000000003 /* Frameworks */,
+				C00100042FB5000000000004 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C00100022FB5000000000002 /* Quit All Widget */,
+			);
+			name = "Quit All Widget";
+			packageProductDependencies = (
+			);
+			productName = "Quit All Widget";
+			productReference = C00100012FB5000000000001 /* Quit All Widget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -87,6 +164,9 @@
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					BA8210BC2F6F292B00542FAB = {
+						CreatedOnToolsVersion = 26.3;
+					};
+					C00100062FB5000000000006 = {
 						CreatedOnToolsVersion = 26.3;
 					};
 				};
@@ -136,12 +216,20 @@
 			projectRoot = "";
 			targets = (
 				BA8210BC2F6F292B00542FAB /* Quit All */,
+				C00100062FB5000000000006 /* Quit All Widget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		BA8210BB2F6F292B00542FAB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C00100042FB5000000000004 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -158,7 +246,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		C00100052FB5000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C001000C2FB500000000000C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C00100062FB5000000000006 /* Quit All Widget */;
+			targetProxy = C001000D2FB500000000000D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		BA8210CB2F6F292C00542FAB /* Debug */ = {
@@ -291,6 +394,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Quit All/Quit_All.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 23RV7FYH36;
@@ -330,6 +434,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Quit All/Quit_All.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 23RV7FYH36;
@@ -364,6 +469,74 @@
 			};
 			name = Release;
 		};
+		C00100072FB5000000000007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = "Quit All Widget/QuitAllWidget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 23RV7FYH36;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Quit All Widget/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.apoorvdarshan.Quit-All.debug.Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		C00100082FB5000000000008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = "Quit All Widget/QuitAllWidget.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = 23RV7FYH36;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "Quit All Widget/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.1;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.apoorvdarshan.Quit-All.Widget";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -381,6 +554,15 @@
 			buildConfigurations = (
 				BA8210CE2F6F292C00542FAB /* Debug */,
 				BA8210CF2F6F292C00542FAB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		C00100092FB5000000000009 /* Build configuration list for PBXNativeTarget "Quit All Widget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C00100072FB5000000000007 /* Debug */,
+				C00100082FB5000000000008 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

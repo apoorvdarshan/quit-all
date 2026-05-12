@@ -122,6 +122,7 @@ final class AddictionTracker {
         guard context.hasChanges else { return }
         do {
             try context.save()
+            WidgetSnapshotStore.refresh(context: context)
         } catch {
             let nsError = error as NSError
             print("Save error: \(nsError), \(nsError.userInfo)")

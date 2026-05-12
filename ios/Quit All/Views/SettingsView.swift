@@ -175,6 +175,7 @@ struct SettingsView: View {
         }
 
         try? viewContext.save()
+        WidgetSnapshotStore.clear()
 
         // Clear all UserDefaults
         UserDefaults.standard.removeObject(forKey: "hasCompletedOnboarding")

@@ -90,6 +90,7 @@ struct HomeView: View {
                 if selectedAddiction == nil {
                     selectedAddiction = addictions.first
                 }
+                WidgetSnapshotStore.refresh(context: viewContext, selectedAddiction: selectedAddiction ?? addictions.first)
             }
             .fullScreenCover(isPresented: $showSOS) {
                 if let addiction = selectedAddiction ?? addictions.first {
@@ -174,6 +175,7 @@ struct HomeView: View {
                         withAnimation(.spring(duration: 0.3)) {
                             selectedAddiction = addiction
                         }
+                        WidgetSnapshotStore.refresh(context: viewContext, selectedAddiction: addiction)
                     } label: {
                         VStack(spacing: 5) {
                             Image(type.iconName)
