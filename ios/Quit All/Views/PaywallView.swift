@@ -81,6 +81,16 @@ struct PaywallView: View {
                     // Subscription cards
                     VStack(spacing: 12) {
                         subscriptionCard(
+                            title: "LIFETIME",
+                            price: formattedPrice(for: SubscriptionProduct.lifetime.rawValue, fallback: "$99.99 one-time"),
+                            subtitle: "One-time purchase",
+                            badge: "FOREVER",
+                            isSelected: selectedProductId == SubscriptionProduct.lifetime.rawValue
+                        ) {
+                            selectProduct(id: SubscriptionProduct.lifetime.rawValue)
+                        }
+
+                        subscriptionCard(
                             title: "YEARLY",
                             price: formattedPrice(for: SubscriptionProduct.yearly.rawValue, fallback: "$49.99/year"),
                             subtitle: yearlySubtitle,
@@ -110,7 +120,7 @@ struct PaywallView: View {
                             if isPurchasing {
                                 ProgressView().tint(.white)
                             } else {
-                                Text(selectedProductIsTrialEligible ? "START FREE TRIAL" : "SUBSCRIBE NOW")
+                                Text(purchaseButtonTitle)
                                     .font(.system(size: 15, weight: .bold, design: .serif))
                                     .tracking(2)
                             }
@@ -133,14 +143,20 @@ struct PaywallView: View {
 
                     // Trial/billing info
                     VStack(spacing: 6) {
-                        if selectedProductIsTrialEligible {
+                        if selectedProductId == SubscriptionProduct.lifetime.rawValue {
+                            Text("One-time purchase. No renewal.")
+                                .font(.system(size: 12, weight: .medium, design: .serif))
+                                .foregroundColor(.white.opacity(0.35))
+                        } else if selectedProductIsTrialEligible {
                             Text("3 days free, then auto-renews.")
                                 .font(.system(size: 12, weight: .medium, design: .serif))
                                 .foregroundColor(.white.opacity(0.35))
                         }
-                        Text("Cancel anytime in iPhone Settings.")
-                            .font(.system(size: 11, design: .serif))
-                            .foregroundColor(.white.opacity(0.25))
+                        if selectedProductId != SubscriptionProduct.lifetime.rawValue {
+                            Text("Cancel anytime in iPhone Settings.")
+                                .font(.system(size: 11, design: .serif))
+                                .foregroundColor(.white.opacity(0.25))
+                        }
                     }
 
                     // Error
@@ -203,6 +219,13 @@ struct PaywallView: View {
         trialEligibleProductIDs.contains(selectedProductId)
     }
 
+    private var purchaseButtonTitle: String {
+        if selectedProductId == SubscriptionProduct.lifetime.rawValue {
+            return localized("BUY LIFETIME")
+        }
+        return localized(selectedProductIsTrialEligible ? "START FREE TRIAL" : "SUBSCRIBE NOW")
+    }
+
     private var yearlySubtitle: String {
         if let product = PaywallManager.shared.products.first(where: { $0.id == SubscriptionProduct.yearly.rawValue }) {
             let monthly = product.price / 12
@@ -218,6 +241,9 @@ struct PaywallView: View {
     private func formattedPrice(for productId: String, fallback: String) -> String {
         guard let product = PaywallManager.shared.products.first(where: { $0.id == productId }) else {
             return fallback
+        }
+        if product.id == SubscriptionProduct.lifetime.rawValue {
+            return "\(product.displayPrice) \(localized("one-time"))"
         }
         let period = product.id.contains("yearly") ? "/year" : "/month"
         return "\(product.displayPrice)\(period)"

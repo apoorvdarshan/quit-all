@@ -172,3 +172,10 @@
 "Japanese Yen" = "Japanske yen";
 "Chinese Yuan" = "Kinesiske yuan";
 "Brazilian Real" = "Brasilianske real";
+
+"LIFETIME" = "LEVETID";
+"One-time purchase" = "Engangskjøp";
+"FOREVER" = "FOR ALLTID";
+"BUY LIFETIME" = "KJØP LIVSTID";
+"one-time" = "engangs";
+"One-time purchase. No renewal." = "Engangskjøp. Ingen fornyelse.";

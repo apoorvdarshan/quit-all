@@ -172,3 +172,10 @@
 "Japanese Yen" = "Japanischer Yen";
 "Chinese Yuan" = "Chinesischer Yuan";
 "Brazilian Real" = "Brasilianischer Real";
+
+"LIFETIME" = "LEBENSDAUER";
+"One-time purchase" = "Einmaliger Kauf";
+"FOREVER" = "FÜR IMMER";
+"BUY LIFETIME" = "KAUFEN SIE LEBENSLANG";
+"one-time" = "einmalig";
+"One-time purchase. No renewal." = "Einmaliger Kauf. Keine Verlängerung.";

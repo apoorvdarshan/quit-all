@@ -68,10 +68,11 @@ SUPPORTED ADDICTIONS
 • Caffeine
 
 SUBSCRIPTION
-Quit All Premium unlocks all features with a 3-day free trial:
+Quit All Premium unlocks every feature:
 • Monthly: $9.99/month
 • Yearly: $49.99/year (save 58%)
-Try free for 3 days. Cancel anytime. Payment charged to Apple ID.
+• Lifetime: $99.99 one-time purchase
+Yearly includes a 3-day free trial for eligible new subscribers. Cancel subscriptions anytime. Payment charged to Apple ID.
 
 Privacy Policy: https://quit-all.com/privacy
 Terms of Use: https://quit-all.com/terms
@@ -90,7 +91,8 @@ Secondary: Lifestyle
 
 ## What's New (for v1.0.1)
 ```
-• 3-day free trial for all new users
+• 3-day free trial on yearly for eligible new users
+• Lifetime premium one-time purchase option
 • Add or remove addictions from Settings
 • Manage subscription from Settings
 • Restore purchases support

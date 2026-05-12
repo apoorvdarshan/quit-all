@@ -1,10 +1,11 @@
 import StoreKit
 import SwiftUI
 
-// MARK: - Subscription Product IDs
+// MARK: - Premium Product IDs
 enum SubscriptionProduct: String, CaseIterable {
     case monthly = "com.quitall.premium.monthly"
     case yearly = "com.quitall.premium.yearly"
+    case lifetime = "com.quitall.premium.lifetime"
 }
 
 // MARK: - Paywall Manager — Hard Paywall, Native StoreKit Trial
@@ -30,8 +31,7 @@ final class PaywallManager {
     func checkEntitlements() async {
         for await result in Transaction.currentEntitlements {
             if let transaction = try? checkVerified(result) {
-                if transaction.productID == SubscriptionProduct.monthly.rawValue ||
-                    transaction.productID == SubscriptionProduct.yearly.rawValue {
+                if SubscriptionProduct(rawValue: transaction.productID) != nil {
                     isSubscribed = true
                     return
                 }
