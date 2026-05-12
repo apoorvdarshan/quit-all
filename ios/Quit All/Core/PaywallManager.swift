@@ -17,7 +17,9 @@ final class PaywallManager {
     static let yearlyProductID = SubscriptionProduct.yearly.rawValue
     static let lifetimeProductID = SubscriptionProduct.lifetime.rawValue
 
-    private static let revenueCatAPIKey = "appl_ubtsOyRubEENNaebBFqLgcfxYBx"
+    private static let fallbackRevenueCatAPIKey = "appl_ubtsOyRubEENNaebBFqLgcfxYBx"
+    private static let appConfigURL = URL(string: "https://www.quit-all.com/api/app-config")!
+    private static var revenueCatConfigurationTask: Task<Void, Never>?
     private static let entitlementIDs = ["premium", "Quit All Premium"]
 
     var isSubscribed: Bool = false
@@ -26,7 +28,7 @@ final class PaywallManager {
     var isLoading: Bool = false
 
     private init() {
-        configureRevenueCat()
+        Self.startRevenueCatConfiguration()
         Task { await checkEntitlements() }
     }
 
@@ -52,6 +54,7 @@ final class PaywallManager {
         purchaseError = nil
 
         do {
+            await Self.ensureRevenueCatConfigured()
             let offerings = try await Purchases.shared.offerings()
             let offering = offerings.current ?? offerings.offering(identifier: "default")
             packages = offering?.availablePackages ?? []
@@ -74,6 +77,7 @@ final class PaywallManager {
         purchaseError = nil
 
         do {
+            await Self.ensureRevenueCatConfigured()
             let result = try await Purchases.shared.purchase(package: package)
             apply(customerInfo: result.customerInfo)
             isLoading = false
@@ -92,6 +96,7 @@ final class PaywallManager {
         purchaseError = nil
 
         do {
+            await Self.ensureRevenueCatConfigured()
             let customerInfo = try await Purchases.shared.restorePurchases()
             apply(customerInfo: customerInfo)
         } catch {
@@ -105,6 +110,7 @@ final class PaywallManager {
     // MARK: - Check Entitlements
     func checkEntitlements() async {
         do {
+            await Self.ensureRevenueCatConfigured()
             let customerInfo = try await Purchases.shared.customerInfo()
             apply(customerInfo: customerInfo)
         } catch {
@@ -115,6 +121,7 @@ final class PaywallManager {
     // MARK: - Listen for Updates
     func listenForTransactions() async {
         do {
+            await Self.ensureRevenueCatConfigured()
             for try await customerInfo in Purchases.shared.customerInfoStream {
                 apply(customerInfo: customerInfo)
             }
@@ -127,6 +134,7 @@ final class PaywallManager {
     func isEligibleForTrial(_ package: Package?) async -> Bool {
         guard let package,
               package.storeProduct.introductoryDiscount?.paymentMode == .freeTrial else { return false }
+        await Self.ensureRevenueCatConfigured()
         let status = await Purchases.shared.checkTrialOrIntroDiscountEligibility(product: package.storeProduct)
         return status.isEligible
     }
@@ -146,11 +154,47 @@ final class PaywallManager {
         }
     }
 
-    private func configureRevenueCat() {
-        guard !Purchases.isConfigured else { return }
-        #if DEBUG
-        Purchases.logLevel = .debug
-        #endif
-        Purchases.configure(withAPIKey: Self.revenueCatAPIKey)
+    private static func ensureRevenueCatConfigured() async {
+        startRevenueCatConfiguration()
+        await revenueCatConfigurationTask?.value
     }
+
+    private static func startRevenueCatConfiguration() {
+        guard revenueCatConfigurationTask == nil else { return }
+
+        revenueCatConfigurationTask = Task {
+            let apiKey = await fetchRevenueCatAPIKey()
+
+            guard !Purchases.isConfigured else { return }
+            #if DEBUG
+            Purchases.logLevel = .debug
+            #endif
+            Purchases.configure(withAPIKey: apiKey)
+        }
+    }
+
+    private static func fetchRevenueCatAPIKey() async -> String {
+        var request = URLRequest(url: appConfigURL)
+        request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
+        request.timeoutInterval = 2
+        request.setValue("application/json", forHTTPHeaderField: "accept")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200..<300).contains(httpResponse.statusCode) else {
+                return fallbackRevenueCatAPIKey
+            }
+
+            let config = try JSONDecoder().decode(AppConfigResponse.self, from: data)
+            let apiKey = config.revenueCatAPIKey.trimmingCharacters(in: .whitespacesAndNewlines)
+            return apiKey.isEmpty ? fallbackRevenueCatAPIKey : apiKey
+        } catch {
+            return fallbackRevenueCatAPIKey
+        }
+    }
+}
+
+private struct AppConfigResponse: Decodable {
+    let revenueCatAPIKey: String
 }
