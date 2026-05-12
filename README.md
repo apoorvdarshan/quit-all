@@ -6,7 +6,7 @@
 
 <p align="center">
   Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine —<br/>
-  all in one app. Powered by streaks, local video loops, 2,790+ memes, and no shame.
+  all in one app. Powered by streaks, SOS GIF interventions, offline fallbacks, 2,790+ memes, and no shame.
 </p>
 
 <p align="center">
@@ -31,11 +31,15 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 ## Preview
 
 <p align="center">
-  <img src="ios/screenshots/preview.gif" width="320" alt="Quit All app preview — onboarding, SOS craving screen, stats" />
+  <img src="ios/screenshots/readme-onboarding.jpg" width="155" alt="Quit All onboarding addiction selection" />
+  <img src="ios/screenshots/readme-home.jpg" width="155" alt="Quit All home streak dashboard" />
+  <img src="ios/screenshots/readme-sos-klipy.jpg" width="155" alt="Quit All SOS craving screen with Klipy GIF" />
+  <img src="ios/screenshots/readme-sos-offline.jpg" width="155" alt="Quit All SOS craving screen with offline fallback" />
+  <img src="ios/screenshots/readme-stats.jpg" width="155" alt="Quit All stats dashboard" />
 </p>
 
 <p align="center">
-  <sub>Onboarding · SOS meme intervention · Motivational cards · Trigger logging · Stats</sub>
+  <sub>Onboarding · Home streaks · SOS GIF intervention · Offline fallback loops · Stats</sub>
 </p>
 
 ## What's inside
@@ -43,14 +47,15 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 ### Features
 
 - **9 addictions, one app** — smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, caffeine
-- **SOS craving button** — full-screen takeover with bundled local video loops + 2,790+ curated memes (motivational, roast, consequence, distraction, relatable)
+- **SOS craving button** — full-screen takeover with Klipy GIFs, bundled offline video loops, and 2,790+ curated memes (motivational, roast, consequence, distraction, relatable)
 - **Streak tracking** — giant counter with gold gradient progress ring toward the next milestone
 - **Pattern detection** — on-device hourly heatmaps and trigger analysis of your cravings
 - **Cost calculator** — money saved, life hours reclaimed, 5-year projection slider, "what you could buy" cards
 - **Milestones** — 9 progressive health milestones with shareable cards
+- **Home and Lock Screen widgets** — quick progress check-ins outside the app
 - **No-shame relapse flow** — log activity, mood, and plan without losing progress stigma
 - **Smart notifications** — alerts at your personal high-risk times
-- **Hard paywall + 3-day free trial** — StoreKit 2, $7.99/month or $49.99/year
+- **Hard paywall + 3-day free trial** — RevenueCat + StoreKit 2, $7.99/month or $49.99/year
 
 ### Tech Stack
 
@@ -58,9 +63,9 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 |---|---|
 | Swift + SwiftUI (iOS 17+) | Next.js + TypeScript |
 | CoreData (local-only, no backend) | Vanilla CSS (no Tailwind) |
-| StoreKit 2 (subscriptions) | Framer Motion (animations) |
-| UserNotifications | JSON-LD structured data for SEO |
-| Bundled MP4/MOV video loops | Vercel hosting |
+| RevenueCat + StoreKit 2 | Framer Motion (animations) |
+| WidgetKit + UserNotifications | JSON-LD structured data for SEO |
+| Klipy GIF proxy + bundled MP4 fallbacks | Vercel hosting + API routes |
 | Dark casino-gold theme, Cormorant serif | Same theme system as iOS |
 
 ## Running locally
