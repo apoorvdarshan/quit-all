@@ -331,6 +331,60 @@ img { max-width: 100%; display: block; }
 }
 .pricing-btn-secondary:hover { border-color: var(--gold); }
 
+/* Quit guides */
+.quit-guides {
+  padding: 128px 0;
+  background:
+    linear-gradient(180deg, rgba(201,168,76,0.025), transparent 55%),
+    var(--bg);
+  border-top: 1px solid rgba(201,168,76,0.05);
+  border-bottom: 1px solid rgba(201,168,76,0.05);
+}
+.quit-guides-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.quit-guide-card,
+.seo-related-card {
+  min-height: 170px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 26px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(15,15,15,0.72);
+  transition: transform 0.3s, border-color 0.3s, background 0.3s;
+}
+.quit-guide-card:hover,
+.seo-related-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(201,168,76,0.24);
+  background: rgba(201,168,76,0.035);
+}
+.quit-guide-card span,
+.seo-related-card span {
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--gold-dim);
+}
+.quit-guide-card strong,
+.seo-related-card strong {
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-weight: 500;
+  color: var(--gold-bright);
+}
+.quit-guide-card small,
+.seo-related-card small {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
 /* CTA */
 .cta {
   position: relative; padding: 160px 0; text-align: center; overflow: hidden;
@@ -394,6 +448,165 @@ img { max-width: 100%; display: block; }
 .seo-content p {
   font-size: 12px; line-height: 1.8; color: rgba(255,255,255,0.15);
   max-width: 800px;
+}
+
+/* SEO landing pages */
+.seo-nav {
+  animation: none;
+}
+.seo-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(201,168,76,0.08), transparent 32%),
+    radial-gradient(circle at 88% 18%, rgba(96,125,139,0.08), transparent 30%),
+    var(--bg);
+}
+.seo-hero {
+  padding: 150px 0 82px;
+  border-bottom: 1px solid rgba(201,168,76,0.08);
+}
+.seo-breadcrumb {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 34px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.seo-breadcrumb a {
+  color: var(--gold-dim);
+  transition: color 0.3s;
+}
+.seo-breadcrumb a:hover { color: var(--gold); }
+.seo-page-title {
+  max-width: 780px;
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 6vw, 5.4rem);
+  font-weight: 300;
+  line-height: 1.02;
+  color: var(--text);
+  margin-bottom: 28px;
+}
+.seo-page-subtitle {
+  max-width: 650px;
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+.seo-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.seo-page-body {
+  padding: 82px 0 128px;
+}
+.seo-two-column {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.seo-panel {
+  padding: 34px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(13,13,13,0.78);
+}
+.seo-panel h2,
+.seo-section-card h2,
+.seo-faq h2,
+.seo-related h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  color: var(--gold-bright);
+}
+.seo-panel h2 {
+  font-size: 24px;
+  margin-bottom: 22px;
+}
+.seo-check-list {
+  display: grid;
+  gap: 14px;
+}
+.seo-check-list li {
+  display: flex;
+  gap: 12px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+.seo-check-list li::before {
+  content: '✓';
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 24px;
+  border-radius: 8px;
+  background: rgba(201,168,76,0.08);
+  color: var(--gold);
+  font-size: 12px;
+}
+.seo-download-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.seo-download-panel img {
+  border-radius: 18px;
+  margin-bottom: 22px;
+}
+.seo-download-panel p {
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--text-muted);
+}
+.seo-section-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 18px 0 88px;
+}
+.seo-section-card {
+  padding: 30px;
+  min-height: 250px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(15,15,15,0.62);
+}
+.seo-section-card h2 {
+  font-size: 23px;
+  margin-bottom: 16px;
+}
+.seo-section-card p {
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--text-muted);
+}
+.seo-faq,
+.seo-related {
+  margin-top: 88px;
+}
+.seo-faq h2,
+.seo-related h2 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 32px;
+}
+.seo-faq-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.seo-related-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
 }
 
 /* Legal pages */
@@ -505,6 +718,10 @@ img { max-width: 100%; display: block; }
 
   .screenshots { padding: 80px 0; }
 
+  .quit-guides { padding: 80px 0; }
+  .quit-guides-grid { grid-template-columns: 1fr; }
+  .quit-guide-card { min-height: 0; padding: 24px; }
+
   .pricing { padding: 80px 0; }
   .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
   .pricing-card { padding: 32px 24px; }
@@ -521,8 +738,34 @@ img { max-width: 100%; display: block; }
   .footer-inner { flex-direction: column; text-align: center; gap: 24px; }
   .footer-links { justify-content: center; flex-wrap: wrap; gap: 20px; }
   .footer-socials { justify-content: center; }
+
+  .seo-hero { padding: 118px 0 58px; }
+  .seo-breadcrumb { flex-wrap: wrap; font-size: 11px; }
+  .seo-page-subtitle { font-size: 16px; }
+  .seo-page-actions { flex-direction: column; align-items: stretch; }
+  .seo-two-column,
+  .seo-section-grid,
+  .seo-faq-list,
+  .seo-related-grid {
+    grid-template-columns: 1fr;
+  }
+  .seo-panel,
+  .seo-section-card {
+    padding: 24px;
+  }
+  .seo-page-body { padding: 58px 0 88px; }
+  .seo-section-grid { margin-bottom: 64px; }
 }
 
 @media (min-width: 769px) and (max-width: 980px) {
   .pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 700px; }
+  .quit-guides-grid,
+  .seo-section-grid,
+  .seo-faq-list,
+  .seo-related-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .seo-two-column {
+    grid-template-columns: 1fr;
+  }
 }

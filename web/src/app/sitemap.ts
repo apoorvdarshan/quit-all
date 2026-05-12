@@ -1,24 +1,31 @@
 import type { MetadataRoute } from "next";
+import { seoPages, siteUrl } from "./seoPages";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://quit-all.com";
+  const lastModified = new Date("2026-05-12");
 
   return [
     {
-      url: baseUrl,
-      lastModified: new Date(),
+      url: siteUrl,
+      lastModified,
       changeFrequency: "weekly",
       priority: 1,
     },
+    ...seoPages.map((page) => ({
+      url: `${siteUrl}/${page.slug}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.85,
+    })),
     {
-      url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
+      url: `${siteUrl}/privacy`,
+      lastModified,
       changeFrequency: "monthly",
       priority: 0.5,
     },
     {
-      url: `${baseUrl}/terms`,
-      lastModified: new Date(),
+      url: `${siteUrl}/terms`,
+      lastModified,
       changeFrequency: "monthly",
       priority: 0.5,
     },

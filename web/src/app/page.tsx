@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
+import { seoPages } from "./seoPages";
 
 // Richer animation variants
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -77,6 +78,7 @@ export default function Home() {
           </Link>
           <div className="nav-links">
             <Link href="#features">Features</Link>
+            <Link href="#quit-guides">Guides</Link>
             <Link href="#pricing">Pricing</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
@@ -176,6 +178,33 @@ export default function Home() {
             </motion.div>
           ))}
         </motion.div>
+      </section>
+
+      {/* Quit guides */}
+      <section id="quit-guides" className="quit-guides">
+        <div className="container">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }}>
+            <motion.p variants={slideIn} custom={0} className="features-label">Quit guides</motion.p>
+            <motion.h2 variants={fadeUp} custom={1} className="features-title">
+              Find the tracker for <em>your habit.</em>
+            </motion.h2>
+            <motion.p variants={fadeUp} custom={2} className="features-subtitle">
+              Dedicated guides for the habits Quit All supports, written for people looking for the right tracker fast.
+            </motion.p>
+          </motion.div>
+
+          <motion.div className="quit-guides-grid" initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            {seoPages.map((guide, i) => (
+              <motion.div key={guide.slug} variants={scaleIn} custom={i}>
+                <Link href={`/${guide.slug}`} className="quit-guide-card">
+                  <span>{guide.eyebrow}</span>
+                  <strong>{guide.label}</strong>
+                  <small>{guide.metaDescription}</small>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
       </section>
 
       {/* Pricing */}
@@ -286,7 +315,7 @@ export default function Home() {
       <section className="seo-content">
         <div className="container">
           <h2>Quit Smoking, Vaping, Alcohol and More</h2>
-          <p>Quit All helps you quit smoking, stop vaping, quit drinking alcohol, break gambling patterns, quit weed, reduce caffeine, stop overspending, and cut down on social media. Track every streak in one place, use the SOS craving button for Klipy GIFs plus offline fallback loops, log relapses without shame, and see savings and milestones build over time. No account is required. Habit data stays on your iPhone, with purchases handled through Apple and RevenueCat.</p>
+          <p>Quit All, sometimes searched as AllQuit, helps you quit smoking, stop vaping, quit drinking alcohol, break gambling patterns, quit weed, reduce caffeine, stop overspending, and cut down on social media. Track every streak in one place, use the SOS craving button for Klipy GIFs plus offline fallback loops, log relapses without shame, and see savings and milestones build over time. No account is required. Habit data stays on your iPhone, with purchases handled through Apple and RevenueCat.</p>
         </div>
       </section>
 
@@ -299,6 +328,7 @@ export default function Home() {
               <span>Quit All</span>
             </div>
             <div className="footer-links">
+              <Link href="/#quit-guides">Guides</Link>
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
               <Link href="https://ko-fi.com/apoorvdarshan" target="_blank">Support</Link>
