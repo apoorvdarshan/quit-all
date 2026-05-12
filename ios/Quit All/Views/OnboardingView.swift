@@ -657,49 +657,46 @@ struct OnboardingView: View {
         return loops.map(OnboardingPreviewMedia.local)
     }
 
-    // MARK: - Step 5: Reviews
+    // MARK: - Step 5: App Benefits
     private var reviewsStep: some View {
-        let reviews: [(text: String, author: String, days: String)] = [
-            ("This app literally saved my marriage. The SOS button got me through the worst nights.", "Mike R.", "127 days clean"),
-            ("47 days clean from smoking. Never thought I'd say that. The memes genuinely help.", "Sarah K.", "47 days clean"),
-            ("The no-shame relapse flow changed everything. I don't feel like a failure anymore.", "James L.", "89 days clean"),
-            ("I saved over $2,000 in 3 months. Seeing that number grow is addicting — in a good way.", "Priya M.", "94 days clean"),
+        let benefits: [(icon: String, title: String, detail: String)] = [
+            ("bolt.heart.fill", "Fast help during cravings", "Open SOS mode, swipe through GIF loops, and ride out the urge one minute at a time."),
+            ("chart.line.uptrend.xyaxis", "Real progress tracking", "See streaks, savings, milestones, and patterns from the habits you chose."),
+            ("arrow.counterclockwise.circle.fill", "Relapse without shame", "Log a slip, keep your history, and restart with a clean plan immediately."),
+            ("bell.badge.fill", "Smarter reminders", "Use notifications and danger-time prompts to stay ready before cravings peak."),
         ]
 
         return VStack(spacing: 20) {
             Spacer().frame(height: 30)
 
-            Text("People are\nquitting for good")
+            Text("Built for the\nhard moments")
                 .font(.system(size: 28, weight: .bold, design: .serif))
                 .foregroundColor(lightGold)
                 .multilineTextAlignment(.center)
 
             ScrollView {
                 VStack(spacing: 12) {
-                    ForEach(reviews, id: \.author) { review in
-                        VStack(alignment: .leading, spacing: 10) {
-                            HStack(spacing: 2) {
-                                ForEach(0..<5, id: \.self) { _ in
-                                    Image(systemName: "star.fill")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(gold)
-                                }
+                    ForEach(benefits, id: \.title) { benefit in
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: benefit.icon)
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundColor(gold)
+                                .frame(width: 30, height: 30)
+                                .background(gold.opacity(0.1))
+                                .cornerRadius(8)
+
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(localized(benefit.title))
+                                    .font(.system(size: 15, weight: .bold, design: .serif))
+                                    .foregroundColor(.white)
+
+                                Text(localized(benefit.detail))
+                                    .font(.system(size: 13, design: .serif))
+                                    .foregroundColor(.white.opacity(0.58))
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
 
-                            Text("\"\(localized(review.text))\"")
-                                .font(.system(size: 14, design: .serif))
-                                .foregroundColor(.white.opacity(0.8))
-                                .italic()
-
-                            HStack {
-                                Text("— \(review.author)")
-                                    .font(.system(size: 12, weight: .semibold, design: .serif))
-                                    .foregroundColor(.white.opacity(0.5))
-                                Spacer()
-                                Text(localized(review.days))
-                                    .font(.system(size: 11, weight: .bold, design: .serif))
-                                    .foregroundColor(gold.opacity(0.6))
-                            }
+                            Spacer(minLength: 0)
                         }
                         .padding(16)
                         .background(Color(hex: "111111"))
