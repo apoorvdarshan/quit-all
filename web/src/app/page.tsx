@@ -308,6 +308,9 @@ export default function Home() {
               <Link href="https://x.com/apoorvdarshan" target="_blank" aria-label="X">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </Link>
+              <Link href="https://ko-fi.com/apoorvdarshan" target="_blank" aria-label="Ko-fi">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 5h13a3.5 3.5 0 0 1 3.34 4.55A4 4 0 0 1 16 14.5h-.62A6.5 6.5 0 0 1 9.5 18h-6A1.5 1.5 0 0 1 2 16.5v-10A1.5 1.5 0 0 1 3.5 5Zm13.5 2.1v5.28A2.1 2.1 0 0 0 17 7.1ZM5 8v7h4.5a3.5 3.5 0 0 0 3.5-3.5V8H5Zm2.2 1.6c.76-.68 1.88-.61 2.55.15.67-.76 1.79-.83 2.55-.15.8.72.82 1.96.07 2.72l-2.62 2.56-2.62-2.56c-.75-.76-.73-2 .07-2.72Z"/></svg>
+              </Link>
               <Link href="https://www.instagram.com/quitall_com/" target="_blank" aria-label="Instagram">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.8 2h8.4A5.807 5.807 0 0 1 22 7.8v8.4a5.807 5.807 0 0 1-5.8 5.8H7.8A5.807 5.807 0 0 1 2 16.2V7.8A5.807 5.807 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8A3.6 3.6 0 0 0 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6A3.6 3.6 0 0 0 16.4 4H7.6m9.65 1.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
               </Link>
