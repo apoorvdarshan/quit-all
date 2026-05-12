@@ -2,6 +2,29 @@ import SwiftUI
 import CoreData
 import StoreKit
 
+private enum OnboardingPreviewMedia: Identifiable {
+    case remote(KlipyMediaItem)
+    case local(LocalVideoLoop)
+
+    var id: String {
+        switch self {
+        case .remote(let item):
+            return item.id
+        case .local(let loop):
+            return loop.id
+        }
+    }
+
+    var sourceLabel: String {
+        switch self {
+        case .remote:
+            return "KLIPY"
+        case .local:
+            return "OFFLINE"
+        }
+    }
+}
+
 // MARK: - Onboarding Funnel View
 struct OnboardingView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -29,8 +52,7 @@ struct OnboardingView: View {
         ("BRL", "R$", "Brazilian Real"),
     ]
     @State private var featurePageIndex = 0
-    @State private var onboardingPreviewGIF: KlipyMediaItem?
-    @State private var onboardingFallbackLoop: LocalVideoLoop?
+    @State private var onboardingPreviewMedia: [OnboardingPreviewMedia] = []
     @State private var isLoadingOnboardingPreview = false
     @State private var analysisProgress: Double = 0
     @State private var didRequestOnboardingReview = false
@@ -39,6 +61,7 @@ struct OnboardingView: View {
     private let gold = Color(hex: "D4AF37")
     private let lightGold = Color(hex: "F5E6A3")
     private let totalSteps = 9
+    private let onboardingPreviewCount = 4
     private let onboardingFallbackRecentKey = "onboarding_fallback_loop_recent_ids"
 
     private var sortedSelected: [AddictionType] {
@@ -476,7 +499,7 @@ struct OnboardingView: View {
                 ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
                     VStack(spacing: 20) {
                         Spacer()
-                        onboardingGIFPreview
+                        onboardingGIFPreview(for: index)
 
                         Text(localized(feature.title))
                             .font(.system(size: 16, weight: .bold, design: .serif))
@@ -505,38 +528,13 @@ struct OnboardingView: View {
         }
     }
 
-    private var onboardingGIFPreview: some View {
-        ZStack(alignment: .topTrailing) {
-            if let onboardingPreviewGIF {
-                RemoteGIFView(url: onboardingPreviewGIF.gifURL)
-                    .frame(width: 240, height: 150)
-                    .background(Color(hex: "111111"))
-                    .clipped()
-            } else if let onboardingFallbackLoop {
-                LoopingVideoView(url: onboardingFallbackLoop.url)
-                    .frame(width: 240, height: 150)
-                    .background(Color(hex: "111111"))
-                    .clipped()
-            } else {
-                VStack(spacing: 12) {
-                    if isLoadingOnboardingPreview {
-                        ProgressView()
-                            .tint(gold)
-                    } else {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 28))
-                            .foregroundColor(gold)
-                    }
-                    Text("LOADING GIF PREVIEW")
-                        .font(.system(size: 10, weight: .bold, design: .serif))
-                        .foregroundColor(.white.opacity(0.45))
-                        .tracking(1.2)
-                }
-                .frame(width: 240, height: 150)
-                .background(Color(hex: "111111"))
-            }
+    private func onboardingGIFPreview(for index: Int) -> some View {
+        let media = onboardingPreviewMedia.indices.contains(index) ? onboardingPreviewMedia[index] : nil
 
-            if let sourceLabel = onboardingPreviewSourceLabel {
+        return ZStack(alignment: .topTrailing) {
+            previewContent(for: media)
+
+            if let sourceLabel = media?.sourceLabel {
                 Text(sourceLabel)
                     .font(.system(size: 9, weight: .bold, design: .serif))
                     .foregroundColor(sourceLabel == "KLIPY" ? .black : .white.opacity(0.75))
@@ -556,43 +554,81 @@ struct OnboardingView: View {
         )
     }
 
-    private var onboardingPreviewSourceLabel: String? {
-        if onboardingPreviewGIF != nil { return "KLIPY" }
-        if onboardingFallbackLoop != nil { return "OFFLINE" }
-        return nil
+    @ViewBuilder
+    private func previewContent(for media: OnboardingPreviewMedia?) -> some View {
+        if let media {
+            switch media {
+            case .remote(let item):
+                RemoteGIFView(url: item.gifURL)
+                    .frame(width: 240, height: 150)
+                    .background(Color(hex: "111111"))
+                    .clipped()
+            case .local(let loop):
+                LoopingVideoView(url: loop.url)
+                    .frame(width: 240, height: 150)
+                    .background(Color(hex: "111111"))
+                    .clipped()
+            }
+        } else {
+            loadingPreview
+        }
+    }
+
+    private var loadingPreview: some View {
+        VStack(spacing: 12) {
+            if isLoadingOnboardingPreview {
+                ProgressView()
+                    .tint(gold)
+            } else {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 28))
+                    .foregroundColor(gold)
+            }
+            Text("LOADING GIF PREVIEW")
+                .font(.system(size: 10, weight: .bold, design: .serif))
+                .foregroundColor(.white.opacity(0.45))
+                .tracking(1.2)
+        }
+        .frame(width: 240, height: 150)
+        .background(Color(hex: "111111"))
     }
 
     private func loadOnboardingPreviewGIF() async {
-        guard onboardingPreviewGIF == nil, onboardingFallbackLoop == nil, !isLoadingOnboardingPreview else { return }
+        guard onboardingPreviewMedia.isEmpty, !isLoadingOnboardingPreview else { return }
 
         isLoadingOnboardingPreview = true
         defer { isLoadingOnboardingPreview = false }
 
         let preferredTypes = sortedSelected.shuffled()
-        onboardingFallbackLoop = selectOnboardingFallbackLoop(preferredTypes: preferredTypes)
-
         let type = preferredTypes.randomElement() ?? .smoking
-        let loops = await KlipyMediaLibrary.shared.searchLoops(for: type, count: 6)
+        let loops = await KlipyMediaLibrary.shared.searchLoops(for: type, count: onboardingPreviewCount * 2)
         guard !Task.isCancelled else { return }
 
-        if let remoteLoop = loops.randomElement() {
-            onboardingPreviewGIF = remoteLoop
-        }
+        let remoteMedia = loops
+            .shuffled()
+            .prefix(onboardingPreviewCount)
+            .map(OnboardingPreviewMedia.remote)
+        let fallbackCount = max(0, onboardingPreviewCount - remoteMedia.count)
+        let fallbackMedia = selectOnboardingFallbackLoops(preferredTypes: preferredTypes, count: fallbackCount)
+
+        onboardingPreviewMedia = Array((remoteMedia + fallbackMedia).prefix(onboardingPreviewCount))
     }
 
-    private func selectOnboardingFallbackLoop(preferredTypes: [AddictionType]) -> LocalVideoLoop? {
-        let recentIDs = UserDefaults.standard.stringArray(forKey: onboardingFallbackRecentKey) ?? []
-        guard let loop = LocalVideoLoopLibrary.shared.randomLoop(
-            preferredTypes: preferredTypes,
-            excluding: Set(recentIDs)
-        ) else {
-            return nil
-        }
+    private func selectOnboardingFallbackLoops(preferredTypes: [AddictionType], count: Int) -> [OnboardingPreviewMedia] {
+        guard count > 0 else { return [] }
 
-        let updatedIDs = [loop.id] + recentIDs.filter { $0 != loop.id }
+        let recentIDs = UserDefaults.standard.stringArray(forKey: onboardingFallbackRecentKey) ?? []
+        let loops = LocalVideoLoopLibrary.shared.randomLoops(
+            preferredTypes: preferredTypes,
+            count: count,
+            excluding: Set(recentIDs)
+        )
+
+        let newIDs = loops.map(\.id)
+        let updatedIDs = newIDs + recentIDs.filter { !newIDs.contains($0) }
         UserDefaults.standard.set(Array(updatedIDs.prefix(12)), forKey: onboardingFallbackRecentKey)
 
-        return loop
+        return loops.map(OnboardingPreviewMedia.local)
     }
 
     // MARK: - Step 5: Reviews
