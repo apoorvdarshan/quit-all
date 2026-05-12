@@ -21,16 +21,19 @@ const sections = [
   },
   {
     title: "Description of Service",
-    content: "Quit All is a habit-tracking and addiction recovery app. It provides tools for tracking sobriety streaks, logging cravings, viewing motivational content, and monitoring savings. The app is not a substitute for professional medical advice, diagnosis, or treatment.",
+    content: "Quit All is a habit-tracking and addiction recovery app. It provides tools for tracking sobriety streaks, logging cravings and relapses, viewing motivational GIFs, memes, and offline fallback loops, monitoring savings, and using widgets. The app is not a substitute for professional medical advice, diagnosis, or treatment.",
   },
   {
-    title: "Subscriptions",
+    title: "Subscriptions and Purchases",
     items: [
-      "Quit All offers a 3-day free trial followed by auto-renewable subscriptions: Monthly ($7.99/month) and Yearly ($49.99/year)",
-      "Payment is charged to your Apple ID account at the end of the free trial period",
+      "Quit All offers auto-renewable subscriptions: Monthly ($7.99/month) and Yearly ($49.99/year), with a 3-day free trial when eligible",
+      "Quit All also offers a Lifetime Premium non-consumable purchase ($99.99 one-time)",
+      "Prices may vary by country, currency, taxes, App Store price changes, and Apple regional pricing",
+      "Payment is charged to your Apple ID account at confirmation or at the end of a trial period when a trial applies",
       "Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period",
       "You can manage and cancel subscriptions in your Apple ID account settings",
-      "If you cancel during the free trial, you will not be charged",
+      "Refunds, billing issues, and purchase disputes are handled by Apple under App Store policies",
+      "Purchase access is managed using RevenueCat and Apple StoreKit",
     ],
   },
   {
@@ -40,7 +43,7 @@ const sections = [
   },
   {
     title: "Content",
-    content: "Memes, local video loops, and motivational text in the app are for entertainment and motivation purposes only. Some content may contain humor about addiction.",
+    content: "GIFs, memes, local video loops, and motivational text in the app are for entertainment, distraction, and motivation purposes only. Some content may contain humor about addiction. Online GIF availability depends on third-party services and network connectivity.",
   },
   {
     title: "User Responsibility",
@@ -48,11 +51,16 @@ const sections = [
       "You are responsible for maintaining the confidentiality of your data",
       "You agree not to misuse the app or attempt to reverse-engineer it",
       "You acknowledge that the app stores data locally and data loss may occur if the app is deleted",
+      "You are responsible for seeking professional help when cravings, withdrawal, substance use, self-harm risk, or compulsive behavior require medical or mental health support",
     ],
   },
   {
+    title: "Third-Party Services",
+    content: "Quit All uses Apple StoreKit/App Store for purchases, RevenueCat for entitlement management, Klipy for online GIF content, and Vercel for the website and API proxy. These services may be subject to their own terms and availability.",
+  },
+  {
     title: "Limitation of Liability",
-    content: "Quit All is provided \u201Cas is\u201D without warranties of any kind. We are not liable for any damages arising from the use or inability to use the app, including but not limited to relapse, health complications, or data loss.",
+    content: "Quit All is provided \u201Cas is\u201D without warranties of any kind. We are not liable for any damages arising from the use or inability to use the app, including but not limited to relapse, health complications, purchase issues handled by Apple, third-party service outages, or data loss.",
   },
   {
     title: "Changes to These Terms",
@@ -64,7 +72,7 @@ export default function Terms() {
   return (
     <>
       <title>Terms of Service — Quit All</title>
-      <meta name="description" content="Quit All Terms of Service. Subscription details, medical disclaimer, and usage terms for the addiction tracking iOS app." />
+      <meta name="description" content="Quit All Terms of Service. Subscription, lifetime purchase, medical disclaimer, third-party service, and usage terms for the addiction tracking iOS app." />
       <motion.nav className="nav"
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -85,7 +93,7 @@ export default function Terms() {
         <motion.div className="legal-header" initial="hidden" animate="visible">
           <motion.p variants={fadeUp} custom={0} className="legal-label">Legal</motion.p>
           <motion.h1 variants={fadeUp} custom={1} className="legal-title">Terms of Service</motion.h1>
-          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: March 23, 2026</motion.p>
+          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: May 12, 2026</motion.p>
         </motion.div>
 
         <motion.div className="legal-divider" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}

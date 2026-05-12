@@ -267,8 +267,8 @@ img { max-width: 100%; display: block; }
 /* Pricing */
 .pricing { padding: 128px 0; }
 .pricing-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 20px; max-width: 700px; margin: 0 auto;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 20px; max-width: 1020px; margin: 0 auto;
 }
 .pricing-card {
   padding: 40px 32px; border-radius: 20px;
@@ -521,4 +521,8 @@ img { max-width: 100%; display: block; }
   .footer-inner { flex-direction: column; text-align: center; gap: 24px; }
   .footer-links { justify-content: center; flex-wrap: wrap; gap: 20px; }
   .footer-socials { justify-content: center; }
+}
+
+@media (min-width: 769px) and (max-width: 980px) {
+  .pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 700px; }
 }

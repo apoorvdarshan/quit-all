@@ -17,29 +17,37 @@ const fadeUp = {
 const sections = [
   {
     title: "Overview",
-    content: "Quit All (\u201Cwe\u201D, \u201Cour\u201D, \u201Cthe app\u201D) is committed to protecting your privacy. This Privacy Policy explains how we handle your information.",
+    content: "Quit All (\u201Cwe\u201D, \u201Cour\u201D, \u201Cthe app\u201D) is committed to protecting your privacy. This Privacy Policy explains how the app and website handle information.",
   },
   {
     title: "Data Collection",
-    intro: "Quit All does **not** collect, store, or transmit any personal data to external servers. All your data stays on your device.",
+    intro: "Quit All does **not** require an account and does not send your habit history, craving logs, relapse notes, milestones, or addiction settings to our servers.",
     items: [
       "Addiction tracking data \u2014 stored locally on your device using CoreData",
       "Craving logs, relapse history, milestones \u2014 stored locally, never transmitted",
+      "Widget snapshots \u2014 stored locally in the app group so Home Screen and Lock Screen widgets can display progress",
       "No accounts \u2014 no sign-up, no login, no email required",
-      "No analytics \u2014 we don\u2019t track your behavior",
-      "No advertising \u2014 we don\u2019t serve ads or share data with advertisers",
+      "No advertising \u2014 we do not sell your data or share habit data with advertisers",
     ],
   },
   {
     title: "Third-Party Services",
     items: [
-      "Apple StoreKit \u2014 Used for in-app subscriptions (including 3-day free trial). Payment processing is handled entirely by Apple.",
-      "Apple Push Notifications \u2014 Used for smart notifications at your highest-risk times. Notification data stays on your device.",
+      "Apple StoreKit and App Store \u2014 Used for subscriptions, lifetime purchases, trials, refunds, and purchase management. Payment processing is handled by Apple.",
+      "RevenueCat \u2014 Used to manage purchase entitlements. RevenueCat may receive an anonymous app user ID, product identifiers, transaction receipts, and app/device metadata needed to validate access. Quit All does not send your habit logs or relapse history to RevenueCat.",
+      "Klipy GIF API \u2014 Used to show online GIFs in SOS mode. Requests are routed through our Vercel API proxy so the Klipy API key is not shipped in the app. Search/category requests and standard request metadata may be processed to return GIF results.",
+      "Vercel \u2014 Hosts quit-all.com and API proxy routes used for app configuration and Klipy requests. Server logs may include request URL, IP address, user agent, and timestamps for security and debugging.",
+      "Vercel Analytics \u2014 Used on the marketing website to understand page usage. This does not include in-app habit tracking data.",
+      "Apple Local Notifications \u2014 Used for smart reminders at your configured risk times. Notification schedules are generated on device.",
     ],
   },
   {
     title: "Data Storage",
-    content: "All app data is stored locally on your device. If you delete the app, all data is permanently deleted. We have no backups of your data.",
+    content: "Your app data is stored locally on your device. If you delete the app, local app data may be permanently deleted. We do not keep backups of your habit history.",
+  },
+  {
+    title: "Purchases",
+    content: "Purchases are processed by Apple and entitlement status is managed with RevenueCat. You can manage subscriptions, cancellations, and refunds through your Apple ID or App Store settings.",
   },
   {
     title: "Children\u2019s Privacy",
@@ -55,7 +63,7 @@ export default function Privacy() {
   return (
     <>
       <title>Privacy Policy — Quit All</title>
-      <meta name="description" content="Quit All Privacy Policy. All data stays on your device. No accounts, no analytics, no ads. 100% private addiction tracker." />
+      <meta name="description" content="Quit All Privacy Policy. Habit data stays on your device. No account required. Purchases use Apple and RevenueCat; SOS GIFs use Klipy through a Vercel proxy." />
       <motion.nav className="nav"
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -76,7 +84,7 @@ export default function Privacy() {
         <motion.div className="legal-header" initial="hidden" animate="visible">
           <motion.p variants={fadeUp} custom={0} className="legal-label">Legal</motion.p>
           <motion.h1 variants={fadeUp} custom={1} className="legal-title">Privacy Policy</motion.h1>
-          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: March 23, 2026</motion.p>
+          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: May 12, 2026</motion.p>
         </motion.div>
 
         <motion.div className="legal-divider" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}

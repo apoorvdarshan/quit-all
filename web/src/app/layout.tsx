@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Quit All — Quit Smoking, Vaping, Alcohol & More in One App",
-  description: "Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings with local video loops and memes, save money. 100% private, all data on your device.",
+  description: "Quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings with GIFs and offline fallback loops, save money, and use Home Screen or Lock Screen widgets.",
   keywords: [
     "quit smoking app", "stop smoking", "quit smoking tracker", "smoking cessation",
     "stop vaping", "quit vaping app", "vape free",
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     url: "https://quit-all.com",
     siteName: "Quit All",
     title: "Quit All - One App to Quit Smoking, Vaping, Alcohol & More",
-    description: "One app to quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings, save money.",
+    description: "One app to quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings with GIFs, save money, and use widgets.",
     images: [
       {
         url: "/og.png",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Quit All — Quit Every Addiction in One App",
-    description: "Quit smoking, vaping, alcohol & 6 more addictions. Track streaks, survive cravings with local video loops, save money. 100% private.",
+    description: "Quit smoking, vaping, alcohol & 6 more addictions. Track streaks, survive cravings with GIFs and offline fallback loops, save money.",
     creator: "@apoorvdarshan",
     images: ["/og.png"],
   },
@@ -84,21 +84,30 @@ const jsonLd = {
   operatingSystem: "iOS 17+",
   applicationCategory: "HealthApplication",
   applicationSubCategory: "Addiction Recovery",
-  description: "Best app to quit smoking, stop vaping, quit drinking alcohol, quit weed, stop gambling, quit caffeine, and break social media addiction. Track sobriety streaks, survive cravings with memes and local video loops, see money saved, and get pattern-based alerts. 3-day free trial. 100% private.",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-    description: "3-day free trial, then $7.99/month or $49.99/year",
-  },
+  description: "App to quit smoking, stop vaping, quit drinking alcohol, quit weed, stop gambling, quit caffeine, and break social media addiction. Track sobriety streaks, survive cravings with GIFs and offline fallback loops, see money saved, use widgets, and get pattern-based reminders. 3-day free trial available for subscriptions.",
+  offers: [
+    {
+      "@type": "Offer",
+      price: "7.99",
+      priceCurrency: "USD",
+      description: "Monthly premium subscription with 3-day free trial when eligible",
+    },
+    {
+      "@type": "Offer",
+      price: "49.99",
+      priceCurrency: "USD",
+      description: "Yearly premium subscription with 3-day free trial when eligible",
+    },
+    {
+      "@type": "Offer",
+      price: "99.99",
+      priceCurrency: "USD",
+      description: "Lifetime premium one-time purchase",
+    },
+  ],
   author: {
     "@type": "Person",
     name: "Apoorv Darshan",
-  },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    ratingCount: "100",
   },
 };
 

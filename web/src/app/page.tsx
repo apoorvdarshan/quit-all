@@ -33,11 +33,11 @@ const slideIn = {
 };
 
 const features = [
-  { icon: "⚡", title: "SOS Craving Button", desc: "Instant looped-video distraction when the urge hits. Swipe through memes while the craving passes." },
-  { icon: "🔍", title: "Pattern Intelligence", desc: "Your cravings have patterns. We find them. Hourly heatmaps, trigger analysis, danger zone alerts." },
-  { icon: "◆", title: "Milestone Rewards", desc: "From 1 hour to 1 year — 9 science-backed milestones. Each unlocks a health fact and shareable card." },
+  { icon: "⚡", title: "SOS Craving Button", desc: "Online GIFs when you have connection, bundled offline loops when you do not. Swipe while the craving passes." },
+  { icon: "🔍", title: "Pattern Intelligence", desc: "Your cravings have patterns. Hourly heatmaps, trigger analysis, and danger-time reminders reveal them." },
+  { icon: "◆", title: "Streaks & Widgets", desc: "Track clean time in the app, then keep progress visible from Home Screen and Lock Screen widgets." },
   { icon: "¤", title: "Money Tracker", desc: "Watch savings grow in real-time. Project 5 years out. See what you could buy with the money." },
-  { icon: "∞", title: "2,790+ Memes", desc: "Five categories. Nine types. Local video loops can be bundled for offline SOS sessions." },
+  { icon: "∞", title: "GIFs, Memes & Loops", desc: "Klipy-powered GIFs, 2,790+ text memes, and local fallback videos for SOS sessions." },
   { icon: "↺", title: "Zero-Shame Relapse", desc: "It happened. That's okay. Log it, learn, restart. Your history is saved. Progress is never lost." },
 ];
 
@@ -49,7 +49,13 @@ const addictions = [
   { name: "Caffeine", color: "#4E342E" },
 ];
 
-const screenshots = ["ss-onboarding", "ss-sos2", "ss-sos1", "ss-stats", "ss-sos3", "ss-sos4"];
+const screenshots = [
+  { src: "/ss-onboarding.jpg", alt: "Choose the habits you want to quit in Quit All" },
+  { src: "/ss-home.jpg", alt: "Quit All home streak dashboard" },
+  { src: "/ss-sos-klipy.jpg", alt: "Quit All SOS screen using a Klipy GIF" },
+  { src: "/ss-sos-offline.jpg", alt: "Quit All SOS screen using an offline fallback loop" },
+  { src: "/ss-stats-new.jpg", alt: "Quit All stats dashboard" },
+];
 
 export default function Home() {
   const heroRef = useRef(null);
@@ -93,7 +99,7 @@ export default function Home() {
           </motion.h1>
 
           <motion.p initial="hidden" animate="visible" variants={fadeUp} custom={2}>
-            Nine addictions. One app. Track your streaks, survive cravings with memes and local video loops, watch your money grow, and never feel ashamed of a setback.
+            Nine addictions. One app. Track streaks, survive cravings with GIFs and offline fallback loops, watch your money grow, and restart without shame.
           </motion.p>
 
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={3} className="hero-buttons">
@@ -163,10 +169,10 @@ export default function Home() {
         <motion.div className="screenshots-scroll"
           initial="hidden" whileInView="visible" viewport={{ once: true }}>
           {screenshots.map((ss, i) => (
-            <motion.div key={ss} className="screenshot-item"
+            <motion.div key={ss.src} className="screenshot-item"
               variants={scaleIn} custom={i}
               whileHover={{ scale: 1.06, y: -8, transition: { duration: 0.3 } }}>
-              <Image src={`/${ss}.png`} alt="App screenshot" width={220} height={476} style={{ width: "100%", height: "auto" }} />
+              <Image src={ss.src} alt={ss.alt} width={220} height={476} style={{ width: "100%", height: "auto" }} />
             </motion.div>
           ))}
         </motion.div>
@@ -193,13 +199,13 @@ export default function Home() {
               <p className="pricing-sub">Billed monthly</p>
               <ul className="pricing-features">
                 <li>All 9 addiction types</li>
-                <li>SOS craving video loops &amp; memes</li>
+                <li>SOS GIFs, memes &amp; offline loops</li>
                 <li>Stats &amp; pattern detection</li>
                 <li>Milestones &amp; sharing</li>
                 <li>Smart notifications</li>
               </ul>
               <p className="pricing-trial">3-day free trial</p>
-              <button className="pricing-btn pricing-btn-secondary">Start Free Trial</button>
+              <a href="https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934" target="_blank" className="pricing-btn pricing-btn-secondary">Start Free Trial</a>
             </motion.div>
 
             <motion.div variants={fadeUp} custom={1} className="pricing-card featured"
@@ -211,12 +217,28 @@ export default function Home() {
               <ul className="pricing-features">
                 <li>Everything in Monthly</li>
                 <li>Save $45.89 per year</li>
-                <li>Priority future features</li>
+                <li>Home &amp; Lock Screen widgets</li>
                 <li>Support development</li>
                 <li>Cancel anytime</li>
               </ul>
               <p className="pricing-trial">3-day free trial</p>
-              <button className="pricing-btn pricing-btn-primary">Start Free Trial</button>
+              <a href="https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934" target="_blank" className="pricing-btn pricing-btn-primary">Start Free Trial</a>
+            </motion.div>
+
+            <motion.div variants={fadeUp} custom={2} className="pricing-card"
+              whileHover={{ y: -8, transition: { duration: 0.3 } }}>
+              <p className="pricing-name">Lifetime</p>
+              <p className="pricing-price">$99.99<span>/once</span></p>
+              <p className="pricing-sub">One-time purchase</p>
+              <ul className="pricing-features">
+                <li>All premium features forever</li>
+                <li>No renewal</li>
+                <li>No subscription management</li>
+                <li>Future premium updates</li>
+                <li>Family-friendly App Store billing</li>
+              </ul>
+              <p className="pricing-trial">No recurring charge</p>
+              <a href="https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934" target="_blank" className="pricing-btn pricing-btn-secondary">Buy Lifetime</a>
             </motion.div>
           </motion.div>
         </div>
@@ -229,8 +251,8 @@ export default function Home() {
         <div className="container">
           <div className="stats-grid">
             {[
-              { v: "9", l: "Addictions" }, { v: "2,790", l: "Memes" },
-              { v: "9", l: "Milestones" }, { v: "0", l: "Data Collected" },
+              { v: "9", l: "Addictions" }, { v: "2,790+", l: "Text Memes" },
+              { v: "9", l: "Milestones" }, { v: "0", l: "Accounts Required" },
             ].map((s, i) => (
               <motion.div key={s.l}
                 initial="hidden" whileInView="visible" viewport={{ once: true }}
@@ -264,7 +286,7 @@ export default function Home() {
       <section className="seo-content">
         <div className="container">
           <h2>Quit Smoking, Vaping, Alcohol and More</h2>
-          <p>Quit All is the best app to quit smoking in 2026. Whether you want to stop vaping, quit drinking alcohol, break a gambling addiction, quit weed, reduce caffeine intake, stop overspending, or cut down on social media, Quit All tracks all your addictions in one place. Our sobriety counter and streak tracker help you stay accountable. The SOS craving button gives you instant distraction with motivational memes and local video loops when urges hit. Built-in pattern detection finds your danger zones so you know when cravings are most likely to strike. Track your money saved from quitting and see your health improve with science-backed milestones. No sign-up required. All data stays on your iPhone. Start your 3-day free trial today.</p>
+          <p>Quit All helps you quit smoking, stop vaping, quit drinking alcohol, break gambling patterns, quit weed, reduce caffeine, stop overspending, and cut down on social media. Track every streak in one place, use the SOS craving button for Klipy GIFs plus offline fallback loops, log relapses without shame, and see savings and milestones build over time. No account is required. Habit data stays on your iPhone, with purchases handled through Apple and RevenueCat.</p>
         </div>
       </section>
 
@@ -279,17 +301,18 @@ export default function Home() {
             <div className="footer-links">
               <Link href="/privacy">Privacy</Link>
               <Link href="/terms">Terms</Link>
+              <Link href="https://ko-fi.com/apoorvdarshan" target="_blank">Support</Link>
               <Link href="mailto:ad13dtu@gmail.com">Contact</Link>
             </div>
             <div className="footer-links footer-socials">
               <Link href="https://x.com/apoorvdarshan" target="_blank" aria-label="X">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               </Link>
-              <Link href="https://linkedin.com/in/apoorvdarshan" target="_blank" aria-label="LinkedIn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              <Link href="https://www.instagram.com/quitall_com/" target="_blank" aria-label="Instagram">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M7.8 2h8.4A5.807 5.807 0 0 1 22 7.8v8.4a5.807 5.807 0 0 1-5.8 5.8H7.8A5.807 5.807 0 0 1 2 16.2V7.8A5.807 5.807 0 0 1 7.8 2m-.2 2A3.6 3.6 0 0 0 4 7.6v8.8A3.6 3.6 0 0 0 7.6 20h8.8a3.6 3.6 0 0 0 3.6-3.6V7.6A3.6 3.6 0 0 0 16.4 4H7.6m9.65 1.5a1.25 1.25 0 1 1 0 2.5 1.25 1.25 0 0 1 0-2.5M12 7a5 5 0 1 1 0 10 5 5 0 0 1 0-10m0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>
               </Link>
-              <Link href="https://github.com/apoorvdarshan" target="_blank" aria-label="GitHub">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>
+              <Link href="https://www.linkedin.com/company/quit-all/" target="_blank" aria-label="LinkedIn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
               </Link>
               <Link href="https://www.producthunt.com/products/quit-all-break-every-habit" target="_blank" aria-label="Product Hunt">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M13.604 8.4h-3.405V12h3.405a1.8 1.8 0 0 0 0-3.6zM12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zm1.604 14.4h-3.405V18H7.801V6h5.804a4.2 4.2 0 0 1 0 8.4z"/></svg>
