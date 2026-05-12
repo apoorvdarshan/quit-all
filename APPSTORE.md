@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Quit All v1.1, build 2. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Quit All v1.1, build 3. Each field is in a code block for easy copy-paste.
 
 ## App Name
 
@@ -31,7 +31,7 @@ App Store Connect submission details for Quit All v1.1, build 2. Each field is i
 
     WHAT YOU GET
     - Track multiple habits at once
-    - SOS craving mode with GIF loops, offline video loops, and motivational memes
+    - SOS craving mode with Powered by KLIPY GIF loops, offline video loops, and motivational memes
     - 2,790+ curated motivational, consequence, distraction, roast, and relatable meme prompts
     - Streaks, milestones, and progress cards
     - Home Screen and Lock Screen widgets for quick progress checks
@@ -87,7 +87,7 @@ App Store Connect submission details for Quit All v1.1, build 2. Each field is i
     - Onboarding review-style copy was replaced with real app benefit cards.
     - GIF fallback rotation is more varied and stable.
     - RevenueCat and App Store purchase setup was improved.
-    - Version 1.1, build 2.
+    - Version 1.1, build 3.
 
 ## Privacy URL
 
@@ -122,4 +122,4 @@ App Store Connect submission details for Quit All v1.1, build 2. Each field is i
 
     Purchases are processed by Apple and entitlement state is managed through RevenueCat. Subscriptions can be tested with Apple sandbox/TestFlight.
 
-    The app includes GIF/video motivational content for craving distraction and habit support. It is not a medical app and does not provide medical advice, diagnosis, or treatment.
+    The app includes GIF/video motivational content for craving distraction and habit support. Online KLIPY GIF content shows Powered by KLIPY attribution near the media. It is not a medical app and does not provide medical advice, diagnosis, or treatment.

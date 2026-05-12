@@ -33,7 +33,7 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 <p align="center">
   <img src="ios/screenshots/readme-onboarding.jpg" width="155" alt="Quit All onboarding addiction selection" />
   <img src="ios/screenshots/readme-home.jpg" width="155" alt="Quit All home streak dashboard" />
-  <img src="ios/screenshots/readme-sos-klipy.jpg" width="155" alt="Quit All SOS craving screen with Klipy GIF" />
+  <img src="ios/screenshots/readme-sos-klipy.jpg" width="155" alt="Quit All SOS craving screen with Powered by KLIPY GIF" />
   <img src="ios/screenshots/readme-sos-offline.jpg" width="155" alt="Quit All SOS craving screen with offline fallback" />
   <img src="ios/screenshots/readme-stats.jpg" width="155" alt="Quit All stats dashboard" />
 </p>
@@ -47,7 +47,7 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 ### Features
 
 - **9 addictions, one app** — smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, caffeine
-- **SOS craving button** — full-screen takeover with Klipy GIFs, bundled offline video loops, and 2,790+ curated memes (motivational, roast, consequence, distraction, relatable)
+- **SOS craving button** — full-screen takeover with Powered by KLIPY GIFs, bundled offline video loops, and 2,790+ curated memes (motivational, roast, consequence, distraction, relatable)
 - **Streak tracking** — giant counter with gold gradient progress ring toward the next milestone
 - **Pattern detection** — on-device hourly heatmaps and trigger analysis of your cravings
 - **Cost calculator** — money saved, life hours reclaimed, 5-year projection slider, "what you could buy" cards
@@ -65,7 +65,7 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 | CoreData (local-only, no backend) | Vanilla CSS (no Tailwind) |
 | RevenueCat + StoreKit 2 | Framer Motion (animations) |
 | WidgetKit + UserNotifications | JSON-LD structured data for SEO |
-| Klipy GIF proxy + bundled MP4 fallbacks | Vercel hosting + API routes |
+| KLIPY GIF proxy + bundled MP4 fallbacks | Vercel hosting + API routes |
 | Dark casino-gold theme, Cormorant serif | Same theme system as iOS |
 
 ## Running locally
@@ -91,7 +91,7 @@ npm run dev    # http://localhost:3000
 
 The `web/` folder is the Vercel root — pushes that don't touch `web/` skip deployment.
 
-Klipy requests can be proxied through Vercel at `/api/klipy/...` so the iOS app never ships the API key. Configure `KLIPY_API_KEY` in Vercel, then call endpoints like `/api/klipy/v2/search?q=smoking`. Optional overrides: `KLIPY_API_BASE_URL` and `KLIPY_API_KEY_PARAM`.
+KLIPY requests can be proxied through Vercel at `/api/klipy/...` so the iOS app never ships the API key. Configure `KLIPY_API_KEY` in Vercel, then call endpoints like `/api/klipy/v2/search?q=smoking`. Online GIF content shows Powered by KLIPY attribution in the app. Optional overrides: `KLIPY_API_BASE_URL` and `KLIPY_API_KEY_PARAM`.
 
 The iOS RevenueCat public SDK key is loaded from `/api/app-config` so it can be rotated from Vercel without shipping a new app build. Configure `REVENUECAT_IOS_API_KEY` in Vercel. Debug builds send their bundle ID and can use `REVENUECAT_IOS_DEBUG_API_KEY` for the RevenueCat Test Store. The app falls back to its bundled public key if the config endpoint is unavailable.
 

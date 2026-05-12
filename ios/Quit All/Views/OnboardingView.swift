@@ -18,7 +18,7 @@ private enum OnboardingPreviewMedia: Identifiable {
     var sourceLabel: String {
         switch self {
         case .remote:
-            return "KLIPY"
+            return "Powered by KLIPY"
         case .local:
             return "OFFLINE"
         }
@@ -494,7 +494,7 @@ struct OnboardingView: View {
     // MARK: - Step 4: Features
     private var featuresStep: some View {
         let features: [(icon: String, title: String, desc: String)] = [
-            ("exclamationmark.triangle.fill", "SOS CRAVING BUTTON", "Klipy GIF loops and memes when urges hit. Swipe while the craving passes."),
+            ("exclamationmark.triangle.fill", "SOS CRAVING BUTTON", "Powered by KLIPY GIF loops and memes when urges hit. Swipe while the craving passes."),
             ("chart.bar.fill", "SMART TRACKING", "Know your triggers, danger times, and patterns. Your data reveals what works."),
             ("trophy.fill", "MILESTONE REWARDS", "Celebrate every win with health facts. Share your progress with shareable cards."),
             ("arrow.counterclockwise", "NO JUDGMENT", "Log relapses without shame. Restart instantly. Your streak history is always saved."),
@@ -548,13 +548,15 @@ struct OnboardingView: View {
             previewContent(for: media)
 
             if let sourceLabel = media?.sourceLabel {
+                let isKlipy = sourceLabel.contains("KLIPY")
+
                 Text(sourceLabel)
-                    .font(.system(size: 9, weight: .bold, design: .serif))
-                    .foregroundColor(sourceLabel == "KLIPY" ? .black : .white.opacity(0.75))
+                    .font(.system(size: 8, weight: .bold, design: .serif))
+                    .foregroundColor(isKlipy ? .black : .white.opacity(0.75))
                     .tracking(0.8)
-                    .padding(.horizontal, 8)
+                    .padding(.horizontal, 9)
                     .padding(.vertical, 4)
-                    .background(sourceLabel == "KLIPY" ? gold : Color.black.opacity(0.55))
+                    .background(isKlipy ? gold : Color.black.opacity(0.55))
                     .cornerRadius(10)
                     .padding(8)
             }

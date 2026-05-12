@@ -38,7 +38,7 @@ const features = [
   { icon: "🔍", title: "Pattern Intelligence", desc: "Your cravings have patterns. Hourly heatmaps, trigger analysis, and danger-time reminders reveal them." },
   { icon: "◆", title: "Streaks & Widgets", desc: "Track clean time in the app, then keep progress visible from Home Screen and Lock Screen widgets." },
   { icon: "¤", title: "Money Tracker", desc: "Watch savings grow in real-time. Project 5 years out. See what you could buy with the money." },
-  { icon: "∞", title: "GIFs, Memes & Loops", desc: "Klipy-powered GIFs, 2,790+ text memes, and local fallback videos for SOS sessions." },
+  { icon: "∞", title: "GIFs, Memes & Loops", desc: "Powered by KLIPY GIFs, 2,790+ text memes, and local fallback videos for SOS sessions." },
   { icon: "↺", title: "Zero-Shame Relapse", desc: "It happened. That's okay. Log it, learn, restart. Your history is saved. Progress is never lost." },
 ];
 
@@ -53,7 +53,7 @@ const addictions = [
 const screenshots = [
   { src: "/ss-onboarding.jpg", alt: "Choose the habits you want to quit in Quit All" },
   { src: "/ss-home.jpg", alt: "Quit All home streak dashboard" },
-  { src: "/ss-sos-klipy.jpg", alt: "Quit All SOS screen using a Klipy GIF" },
+  { src: "/ss-sos-klipy.jpg", alt: "Quit All SOS screen using a Powered by KLIPY GIF" },
   { src: "/ss-sos-offline.jpg", alt: "Quit All SOS screen using an offline fallback loop" },
   { src: "/ss-stats-new.jpg", alt: "Quit All stats dashboard" },
 ];
@@ -315,7 +315,7 @@ export default function Home() {
       <section className="seo-content">
         <div className="container">
           <h2>Quit Smoking, Vaping, Alcohol and More</h2>
-          <p>Quit All, sometimes searched as AllQuit, helps you quit smoking, stop vaping, quit drinking alcohol, break gambling patterns, quit weed, reduce caffeine, stop overspending, and cut down on social media. Track every streak in one place, use the SOS craving button for Klipy GIFs plus offline fallback loops, log relapses without shame, and see savings and milestones build over time. No account is required. Habit data stays on your iPhone, with purchases handled through Apple and RevenueCat.</p>
+          <p>Quit All, sometimes searched as AllQuit, helps you quit smoking, stop vaping, quit drinking alcohol, break gambling patterns, quit weed, reduce caffeine, stop overspending, and cut down on social media. Track every streak in one place, use the SOS craving button for Powered by KLIPY GIFs plus offline fallback loops, log relapses without shame, and see savings and milestones build over time. No account is required. Habit data stays on your iPhone, with purchases handled through Apple and RevenueCat.</p>
         </div>
       </section>
 

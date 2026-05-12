@@ -87,7 +87,7 @@ struct MemeBrowseView: View {
                                                     .background(Color(hex: "111111"))
                                                     .cornerRadius(12)
                                                     .overlay(alignment: .topTrailing) {
-                                                        sourceBadge("KLIPY")
+                                                        sourceBadge("Powered by KLIPY")
                                                     }
                                                     .clipped()
                                             }
@@ -189,13 +189,15 @@ struct MemeBrowseView: View {
     }
 
     private func sourceBadge(_ text: String) -> some View {
-        Text(text)
-            .font(.system(size: 9, weight: .bold, design: .serif))
-            .foregroundColor(text == "KLIPY" ? .black : .white.opacity(0.75))
+        let isKlipy = text.contains("KLIPY")
+
+        return Text(text)
+            .font(.system(size: 8, weight: .bold, design: .serif))
+            .foregroundColor(isKlipy ? .black : .white.opacity(0.75))
             .tracking(0.8)
-            .padding(.horizontal, 8)
+            .padding(.horizontal, 9)
             .padding(.vertical, 4)
-            .background(text == "KLIPY" ? Color(hex: "D4AF37") : Color.black.opacity(0.55))
+            .background(isKlipy ? Color(hex: "D4AF37") : Color.black.opacity(0.55))
             .cornerRadius(10)
             .padding(8)
     }
