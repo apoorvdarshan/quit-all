@@ -34,6 +34,7 @@ App Store Connect submission details for Quit All v1.1, build 2. Each field is i
     - SOS craving mode with GIF loops, offline video loops, and motivational memes
     - 2,790+ curated motivational, consequence, distraction, roast, and relatable meme prompts
     - Streaks, milestones, and progress cards
+    - Home Screen and Lock Screen widgets for quick progress checks
     - Savings calculator with daily, monthly, yearly, and long-term projections
     - Craving logs, trigger tracking, mood logging, and pattern insights
     - No-shame relapse logging so you can restart without losing context
@@ -49,7 +50,7 @@ App Store Connect submission details for Quit All v1.1, build 2. Each field is i
     - Payment is handled by Apple
 
     PREMIUM
-    Quit All Premium unlocks the full app experience, including SOS craving support, stats, milestones, savings projections, smart notifications, GIF/video loops, and relapse tracking.
+    Quit All Premium unlocks the full app experience, including SOS craving support, stats, milestones, savings projections, widgets, smart notifications, GIF/video loops, and relapse tracking.
 
     Premium options:
     - Monthly subscription
@@ -77,6 +78,7 @@ App Store Connect submission details for Quit All v1.1, build 2. Each field is i
     - Added broad native localization coverage so the app can follow the iPhone language setting.
     - Added Lifetime Premium alongside monthly and yearly options.
     - Added an App Store update checker in Settings.
+    - Added Home Screen and Lock Screen widgets for quick progress visibility.
     - Added a dedicated About tab with support, share, rate, Product Hunt, Instagram, LinkedIn, and X links.
 
     POLISH & FIXES
@@ -111,7 +113,7 @@ App Store Connect submission details for Quit All v1.1, build 2. Each field is i
     1. Launch the app and complete onboarding.
     2. Choose one or more habits to track.
     3. Test the paywall from onboarding or from app launch after onboarding.
-    4. After purchase, test Home, SOS, Stats, Cost, Milestones, Relapse, Settings, and About.
+    4. After purchase, test Home, SOS, Stats, Cost, Milestones, Relapse, Settings, About, and the Home Screen or Lock Screen widget.
 
     In-app purchases:
     - Monthly: com.quitall.premium.monthly
