@@ -12,41 +12,186 @@ struct PaywallView: View {
 
     private let gold = Color(hex: "D4AF37")
     private let lightGold = Color(hex: "F5E6A3")
-    private let premiumFeatures = [
-        PaywallFeature(icon: "bolt.heart.fill", text: "SOS craving video loops"),
-        PaywallFeature(icon: "chart.bar.fill", text: "Advanced stats"),
-        PaywallFeature(icon: "trophy.fill", text: "Shareable milestones"),
-        PaywallFeature(icon: "dollarsign.circle.fill", text: "Savings calculator"),
-        PaywallFeature(icon: "bell.fill", text: "Smart danger reminders"),
-        PaywallFeature(icon: "arrow.counterclockwise", text: "Relapse tracking"),
-        PaywallFeature(icon: "face.smiling.fill", text: "2,790+ motivational memes")
-    ]
 
     var body: some View {
         ZStack {
             Color(hex: "080808").ignoresSafeArea()
 
-            GeometryReader { proxy in
-                let isCompact = proxy.size.height < 760
-                let isVeryCompact = proxy.size.height < 700
+            ScrollView {
+                VStack(spacing: 24) {
+                    Spacer().frame(height: 20)
 
-                VStack(spacing: isVeryCompact ? 7 : (isCompact ? 9 : 12)) {
-                    paywallHeader(isCompact: isCompact, isVeryCompact: isVeryCompact)
+                    Image("app_logo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 60, height: 60)
 
-                    featuresGrid(isCompact: isCompact)
+                    VStack(spacing: 10) {
+                        if selectedProductIsTrialEligible {
+                            Text("START YOUR FREE TRIAL")
+                                .font(.system(size: 12, weight: .bold, design: .serif))
+                                .foregroundColor(gold)
+                                .tracking(3)
 
-                    subscriptionPlans(isCompact: isCompact, isVeryCompact: isVeryCompact)
+                            Text("Try Free\nfor 3 Days")
+                                .font(.system(size: 38, weight: .bold, design: .serif))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [lightGold, gold, Color(hex: "C5962C")],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                                .multilineTextAlignment(.center)
+                        } else {
+                            Text("UNLOCK EVERYTHING")
+                                .font(.system(size: 12, weight: .bold, design: .serif))
+                                .foregroundColor(gold)
+                                .tracking(3)
 
-                    purchaseButton(isCompact: isCompact)
+                            Text("Go Premium")
+                                .font(.system(size: 38, weight: .bold, design: .serif))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [lightGold, gold],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                        }
 
-                    billingInfo(isCompact: isCompact)
+                        Text("Unlock every feature in Quit All.")
+                            .font(.system(size: 15, design: .serif))
+                            .foregroundColor(.white.opacity(0.4))
+                    }
 
-                    bottomLinks(isCompact: isCompact)
+                    // Features
+                    VStack(alignment: .leading, spacing: 16) {
+                        featureRow(icon: "flame.fill", text: "SOS craving intervention with video loops")
+                        featureRow(icon: "chart.bar.fill", text: "Advanced stats & pattern detection")
+                        featureRow(icon: "trophy.fill", text: "Milestones with shareable cards")
+                        featureRow(icon: "dollarsign.circle.fill", text: "Cost calculator & savings projections")
+                        featureRow(icon: "bell.fill", text: "Smart notifications at danger times")
+                        featureRow(icon: "arrow.counterclockwise", text: "No-shame relapse tracking")
+                        featureRow(icon: "face.smiling.fill", text: "2,790+ motivational memes")
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 8)
+
+                    // Subscription cards
+                    VStack(spacing: 12) {
+                        subscriptionCard(
+                            title: "LIFETIME",
+                            price: formattedPrice(for: SubscriptionProduct.lifetime.rawValue, fallback: "$99.99 one-time"),
+                            subtitle: "One-time purchase",
+                            badge: "FOREVER",
+                            isSelected: selectedProductId == SubscriptionProduct.lifetime.rawValue
+                        ) {
+                            selectProduct(id: SubscriptionProduct.lifetime.rawValue)
+                        }
+
+                        subscriptionCard(
+                            title: "YEARLY",
+                            price: formattedPrice(for: SubscriptionProduct.yearly.rawValue, fallback: "$49.99/year"),
+                            subtitle: yearlySubtitle,
+                            badge: "SAVE 58%",
+                            isSelected: selectedProductId == SubscriptionProduct.yearly.rawValue
+                        ) {
+                            selectProduct(id: SubscriptionProduct.yearly.rawValue)
+                        }
+
+                        subscriptionCard(
+                            title: "MONTHLY",
+                            price: formattedPrice(for: SubscriptionProduct.monthly.rawValue, fallback: "$9.99/month"),
+                            subtitle: "Billed monthly",
+                            badge: nil,
+                            isSelected: selectedProductId == SubscriptionProduct.monthly.rawValue
+                        ) {
+                            selectProduct(id: SubscriptionProduct.monthly.rawValue)
+                        }
+                    }
+                    .padding(.horizontal, 20)
+
+                    // CTA
+                    Button {
+                        Task { await purchase() }
+                    } label: {
+                        HStack {
+                            if isPurchasing {
+                                ProgressView().tint(.white)
+                            } else {
+                                Text(purchaseButtonTitle)
+                                    .font(.system(size: 15, weight: .bold, design: .serif))
+                                    .tracking(2)
+                            }
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 58)
+                        .background(
+                            LinearGradient(
+                                colors: [gold, Color(hex: "8B6914")],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .cornerRadius(16)
+                        .shadow(color: gold.opacity(0.4), radius: 16, y: 6)
+                    }
+                    .disabled(isPurchasing)
+                    .padding(.horizontal, 20)
+
+                    // Trial/billing info
+                    VStack(spacing: 6) {
+                        if selectedProductId == SubscriptionProduct.lifetime.rawValue {
+                            Text("One-time purchase. No renewal.")
+                                .font(.system(size: 12, weight: .medium, design: .serif))
+                                .foregroundColor(.white.opacity(0.35))
+                        } else if selectedProductIsTrialEligible {
+                            Text("3 days free, then auto-renews.")
+                                .font(.system(size: 12, weight: .medium, design: .serif))
+                                .foregroundColor(.white.opacity(0.35))
+                        }
+                        if selectedProductId != SubscriptionProduct.lifetime.rawValue {
+                            Text("Cancel anytime in iPhone Settings.")
+                                .font(.system(size: 11, design: .serif))
+                                .foregroundColor(.white.opacity(0.25))
+                        }
+                    }
+
+                    // Error
+                    if let error = PaywallManager.shared.purchaseError {
+                        Text(error)
+                            .font(.system(size: 13, design: .serif))
+                            .foregroundColor(Color(hex: "8B0000"))
+                            .padding(.horizontal, 20)
+                    }
+
+                    // Restore
+                    Button {
+                        Task { await restore() }
+                    } label: {
+                        HStack(spacing: 6) {
+                            if isRestoring {
+                                ProgressView().tint(gold.opacity(0.5)).scaleEffect(0.8)
+                            }
+                            Text("Restore Purchases")
+                                .font(.system(size: 13, weight: .medium, design: .serif))
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+                    .disabled(isRestoring)
+
+                    // Legal
+                    HStack(spacing: 16) {
+                        Link("Privacy Policy", destination: URL(string: "https://quit-all.com/privacy")!)
+                        Text("·").foregroundColor(.white.opacity(0.15))
+                        Link("Terms of Service", destination: URL(string: "https://quit-all.com/terms")!)
+                    }
+                    .font(.system(size: 11, design: .serif))
+                    .foregroundColor(.white.opacity(0.2))
+                    .padding(.bottom, 32)
                 }
-                .padding(.horizontal, isCompact ? 14 : 20)
-                .padding(.top, proxy.safeAreaInsets.top + (isVeryCompact ? 2 : 8))
-                .padding(.bottom, max(proxy.safeAreaInsets.bottom, 8))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .preferredColorScheme(.dark)
@@ -69,205 +214,6 @@ struct PaywallView: View {
     }
 
     // MARK: - Helpers
-
-    private func paywallHeader(isCompact: Bool, isVeryCompact: Bool) -> some View {
-        VStack(spacing: isVeryCompact ? 4 : 7) {
-            Image("app_logo")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: isVeryCompact ? 38 : 48, height: isVeryCompact ? 38 : 48)
-
-            VStack(spacing: isVeryCompact ? 2 : 5) {
-                Text(selectedProductIsTrialEligible ? "START YOUR FREE TRIAL" : "UNLOCK EVERYTHING")
-                    .font(.system(size: isCompact ? 10 : 11, weight: .bold, design: .serif))
-                    .foregroundColor(gold)
-                    .tracking(2.5)
-                    .lineLimit(1)
-
-                Text(selectedProductIsTrialEligible ? "Try Free for 3 Days" : "Go Premium")
-                    .font(.system(size: isVeryCompact ? 27 : (isCompact ? 31 : 36), weight: .bold, design: .serif))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: selectedProductIsTrialEligible ? [lightGold, gold, Color(hex: "C5962C")] : [lightGold, gold],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.72)
-
-                Text("Unlock every feature in Quit All.")
-                    .font(.system(size: isCompact ? 12 : 14, design: .serif))
-                    .foregroundColor(.white.opacity(0.4))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-            }
-        }
-    }
-
-    private func featuresGrid(isCompact: Bool) -> some View {
-        LazyVGrid(
-            columns: [
-                GridItem(.flexible(), spacing: isCompact ? 6 : 8),
-                GridItem(.flexible(), spacing: isCompact ? 6 : 8)
-            ],
-            spacing: isCompact ? 6 : 8
-        ) {
-            ForEach(premiumFeatures) { feature in
-                featurePill(feature, isCompact: isCompact)
-            }
-        }
-    }
-
-    private func featurePill(_ feature: PaywallFeature, isCompact: Bool) -> some View {
-        HStack(spacing: isCompact ? 5 : 7) {
-            Image(systemName: feature.icon)
-                .font(.system(size: isCompact ? 9 : 10, weight: .bold))
-                .foregroundColor(gold)
-                .frame(width: isCompact ? 16 : 18, height: isCompact ? 16 : 18)
-
-            Text(localized(feature.text))
-                .font(.system(size: isCompact ? 10 : 11, weight: .medium, design: .serif))
-                .foregroundColor(.white.opacity(0.72))
-                .lineLimit(2)
-                .minimumScaleFactor(0.75)
-
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, isCompact ? 7 : 9)
-        .frame(height: isCompact ? 31 : 36)
-        .background(Color(hex: "111111"))
-        .cornerRadius(8)
-        .overlay(
-            RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.white.opacity(0.06), lineWidth: 1)
-        )
-    }
-
-    private func subscriptionPlans(isCompact: Bool, isVeryCompact: Bool) -> some View {
-        VStack(spacing: isVeryCompact ? 7 : 9) {
-            subscriptionCard(
-                title: "LIFETIME",
-                price: formattedPrice(for: SubscriptionProduct.lifetime.rawValue, fallback: "$99.99 one-time"),
-                subtitle: "One-time purchase",
-                badge: "FOREVER",
-                isSelected: selectedProductId == SubscriptionProduct.lifetime.rawValue,
-                isCompact: isCompact
-            ) {
-                selectProduct(id: SubscriptionProduct.lifetime.rawValue)
-            }
-
-            subscriptionCard(
-                title: "YEARLY",
-                price: formattedPrice(for: SubscriptionProduct.yearly.rawValue, fallback: "$49.99/year"),
-                subtitle: yearlySubtitle,
-                badge: "SAVE 58%",
-                isSelected: selectedProductId == SubscriptionProduct.yearly.rawValue,
-                isCompact: isCompact
-            ) {
-                selectProduct(id: SubscriptionProduct.yearly.rawValue)
-            }
-
-            subscriptionCard(
-                title: "MONTHLY",
-                price: formattedPrice(for: SubscriptionProduct.monthly.rawValue, fallback: "$9.99/month"),
-                subtitle: "Billed monthly",
-                badge: nil,
-                isSelected: selectedProductId == SubscriptionProduct.monthly.rawValue,
-                isCompact: isCompact
-            ) {
-                selectProduct(id: SubscriptionProduct.monthly.rawValue)
-            }
-        }
-    }
-
-    private func purchaseButton(isCompact: Bool) -> some View {
-        Button {
-            Task { await purchase() }
-        } label: {
-            HStack {
-                if isPurchasing {
-                    ProgressView().tint(.white)
-                } else {
-                    Text(purchaseButtonTitle)
-                        .font(.system(size: isCompact ? 13 : 15, weight: .bold, design: .serif))
-                        .tracking(1.8)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
-                }
-            }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: isCompact ? 50 : 56)
-            .background(
-                LinearGradient(
-                    colors: [gold, Color(hex: "8B6914")],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .cornerRadius(15)
-            .shadow(color: gold.opacity(0.34), radius: 12, y: 4)
-        }
-        .disabled(isPurchasing)
-    }
-
-    private func billingInfo(isCompact: Bool) -> some View {
-        VStack(spacing: 3) {
-            Text(billingLine)
-                .font(.system(size: isCompact ? 10 : 11, weight: .medium, design: .serif))
-                .foregroundColor(.white.opacity(0.34))
-                .lineLimit(1)
-                .minimumScaleFactor(0.75)
-
-            if let error = PaywallManager.shared.purchaseError {
-                Text(error)
-                    .font(.system(size: isCompact ? 10 : 11, design: .serif))
-                    .foregroundColor(Color(hex: "8B0000"))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-            }
-        }
-        .frame(height: isCompact ? 27 : 32)
-    }
-
-    private var billingLine: String {
-        if selectedProductId == SubscriptionProduct.lifetime.rawValue {
-            return localized("One-time purchase. No renewal.")
-        }
-        if selectedProductIsTrialEligible {
-            return localized("3 days free, then auto-renews. Cancel anytime in Settings.")
-        }
-        return localized("Cancel anytime in iPhone Settings.")
-    }
-
-    private func bottomLinks(isCompact: Bool) -> some View {
-        HStack(spacing: 10) {
-            Button {
-                Task { await restore() }
-            } label: {
-                HStack(spacing: 5) {
-                    if isRestoring {
-                        ProgressView().tint(gold.opacity(0.5)).scaleEffect(0.7)
-                    }
-                    Text("Restore")
-                        .font(.system(size: isCompact ? 10 : 11, weight: .medium, design: .serif))
-                        .foregroundColor(gold.opacity(0.45))
-                        .lineLimit(1)
-                }
-            }
-            .disabled(isRestoring)
-
-            Spacer(minLength: 6)
-
-            Link("Privacy", destination: URL(string: "https://quit-all.com/privacy")!)
-            Text("|").foregroundColor(.white.opacity(0.12))
-            Link("Terms", destination: URL(string: "https://quit-all.com/terms")!)
-        }
-        .font(.system(size: isCompact ? 10 : 11, design: .serif))
-        .foregroundColor(.white.opacity(0.24))
-        .frame(height: isCompact ? 18 : 22)
-    }
 
     private var selectedProductIsTrialEligible: Bool {
         trialEligibleProductIDs.contains(selectedProductId)
@@ -317,54 +263,49 @@ struct PaywallView: View {
         }
     }
 
-    private func subscriptionCard(title: String, price: String, subtitle: String, badge: String?, isSelected: Bool, isCompact: Bool = false, action: @escaping () -> Void) -> some View {
+    private func subscriptionCard(title: String, price: String, subtitle: String, badge: String?, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack {
-                VStack(alignment: .leading, spacing: isCompact ? 2 : 3) {
+                VStack(alignment: .leading, spacing: 4) {
                     HStack(spacing: 8) {
                         Text(localized(title))
-                            .font(.system(size: isCompact ? 12 : 14, weight: .bold, design: .serif))
+                            .font(.system(size: 14, weight: .bold, design: .serif))
                             .foregroundColor(.white)
                             .tracking(1)
                         if let badge = badge {
                             Text(localized(badge))
-                                .font(.system(size: isCompact ? 8 : 10, weight: .bold, design: .serif))
+                                .font(.system(size: 10, weight: .bold, design: .serif))
                                 .foregroundColor(.black)
-                                .padding(.horizontal, isCompact ? 6 : 8)
-                                .padding(.vertical, isCompact ? 2 : 3)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
                                 .background(gold)
                                 .cornerRadius(6)
                         }
                     }
                     Text(price)
-                        .font(.system(size: isCompact ? 11 : 13, design: .serif))
+                        .font(.system(size: 13, design: .serif))
                         .foregroundColor(.white.opacity(0.5))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
                     Text(localized(subtitle))
-                        .font(.system(size: isCompact ? 10 : 12, design: .serif))
+                        .font(.system(size: 12, design: .serif))
                         .foregroundColor(gold.opacity(0.5))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.75)
                 }
                 Spacer()
                 ZStack {
                     Circle()
                         .stroke(isSelected ? gold : Color.white.opacity(0.15), lineWidth: 2)
-                        .frame(width: isCompact ? 21 : 24, height: isCompact ? 21 : 24)
+                        .frame(width: 24, height: 24)
                     if isSelected {
                         Circle()
                             .fill(gold)
-                            .frame(width: isCompact ? 12 : 14, height: isCompact ? 12 : 14)
+                            .frame(width: 14, height: 14)
                     }
                 }
             }
-            .padding(.horizontal, isCompact ? 12 : 16)
-            .padding(.vertical, isCompact ? 9 : 12)
+            .padding(16)
             .background(Color(hex: isSelected ? "1A1608" : "111111"))
-            .cornerRadius(12)
+            .cornerRadius(14)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 14)
                     .stroke(isSelected ? gold.opacity(0.5) : Color.white.opacity(0.06), lineWidth: 1)
             )
         }
@@ -402,11 +343,4 @@ struct PaywallView: View {
     private func localized(_ key: String) -> String {
         NSLocalizedString(key, comment: "")
     }
-}
-
-private struct PaywallFeature: Identifiable {
-    let icon: String
-    let text: String
-
-    var id: String { text }
 }
