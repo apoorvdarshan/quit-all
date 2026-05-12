@@ -106,6 +106,9 @@ struct OnboardingView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            startOnboardingPreviewPreload()
+        }
         .onChange(of: currentStep) { _, newStep in
             if newStep >= 1 {
                 startOnboardingPreviewPreload()
