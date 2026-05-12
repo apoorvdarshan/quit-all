@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		BA90C0012FB1000000000001 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = BA90C0022FB1000000000001 /* RevenueCat */; };
-		C001000B2FB500000000000B /* Quit All Widget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = C00100012FB5000000000001 /* Quit All Widget.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		C001000B2FB500000000000B /* Quit All Widget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C00100012FB5000000000001 /* Quit All Widget.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -22,15 +22,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		C001000A2FB500000000000A /* Embed App Extensions */ = {
+		C001000A2FB500000000000A /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				C001000B2FB500000000000B /* Quit All Widget.appex in Embed App Extensions */,
+				C001000B2FB500000000000B /* Quit All Widget.appex in Embed Foundation Extensions */,
 			);
-			name = "Embed App Extensions";
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -113,7 +113,7 @@
 				BA8210B92F6F292B00542FAB /* Sources */,
 				BA8210BA2F6F292B00542FAB /* Frameworks */,
 				BA8210BB2F6F292B00542FAB /* Resources */,
-				C001000A2FB500000000000A /* Embed App Extensions */,
+				C001000A2FB500000000000A /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -478,6 +478,7 @@
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 23RV7FYH36;
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_KEY_CFBundleDisplayName = "Quit All";
 				INFOPLIST_FILE = "Quit All Widget/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -512,6 +513,7 @@
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 23RV7FYH36;
 				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_KEY_CFBundleDisplayName = "Quit All";
 				INFOPLIST_FILE = "Quit All Widget/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
