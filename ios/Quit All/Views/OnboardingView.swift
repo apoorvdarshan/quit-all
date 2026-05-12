@@ -476,13 +476,7 @@ struct OnboardingView: View {
                 ForEach(Array(features.enumerated()), id: \.offset) { index, feature in
                     VStack(spacing: 20) {
                         Spacer()
-                        if index == 0 {
-                            onboardingGIFPreview
-                        } else {
-                            Image(systemName: feature.icon)
-                                .font(.system(size: 48))
-                                .foregroundColor(gold)
-                        }
+                        onboardingGIFPreview
 
                         Text(localized(feature.title))
                             .font(.system(size: 16, weight: .bold, design: .serif))
