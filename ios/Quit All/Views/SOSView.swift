@@ -314,6 +314,7 @@ struct SOSView: View {
         klipyLoadTask?.cancel()
         klipyLoadTask = Task {
             let remoteLoops = await KlipyMediaLibrary.shared.searchLoops(for: addictionType, count: 15)
+            await RemoteGIFCache.shared.preload(urls: remoteLoops.map(\.gifURL))
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 klipyLoops = remoteLoops

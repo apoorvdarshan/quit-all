@@ -180,6 +180,7 @@ struct MemeBrowseView: View {
         videoLoops = LocalVideoLoopLibrary.shared.loops(for: type)
         klipyLoadTask = Task {
             let remoteLoops = await KlipyMediaLibrary.shared.searchLoops(for: type, count: 24)
+            await RemoteGIFCache.shared.preload(urls: remoteLoops.map(\.gifURL))
             guard !Task.isCancelled else { return }
             await MainActor.run {
                 klipyLoops = remoteLoops

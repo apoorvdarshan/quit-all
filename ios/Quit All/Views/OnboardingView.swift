@@ -53,6 +53,7 @@ struct OnboardingView: View {
     ]
     @State private var featurePageIndex = 0
     @State private var onboardingPreviewMedia: [OnboardingPreviewMedia] = []
+    @State private var onboardingPreviewLoadTask: Task<Void, Never>?
     @State private var isLoadingOnboardingPreview = false
     @State private var analysisProgress: Double = 0
     @State private var didRequestOnboardingReview = false
@@ -105,6 +106,15 @@ struct OnboardingView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onChange(of: currentStep) { _, newStep in
+            if newStep >= 1 {
+                startOnboardingPreviewPreload()
+            }
+        }
+        .onDisappear {
+            onboardingPreviewLoadTask?.cancel()
+            onboardingPreviewLoadTask = nil
+        }
     }
 
     // MARK: - Progress Bar
@@ -523,8 +533,8 @@ struct OnboardingView: View {
                 withAnimation(.spring(duration: 0.4)) { currentStep = 5 }
             }
         }
-        .task {
-            await loadOnboardingPreviewGIF()
+        .onAppear {
+            startOnboardingPreviewPreload()
         }
     }
 
@@ -600,18 +610,31 @@ struct OnboardingView: View {
         defer { isLoadingOnboardingPreview = false }
 
         let preferredTypes = sortedSelected.shuffled()
+        let fallbackMedia = selectOnboardingFallbackLoops(preferredTypes: preferredTypes, count: onboardingPreviewCount)
+        onboardingPreviewMedia = fallbackMedia
+
         let type = preferredTypes.randomElement() ?? .smoking
         let loops = await KlipyMediaLibrary.shared.searchLoops(for: type, count: onboardingPreviewCount * 2)
         guard !Task.isCancelled else { return }
 
-        let remoteMedia = loops
+        let remoteItems = Array(loops
             .shuffled()
-            .prefix(onboardingPreviewCount)
-            .map(OnboardingPreviewMedia.remote)
-        let fallbackCount = max(0, onboardingPreviewCount - remoteMedia.count)
-        let fallbackMedia = selectOnboardingFallbackLoops(preferredTypes: preferredTypes, count: fallbackCount)
+            .prefix(onboardingPreviewCount))
+        await RemoteGIFCache.shared.preload(urls: remoteItems.map(\.gifURL))
+        guard !Task.isCancelled, currentStep < 4 else { return }
 
+        let remoteMedia = remoteItems.map(OnboardingPreviewMedia.remote)
         onboardingPreviewMedia = Array((remoteMedia + fallbackMedia).prefix(onboardingPreviewCount))
+    }
+
+    private func startOnboardingPreviewPreload() {
+        guard onboardingPreviewLoadTask == nil, onboardingPreviewMedia.isEmpty else { return }
+        onboardingPreviewLoadTask = Task {
+            await loadOnboardingPreviewGIF()
+            await MainActor.run {
+                onboardingPreviewLoadTask = nil
+            }
+        }
     }
 
     private func selectOnboardingFallbackLoops(preferredTypes: [AddictionType], count: Int) -> [OnboardingPreviewMedia] {
