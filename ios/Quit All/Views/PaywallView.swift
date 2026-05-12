@@ -1,7 +1,7 @@
 import SwiftUI
-import StoreKit
+import RevenueCat
 
-// MARK: - Hard Paywall — Native StoreKit Trial
+// MARK: - Hard Paywall — RevenueCat
 struct PaywallView: View {
     let onComplete: () -> Void
 
@@ -199,14 +199,14 @@ struct PaywallView: View {
         .task {
             await PaywallManager.shared.loadProducts()
             // Default select yearly
-            // Default yearly selected — products may not load without StoreKit config
+            // Default yearly selected — products may not load until RevenueCat returns an offering
             selectedProductId = SubscriptionProduct.yearly.rawValue
 
-            // Check trial eligibility from StoreKit
+            // Check trial eligibility from RevenueCat
             var eligibleIDs = Set<String>()
-            for product in PaywallManager.shared.products {
-                if await PaywallManager.shared.isEligibleForTrial(product) {
-                    eligibleIDs.insert(product.id)
+            for package in PaywallManager.shared.packages {
+                if await PaywallManager.shared.isEligibleForTrial(package) {
+                    eligibleIDs.insert(package.storeProduct.productIdentifier)
                 }
             }
             trialEligibleProductIDs = eligibleIDs
@@ -227,11 +227,11 @@ struct PaywallView: View {
     }
 
     private var yearlySubtitle: String {
-        if let product = PaywallManager.shared.products.first(where: { $0.id == SubscriptionProduct.yearly.rawValue }) {
-            let monthly = product.price / 12
+        if let product = PaywallManager.shared.yearlyPackage {
+            let monthly = product.storeProduct.price / 12
             let formatter = NumberFormatter()
             formatter.numberStyle = .currency
-            formatter.currencyCode = product.priceFormatStyle.currencyCode
+            formatter.currencyCode = product.storeProduct.currencyCode
             let monthlyStr = formatter.string(from: monthly as NSDecimalNumber) ?? "$4.17"
             return "\(monthlyStr)/month — best value"
         }
@@ -239,14 +239,14 @@ struct PaywallView: View {
     }
 
     private func formattedPrice(for productId: String, fallback: String) -> String {
-        guard let product = PaywallManager.shared.products.first(where: { $0.id == productId }) else {
+        guard let product = PaywallManager.shared.package(for: productId) else {
             return fallback
         }
-        if product.id == SubscriptionProduct.lifetime.rawValue {
-            return "\(product.displayPrice) \(localized("one-time"))"
+        if product.storeProduct.productIdentifier == SubscriptionProduct.lifetime.rawValue {
+            return "\(product.localizedPriceString) \(localized("one-time"))"
         }
-        let period = product.id.contains("yearly") ? "/year" : "/month"
-        return "\(product.displayPrice)\(period)"
+        let period = product.storeProduct.productIdentifier.contains("yearly") ? "/year" : "/month"
+        return "\(product.localizedPriceString)\(period)"
     }
 
     private func featureRow(icon: String, text: String) -> some View {
@@ -317,7 +317,7 @@ struct PaywallView: View {
     }
 
     private func purchase() async {
-        guard let product = PaywallManager.shared.products.first(where: { $0.id == selectedProductId }) else {
+        guard let product = PaywallManager.shared.package(for: selectedProductId) else {
             PaywallManager.shared.purchaseError = "Products not available. Please try again."
             return
         }

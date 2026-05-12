@@ -24,18 +24,18 @@ struct Quit_AllApp: App {
                 hasCompletedOnboarding = false
             }
             .task {
-                // Listen for StoreKit transaction updates
+                // Listen for RevenueCat customer info updates.
                 await PaywallManager.shared.listenForTransactions()
             }
             .onAppear {
                 guard !hasCheckedAccess else { return }
                 hasCheckedAccess = true
 
-                // Check subscription on every launch
+                // Check premium access on every launch.
                 Task {
                     await PaywallManager.shared.checkEntitlements()
 
-                    // If onboarding done but no active subscription, show hard paywall
+                    // If onboarding is done but premium is inactive, show the hard paywall.
                     if hasCompletedOnboarding && !PaywallManager.shared.hasAccess {
                         showPaywall = true
                     }

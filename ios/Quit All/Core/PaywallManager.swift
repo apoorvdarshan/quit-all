@@ -1,4 +1,5 @@
-import StoreKit
+import Foundation
+import RevenueCat
 import SwiftUI
 
 // MARK: - Premium Product IDs
@@ -8,18 +9,24 @@ enum SubscriptionProduct: String, CaseIterable {
     case lifetime = "com.quitall.premium.lifetime"
 }
 
-// MARK: - Paywall Manager — Hard Paywall, Native StoreKit Trial
+// MARK: - Paywall Manager — Hard Paywall, RevenueCat
 @Observable
 final class PaywallManager {
     static let shared = PaywallManager()
+    static let monthlyProductID = SubscriptionProduct.monthly.rawValue
+    static let yearlyProductID = SubscriptionProduct.yearly.rawValue
+    static let lifetimeProductID = SubscriptionProduct.lifetime.rawValue
+
+    private static let revenueCatAPIKey = "test_MgfVZTSRdBnQaTZBlBlcDfluoBU"
+    private static let entitlementIDs = ["premium", "Quit All Premium"]
 
     var isSubscribed: Bool = false
-    var products: [Product] = []
+    var packages: [Package] = []
     var purchaseError: String?
     var isLoading: Bool = false
 
     private init() {
-        // Check entitlements on init
+        configureRevenueCat()
         Task { await checkEntitlements() }
     }
 
@@ -27,69 +34,53 @@ final class PaywallManager {
         isSubscribed
     }
 
-    // MARK: - Check Entitlements (native StoreKit)
-    func checkEntitlements() async {
-        for await result in Transaction.currentEntitlements {
-            if let transaction = try? checkVerified(result) {
-                if SubscriptionProduct(rawValue: transaction.productID) != nil {
-                    isSubscribed = true
-                    return
-                }
-            }
-        }
-        isSubscribed = false
+    var monthlyPackage: Package? {
+        package(for: Self.monthlyProductID, type: .monthly)
+    }
+
+    var yearlyPackage: Package? {
+        package(for: Self.yearlyProductID, type: .annual)
+    }
+
+    var lifetimePackage: Package? {
+        package(for: Self.lifetimeProductID, type: .lifetime)
     }
 
     // MARK: - Load Products
     func loadProducts() async {
         isLoading = true
+        purchaseError = nil
+
         do {
-            let productIDs = SubscriptionProduct.allCases.map { $0.rawValue }
-            print("[PaywallManager] Requesting products: \(productIDs)")
-            let fetched = try await Product.products(for: productIDs)
-            print("[PaywallManager] Fetched \(fetched.count) products: \(fetched.map { $0.id })")
-            products = fetched.sorted { $0.price < $1.price }
-            if products.isEmpty {
-                purchaseError = "No products found. Check StoreKit configuration."
+            let offerings = try await Purchases.shared.offerings()
+            let offering = offerings.current ?? offerings.offering(identifier: "default")
+            packages = offering?.availablePackages ?? []
+            print("[PaywallManager] RevenueCat packages: \(packages.map { $0.storeProduct.productIdentifier })")
+            if packages.isEmpty {
+                purchaseError = "No purchase options are available right now."
             }
         } catch {
             print("[PaywallManager] Error loading products: \(error)")
-            purchaseError = "Failed to load: \(error.localizedDescription)"
+            purchaseError = "Failed to load purchase options."
         }
+
+        await checkEntitlements()
         isLoading = false
     }
 
     // MARK: - Purchase
-    func purchase(_ product: Product) async -> Bool {
+    func purchase(_ package: Package) async -> Bool {
         isLoading = true
         purchaseError = nil
 
         do {
-            let result = try await product.purchase()
-
-            switch result {
-            case .success(let verification):
-                let transaction = try checkVerified(verification)
-                isSubscribed = true
-                await transaction.finish()
-                isLoading = false
-                return true
-
-            case .userCancelled:
-                isLoading = false
-                return false
-
-            case .pending:
-                purchaseError = "Purchase is pending approval."
-                isLoading = false
-                return false
-
-            @unknown default:
-                isLoading = false
-                return false
-            }
+            let result = try await Purchases.shared.purchase(package: package)
+            apply(customerInfo: result.customerInfo)
+            isLoading = false
+            return !result.userCancelled && hasAccess
         } catch {
             purchaseError = "Purchase failed. Please try again."
+            await checkEntitlements()
             isLoading = false
             return false
         }
@@ -98,35 +89,68 @@ final class PaywallManager {
     // MARK: - Restore
     func restorePurchases() async {
         isLoading = true
-        await checkEntitlements()
+        purchaseError = nil
+
+        do {
+            let customerInfo = try await Purchases.shared.restorePurchases()
+            apply(customerInfo: customerInfo)
+        } catch {
+            purchaseError = "Restore failed. Please try again."
+            await checkEntitlements()
+        }
+
         isLoading = false
+    }
+
+    // MARK: - Check Entitlements
+    func checkEntitlements() async {
+        do {
+            let customerInfo = try await Purchases.shared.customerInfo()
+            apply(customerInfo: customerInfo)
+        } catch {
+            isSubscribed = false
+        }
     }
 
     // MARK: - Listen for Updates
     func listenForTransactions() async {
-        for await result in Transaction.updates {
-            if let transaction = try? checkVerified(result) {
-                isSubscribed = true
-                await transaction.finish()
+        do {
+            for try await customerInfo in Purchases.shared.customerInfoStream {
+                apply(customerInfo: customerInfo)
             }
+        } catch {
+            print("[PaywallManager] Customer info stream ended: \(error)")
         }
     }
 
     // MARK: - Check if eligible for introductory offer (free trial)
-    func isEligibleForTrial(_ product: Product) async -> Bool {
-        await product.subscription?.isEligibleForIntroOffer ?? false
+    func isEligibleForTrial(_ package: Package?) async -> Bool {
+        guard let package,
+              package.storeProduct.introductoryDiscount?.paymentMode == .freeTrial else { return false }
+        let status = await Purchases.shared.checkTrialOrIntroDiscountEligibility(product: package.storeProduct)
+        return status.isEligible
     }
 
-    private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
-        switch result {
-        case .unverified:
-            throw StoreError.failedVerification
-        case .verified(let safe):
-            return safe
+    func package(for productID: String) -> Package? {
+        packages.first { $0.storeProduct.productIdentifier == productID }
+    }
+
+    private func package(for productID: String, type: PackageType) -> Package? {
+        packages.first { $0.storeProduct.productIdentifier == productID }
+            ?? packages.first { $0.packageType == type }
+    }
+
+    private func apply(customerInfo: CustomerInfo) {
+        isSubscribed = Self.entitlementIDs.contains {
+            customerInfo.entitlements[$0]?.isActive == true
         }
     }
 
-    enum StoreError: Error {
-        case failedVerification
+    private func configureRevenueCat() {
+        guard !Purchases.isConfigured else { return }
+        #if DEBUG
+        Purchases.logLevel = .debug
+        #endif
+        Purchases.configure(withAPIKey: Self.revenueCatAPIKey)
     }
 }
