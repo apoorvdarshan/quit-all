@@ -17,7 +17,7 @@ final class PaywallManager {
     static let yearlyProductID = SubscriptionProduct.yearly.rawValue
     static let lifetimeProductID = SubscriptionProduct.lifetime.rawValue
 
-    private static let revenueCatAPIKey = "test_MgfVZTSRdBnQaTZBlBlcDfluoBU"
+    private static let revenueCatAPIKey = "appl_ubtsOyRubEENNaebBFqLgcfxYBx"
     private static let entitlementIDs = ["premium", "Quit All Premium"]
 
     var isSubscribed: Bool = false
