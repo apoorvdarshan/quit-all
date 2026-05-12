@@ -30,6 +30,7 @@ struct OnboardingView: View {
     ]
     @State private var featurePageIndex = 0
     @State private var onboardingPreviewGIF: KlipyMediaItem?
+    @State private var onboardingFallbackLoop: LocalVideoLoop?
     @State private var isLoadingOnboardingPreview = false
     @State private var analysisProgress: Double = 0
     @State private var didRequestOnboardingReview = false
@@ -38,6 +39,7 @@ struct OnboardingView: View {
     private let gold = Color(hex: "D4AF37")
     private let lightGold = Color(hex: "F5E6A3")
     private let totalSteps = 9
+    private let onboardingFallbackRecentKey = "onboarding_fallback_loop_recent_ids"
 
     private var sortedSelected: [AddictionType] {
         Array(selectedAddictions).sorted { $0.rawValue < $1.rawValue }
@@ -516,6 +518,11 @@ struct OnboardingView: View {
                     .frame(width: 240, height: 150)
                     .background(Color(hex: "111111"))
                     .clipped()
+            } else if let onboardingFallbackLoop {
+                LoopingVideoView(url: onboardingFallbackLoop.url)
+                    .frame(width: 240, height: 150)
+                    .background(Color(hex: "111111"))
+                    .clipped()
             } else {
                 VStack(spacing: 12) {
                     if isLoadingOnboardingPreview {
@@ -535,15 +542,17 @@ struct OnboardingView: View {
                 .background(Color(hex: "111111"))
             }
 
-            Text("KLIPY")
-                .font(.system(size: 9, weight: .bold, design: .serif))
-                .foregroundColor(.black)
-                .tracking(0.8)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(gold)
-                .cornerRadius(10)
-                .padding(8)
+            if let sourceLabel = onboardingPreviewSourceLabel {
+                Text(sourceLabel)
+                    .font(.system(size: 9, weight: .bold, design: .serif))
+                    .foregroundColor(sourceLabel == "KLIPY" ? .black : .white.opacity(0.75))
+                    .tracking(0.8)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(sourceLabel == "KLIPY" ? gold : Color.black.opacity(0.55))
+                    .cornerRadius(10)
+                    .padding(8)
+            }
         }
         .frame(width: 240, height: 150)
         .cornerRadius(16)
@@ -553,17 +562,43 @@ struct OnboardingView: View {
         )
     }
 
+    private var onboardingPreviewSourceLabel: String? {
+        if onboardingPreviewGIF != nil { return "KLIPY" }
+        if onboardingFallbackLoop != nil { return "OFFLINE" }
+        return nil
+    }
+
     private func loadOnboardingPreviewGIF() async {
-        guard onboardingPreviewGIF == nil, !isLoadingOnboardingPreview else { return }
+        guard onboardingPreviewGIF == nil, onboardingFallbackLoop == nil, !isLoadingOnboardingPreview else { return }
 
         isLoadingOnboardingPreview = true
         defer { isLoadingOnboardingPreview = false }
 
-        let type = sortedSelected.randomElement() ?? .smoking
+        let preferredTypes = sortedSelected.shuffled()
+        onboardingFallbackLoop = selectOnboardingFallbackLoop(preferredTypes: preferredTypes)
+
+        let type = preferredTypes.randomElement() ?? .smoking
         let loops = await KlipyMediaLibrary.shared.searchLoops(for: type, count: 6)
         guard !Task.isCancelled else { return }
 
-        onboardingPreviewGIF = loops.randomElement()
+        if let remoteLoop = loops.randomElement() {
+            onboardingPreviewGIF = remoteLoop
+        }
+    }
+
+    private func selectOnboardingFallbackLoop(preferredTypes: [AddictionType]) -> LocalVideoLoop? {
+        let recentIDs = UserDefaults.standard.stringArray(forKey: onboardingFallbackRecentKey) ?? []
+        guard let loop = LocalVideoLoopLibrary.shared.randomLoop(
+            preferredTypes: preferredTypes,
+            excluding: Set(recentIDs)
+        ) else {
+            return nil
+        }
+
+        let updatedIDs = [loop.id] + recentIDs.filter { $0 != loop.id }
+        UserDefaults.standard.set(Array(updatedIDs.prefix(12)), forKey: onboardingFallbackRecentKey)
+
+        return loop
     }
 
     // MARK: - Step 5: Reviews

@@ -25,6 +25,18 @@ final class LocalVideoLoopLibrary {
         return Array((loopsByType[type] ?? []).shuffled().prefix(count))
     }
 
+    func randomLoop(preferredTypes: [AddictionType], excluding recentIDs: Set<String>) -> LocalVideoLoop? {
+        loadIfNeeded()
+
+        let preferred = preferredTypes.filter { !(loopsByType[$0] ?? []).isEmpty }
+        let fallback = AddictionType.allCases.shuffled().filter { !preferred.contains($0) }
+        let candidates = (preferred + fallback)
+            .flatMap { loopsByType[$0] ?? [] }
+            .shuffled()
+
+        return candidates.first { !recentIDs.contains($0.id) } ?? candidates.randomElement()
+    }
+
     func loops(for type: AddictionType) -> [LocalVideoLoop] {
         loadIfNeeded()
         return loopsByType[type] ?? []
