@@ -120,13 +120,9 @@ final class PaywallManager {
 
     // MARK: - Listen for Updates
     func listenForTransactions() async {
-        do {
-            await Self.ensureRevenueCatConfigured()
-            for try await customerInfo in Purchases.shared.customerInfoStream {
-                apply(customerInfo: customerInfo)
-            }
-        } catch {
-            print("[PaywallManager] Customer info stream ended: \(error)")
+        await Self.ensureRevenueCatConfigured()
+        for await customerInfo in Purchases.shared.customerInfoStream {
+            apply(customerInfo: customerInfo)
         }
     }
 
@@ -174,7 +170,12 @@ final class PaywallManager {
     }
 
     private static func fetchRevenueCatAPIKey() async -> String {
-        var request = URLRequest(url: appConfigURL)
+        var components = URLComponents(url: appConfigURL, resolvingAgainstBaseURL: false)
+        components?.queryItems = [
+            URLQueryItem(name: "bundleId", value: Bundle.main.bundleIdentifier)
+        ]
+
+        var request = URLRequest(url: components?.url ?? appConfigURL)
         request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
         request.timeoutInterval = 2
         request.setValue("application/json", forHTTPHeaderField: "accept")

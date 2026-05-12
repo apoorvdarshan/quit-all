@@ -88,7 +88,7 @@ The `web/` folder is the Vercel root — pushes that don't touch `web/` skip dep
 
 Klipy requests can be proxied through Vercel at `/api/klipy/...` so the iOS app never ships the API key. Configure `KLIPY_API_KEY` in Vercel, then call endpoints like `/api/klipy/v2/search?q=smoking`. Optional overrides: `KLIPY_API_BASE_URL` and `KLIPY_API_KEY_PARAM`.
 
-The iOS RevenueCat public SDK key is loaded from `/api/app-config` so it can be rotated from Vercel without shipping a new app build. Configure `REVENUECAT_IOS_API_KEY` in Vercel; the app falls back to its bundled public key if the config endpoint is unavailable.
+The iOS RevenueCat public SDK key is loaded from `/api/app-config` so it can be rotated from Vercel without shipping a new app build. Configure `REVENUECAT_IOS_API_KEY` in Vercel. Debug builds send their bundle ID and can use `REVENUECAT_IOS_DEBUG_API_KEY` for the RevenueCat Test Store. The app falls back to its bundled public key if the config endpoint is unavailable.
 
 ## Links
 
