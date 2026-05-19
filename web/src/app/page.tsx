@@ -224,7 +224,7 @@ export default function Home() {
             <motion.div variants={fadeUp} custom={0} className="pricing-card"
               whileHover={{ y: -8, transition: { duration: 0.3 } }}>
               <p className="pricing-name">Monthly</p>
-              <p className="pricing-price">$7.99<span>/mo</span></p>
+              <p className="pricing-price">$9.99<span>/mo</span></p>
               <p className="pricing-sub">Billed monthly</p>
               <ul className="pricing-features">
                 <li>All 9 addiction types</li>
@@ -233,8 +233,8 @@ export default function Home() {
                 <li>Milestones &amp; sharing</li>
                 <li>Smart notifications</li>
               </ul>
-              <p className="pricing-trial">3-day free trial</p>
-              <a href="https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934" target="_blank" className="pricing-btn pricing-btn-secondary">Start Free Trial</a>
+              <p className="pricing-trial">No free trial</p>
+              <a href="https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934" target="_blank" className="pricing-btn pricing-btn-secondary">Subscribe Monthly</a>
             </motion.div>
 
             <motion.div variants={fadeUp} custom={1} className="pricing-card featured"
@@ -245,12 +245,12 @@ export default function Home() {
               <p className="pricing-sub">$4.17/month — best value</p>
               <ul className="pricing-features">
                 <li>Everything in Monthly</li>
-                <li>Save $45.89 per year</li>
+                <li>Save $69.89 per year</li>
                 <li>Home &amp; Lock Screen widgets</li>
                 <li>Support development</li>
                 <li>Cancel anytime</li>
               </ul>
-              <p className="pricing-trial">3-day free trial</p>
+              <p className="pricing-trial">3-day free trial when eligible</p>
               <a href="https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934" target="_blank" className="pricing-btn pricing-btn-primary">Start Free Trial</a>
             </motion.div>
 
