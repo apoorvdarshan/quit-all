@@ -34,6 +34,8 @@ const sections = [
       "Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period",
       "You can manage and cancel subscriptions in your Apple ID account settings",
       "Refunds, billing issues, and purchase disputes are handled by Apple under App Store policies",
+      "When Apple asks for refund-request information, we may configure RevenueCat with the Always prefer declining refunds setting and send Apple purchase and entitlement context plus our preference that Apple decline refunds for fulfilled purchases",
+      "Our refund preference is not a guarantee; Apple makes the final decision under App Store policies",
       "Purchase access is managed using RevenueCat and Apple StoreKit",
     ],
   },
@@ -57,7 +59,7 @@ const sections = [
   },
   {
     title: "Third-Party Services",
-    content: "Quit All uses Apple StoreKit/App Store for purchases, RevenueCat for entitlement management, Klipy for online GIF content, and Vercel for the website and API proxy. These services may be subject to their own terms and availability.",
+    content: "Quit All uses Apple StoreKit/App Store for purchases and refunds, RevenueCat for entitlement management and refund-request handling, Klipy for online GIF content, and Vercel for the website and API proxy. These services may be subject to their own terms and availability.",
   },
   {
     title: "Limitation of Liability",
@@ -94,7 +96,7 @@ export default function Terms() {
         <motion.div className="legal-header" initial="hidden" animate="visible">
           <motion.p variants={fadeUp} custom={0} className="legal-label">Legal</motion.p>
           <motion.h1 variants={fadeUp} custom={1} className="legal-title">Terms of Service</motion.h1>
-          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: May 12, 2026</motion.p>
+          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: May 22, 2026</motion.p>
         </motion.div>
 
         <motion.div className="legal-divider" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}

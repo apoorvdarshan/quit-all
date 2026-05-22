@@ -33,8 +33,8 @@ const sections = [
   {
     title: "Third-Party Services",
     items: [
-      "Apple StoreKit and App Store \u2014 Used for subscriptions, lifetime purchases, trials, refunds, and purchase management. Payment processing is handled by Apple.",
-      "RevenueCat \u2014 Used to manage purchase entitlements. RevenueCat may receive an anonymous app user ID, product identifiers, transaction receipts, and app/device metadata needed to validate access. Quit All does not send your habit logs or relapse history to RevenueCat.",
+      "Apple StoreKit and App Store \u2014 Used for subscriptions, lifetime purchases, trials, refunds, refund-request review, and purchase management. Payment processing and final refund decisions are handled by Apple.",
+      "RevenueCat \u2014 Used to manage purchase entitlements and refund-request handling. RevenueCat may receive an anonymous app user ID, product identifiers, transaction receipts, entitlement status, refund history, and app/device metadata needed to validate access and send Apple purchase context plus our refund preference. Quit All does not send your habit logs or relapse history to RevenueCat.",
       "Klipy GIF API \u2014 Used to show online GIFs in SOS mode. Requests are routed through our Vercel API proxy so the Klipy API key is not shipped in the app. Search/category requests and standard request metadata may be processed to return GIF results.",
       "Vercel \u2014 Hosts quit-all.com and API proxy routes used for app configuration and Klipy requests. Server logs may include request URL, IP address, user agent, and timestamps for security and debugging.",
       "Vercel Analytics \u2014 Used on the marketing website to understand page usage. This does not include in-app habit tracking data.",
@@ -47,7 +47,7 @@ const sections = [
   },
   {
     title: "Purchases",
-    content: "Purchases are processed by Apple and entitlement status is managed with RevenueCat. You can manage subscriptions, cancellations, and refunds through your Apple ID or App Store settings.",
+    content: "Purchases are processed by Apple and entitlement status is managed with RevenueCat. You can manage subscriptions, cancellations, and refunds through your Apple ID or App Store settings. When Apple asks for refund-request information, we may configure RevenueCat to use the Always prefer declining refunds setting and send Apple purchase and entitlement context plus our preference that Apple decline refunds for fulfilled purchases, while Apple makes the final decision.",
   },
   {
     title: "Children\u2019s Privacy",
@@ -84,7 +84,7 @@ export default function Privacy() {
         <motion.div className="legal-header" initial="hidden" animate="visible">
           <motion.p variants={fadeUp} custom={0} className="legal-label">Legal</motion.p>
           <motion.h1 variants={fadeUp} custom={1} className="legal-title">Privacy Policy</motion.h1>
-          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: May 12, 2026</motion.p>
+          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: May 22, 2026</motion.p>
         </motion.div>
 
         <motion.div className="legal-divider" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
