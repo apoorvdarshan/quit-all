@@ -91,14 +91,19 @@ struct PaywallView: View {
                             selectProduct(id: SubscriptionProduct.yearly.rawValue)
                         }
 
-                        subscriptionCard(
-                            title: "WEEKLY",
-                            price: formattedPrice(for: SubscriptionProduct.weekly.rawValue, fallback: "$6.99/week"),
-                            subtitle: "Billed weekly",
-                            badge: nil,
-                            isSelected: selectedProductId == SubscriptionProduct.weekly.rawValue
-                        ) {
-                            selectProduct(id: SubscriptionProduct.weekly.rawValue)
+                        // Only show weekly once RevenueCat has loaded the product, so the
+                        // card never appears before the App Store product exists (which would
+                        // make it error on purchase). Appears automatically once available.
+                        if PaywallManager.shared.weeklyPackage != nil {
+                            subscriptionCard(
+                                title: "WEEKLY",
+                                price: formattedPrice(for: SubscriptionProduct.weekly.rawValue, fallback: "$6.99/week"),
+                                subtitle: "Billed weekly",
+                                badge: nil,
+                                isSelected: selectedProductId == SubscriptionProduct.weekly.rawValue
+                            ) {
+                                selectProduct(id: SubscriptionProduct.weekly.rawValue)
+                            }
                         }
 
                         subscriptionCard(
