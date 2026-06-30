@@ -9,6 +9,7 @@ struct PaywallView: View {
     @State private var isPurchasing = false
     @State private var isRestoring = false
     @State private var trialEligibleProductIDs = Set<String>()
+    @State private var trialEligibilityChecked = false
 
     private let gold = Color(hex: "D4AF37")
     private let lightGold = Color(hex: "F5E6A3")
@@ -33,7 +34,7 @@ struct PaywallView: View {
                                 .foregroundColor(gold)
                                 .tracking(3)
 
-                            Text("Try Free\nfor 3 Days")
+                            Text("Try Free\nfor 7 Days")
                                 .font(.system(size: 38, weight: .bold, design: .serif))
                                 .foregroundStyle(
                                     LinearGradient(
@@ -81,33 +82,33 @@ struct PaywallView: View {
                     // Subscription cards
                     VStack(spacing: 12) {
                         subscriptionCard(
-                            title: "LIFETIME",
-                            price: formattedPrice(for: SubscriptionProduct.lifetime.rawValue, fallback: "$99.99 one-time"),
-                            subtitle: "One-time purchase",
-                            badge: "FOREVER",
-                            isSelected: selectedProductId == SubscriptionProduct.lifetime.rawValue
-                        ) {
-                            selectProduct(id: SubscriptionProduct.lifetime.rawValue)
-                        }
-
-                        subscriptionCard(
                             title: "YEARLY",
-                            price: formattedPrice(for: SubscriptionProduct.yearly.rawValue, fallback: "$49.99/year"),
+                            price: formattedPrice(for: SubscriptionProduct.yearly.rawValue, fallback: "$34.99/year"),
                             subtitle: yearlySubtitle,
-                            badge: "SAVE 58%",
+                            badge: "SAVE 90%",
                             isSelected: selectedProductId == SubscriptionProduct.yearly.rawValue
                         ) {
                             selectProduct(id: SubscriptionProduct.yearly.rawValue)
                         }
 
                         subscriptionCard(
-                            title: "MONTHLY",
-                            price: formattedPrice(for: SubscriptionProduct.monthly.rawValue, fallback: "$9.99/month"),
-                            subtitle: "Billed monthly",
+                            title: "WEEKLY",
+                            price: formattedPrice(for: SubscriptionProduct.weekly.rawValue, fallback: "$6.99/week"),
+                            subtitle: "Billed weekly",
                             badge: nil,
-                            isSelected: selectedProductId == SubscriptionProduct.monthly.rawValue
+                            isSelected: selectedProductId == SubscriptionProduct.weekly.rawValue
                         ) {
-                            selectProduct(id: SubscriptionProduct.monthly.rawValue)
+                            selectProduct(id: SubscriptionProduct.weekly.rawValue)
+                        }
+
+                        subscriptionCard(
+                            title: "LIFETIME",
+                            price: formattedPrice(for: SubscriptionProduct.lifetime.rawValue, fallback: "$69.99 one-time"),
+                            subtitle: "One-time purchase",
+                            badge: "FOREVER",
+                            isSelected: selectedProductId == SubscriptionProduct.lifetime.rawValue
+                        ) {
+                            selectProduct(id: SubscriptionProduct.lifetime.rawValue)
                         }
                     }
                     .padding(.horizontal, 20)
@@ -148,7 +149,7 @@ struct PaywallView: View {
                                 .font(.system(size: 12, weight: .medium, design: .serif))
                                 .foregroundColor(.white.opacity(0.35))
                         } else if selectedProductIsTrialEligible {
-                            Text("3 days free, then auto-renews.")
+                            Text("7 days free, then auto-renews.")
                                 .font(.system(size: 12, weight: .medium, design: .serif))
                                 .foregroundColor(.white.opacity(0.35))
                         }
@@ -198,8 +199,8 @@ struct PaywallView: View {
         .interactiveDismissDisabled()
         .task {
             await PaywallManager.shared.loadProducts()
-            // Default select yearly
-            // Default yearly selected — products may not load until RevenueCat returns an offering
+            // Default to yearly (best value, carries the free trial).
+            // Products may not load until RevenueCat returns an offering.
             selectedProductId = SubscriptionProduct.yearly.rawValue
 
             // Check trial eligibility from RevenueCat
@@ -210,13 +211,20 @@ struct PaywallView: View {
                 }
             }
             trialEligibleProductIDs = eligibleIDs
+            trialEligibilityChecked = true
         }
     }
 
     // MARK: - Helpers
 
     private var selectedProductIsTrialEligible: Bool {
-        trialEligibleProductIDs.contains(selectedProductId)
+        // Lifetime is a one-time purchase — never a free trial.
+        guard selectedProductId != SubscriptionProduct.lifetime.rawValue else { return false }
+        // Optimistically show the free-trial framing on first paint. Only hide it
+        // once RevenueCat has explicitly reported the selected product as ineligible,
+        // so the paywall never flashes the no-trial copy while eligibility loads.
+        guard trialEligibilityChecked else { return true }
+        return trialEligibleProductIDs.contains(selectedProductId)
     }
 
     private var purchaseButtonTitle: String {
@@ -232,10 +240,10 @@ struct PaywallView: View {
             let formatter = NumberFormatter()
             formatter.numberStyle = .currency
             formatter.currencyCode = product.storeProduct.currencyCode
-            let monthlyStr = formatter.string(from: monthly as NSDecimalNumber) ?? "$4.17"
+            let monthlyStr = formatter.string(from: monthly as NSDecimalNumber) ?? "$2.92"
             return "\(monthlyStr)/month — best value"
         }
-        return "$4.17/month — best value"
+        return "$2.92/month — best value"
     }
 
     private func formattedPrice(for productId: String, fallback: String) -> String {
@@ -245,7 +253,15 @@ struct PaywallView: View {
         if product.storeProduct.productIdentifier == SubscriptionProduct.lifetime.rawValue {
             return "\(product.localizedPriceString) \(localized("one-time"))"
         }
-        let period = product.storeProduct.productIdentifier.contains("yearly") ? "/year" : "/month"
+        let identifier = product.storeProduct.productIdentifier
+        let period: String
+        if identifier.contains("weekly") {
+            period = "/week"
+        } else if identifier.contains("yearly") {
+            period = "/year"
+        } else {
+            period = "/month"
+        }
         return "\(product.localizedPriceString)\(period)"
     }
 

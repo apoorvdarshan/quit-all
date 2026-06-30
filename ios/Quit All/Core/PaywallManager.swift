@@ -4,6 +4,7 @@ import SwiftUI
 
 // MARK: - Premium Product IDs
 enum SubscriptionProduct: String, CaseIterable {
+    case weekly = "com.quitall.premium.weekly"
     case monthly = "com.quitall.premium.monthly"
     case yearly = "com.quitall.premium.yearly"
     case lifetime = "com.quitall.premium.lifetime"
@@ -13,6 +14,7 @@ enum SubscriptionProduct: String, CaseIterable {
 @Observable
 final class PaywallManager {
     static let shared = PaywallManager()
+    static let weeklyProductID = SubscriptionProduct.weekly.rawValue
     static let monthlyProductID = SubscriptionProduct.monthly.rawValue
     static let yearlyProductID = SubscriptionProduct.yearly.rawValue
     static let lifetimeProductID = SubscriptionProduct.lifetime.rawValue
@@ -34,6 +36,10 @@ final class PaywallManager {
 
     var hasAccess: Bool {
         isSubscribed
+    }
+
+    var weeklyPackage: Package? {
+        package(for: Self.weeklyProductID, type: .weekly)
     }
 
     var monthlyPackage: Package? {
