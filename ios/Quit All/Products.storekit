@@ -15,7 +15,7 @@
   ],
   "products" : [
     {
-      "displayPrice" : "99.99",
+      "displayPrice" : "69.99",
       "familyShareable" : false,
       "internalID" : "91A8D9F1",
       "localizations" : [
@@ -59,20 +59,25 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "9.99",
+          "displayPrice" : "6.99",
           "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "46512E34",
+          "groupNumber" : 3,
+          "internalID" : "11AA22BB",
+          "introductoryOffer" : {
+            "internalID" : "22BB33CC",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
           "localizations" : [
             {
-              "description" : "",
-              "displayName" : "",
+              "description" : "Unlock every Quit All feature. Cancel anytime.",
+              "displayName" : "Weekly",
               "locale" : "en_US"
             }
           ],
-          "productID" : "com.quitall.premium.monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Monthly",
+          "productID" : "com.quitall.premium.weekly",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Weekly",
           "subscriptionGroupID" : "0FF18C13",
           "type" : "RecurringSubscription",
           "winbackOffers" : [
@@ -86,14 +91,14 @@
           "codeOffers" : [
 
           ],
-          "displayPrice" : "49.99",
+          "displayPrice" : "34.99",
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "AD793DCF",
           "introductoryOffer" : {
             "internalID" : "FF194662",
             "paymentMode" : "free",
-            "subscriptionPeriod" : "P3D"
+            "subscriptionPeriod" : "P1W"
           },
           "localizations" : [
             {
