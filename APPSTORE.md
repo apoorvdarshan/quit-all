@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Quit All v1.2, build 4. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Quit All v1.2, build 5. Each field is in a code block for easy copy-paste.
 
 ## App Name
 
@@ -83,7 +83,7 @@ App Store Connect submission details for Quit All v1.2, build 4. Each field is i
     - Lower Yearly and Lifetime pricing.
     - Polish and stability fixes.
 
-    Version 1.2, build 4.
+    Version 1.2, build 5.
 
 ## Privacy URL
 

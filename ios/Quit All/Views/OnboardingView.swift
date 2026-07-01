@@ -31,7 +31,7 @@ struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
 
     // Flow state
-    @State private var currentStep = 0  // 0-8
+    @State private var currentStep = 0  // 0-7
     @State private var selectedAddictions: Set<AddictionType> = []
     @State private var addictionCosts: [AddictionType: String] = [:]
     @State private var addictionMotivations: [AddictionType: String] = [:]
@@ -56,12 +56,11 @@ struct OnboardingView: View {
     @State private var onboardingPreviewLoadTask: Task<Void, Never>?
     @State private var isLoadingOnboardingPreview = false
     @State private var analysisProgress: Double = 0
-    @State private var didRequestOnboardingReview = false
     @State private var showConfetti = false
 
     private let gold = Color(hex: "D4AF37")
     private let lightGold = Color(hex: "F5E6A3")
-    private let totalSteps = 9
+    private let totalSteps = 8
     private let onboardingPreviewCount = 4
     private let onboardingFallbackRecentKey = "onboarding_fallback_loop_recent_ids"
 
@@ -88,8 +87,7 @@ struct OnboardingView: View {
                     case 4: featuresStep
                     case 5: reviewsStep
                     case 6: planStep
-                    case 7: ratingStep
-                    case 8: paywallStep
+                    case 7: paywallStep
                     default: EmptyView()
                     }
                 }
@@ -799,71 +797,7 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 7: Native Rating
-    private var ratingStep: some View {
-        VStack(spacing: 24) {
-            Spacer()
-
-            VStack(spacing: 18) {
-                HStack(spacing: 8) {
-                    ForEach(0..<5, id: \.self) { _ in
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 32))
-                            .foregroundColor(gold)
-                    }
-                }
-
-                Text("How is Quit All\nso far?")
-                    .font(.system(size: 30, weight: .bold, design: .serif))
-                    .foregroundColor(lightGold)
-                    .multilineTextAlignment(.center)
-
-                Text("A quick App Store rating helps more people find the app when they need it.")
-                    .font(.system(size: 15, design: .serif))
-                    .foregroundColor(.white.opacity(0.55))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 34)
-            }
-
-            Spacer()
-
-            Button {
-                HapticManager.shared.impact(.medium)
-                if didRequestOnboardingReview {
-                    withAnimation(.spring(duration: 0.4)) { currentStep = 8 }
-                } else {
-                    requestOnboardingReview()
-                    didRequestOnboardingReview = true
-                }
-            } label: {
-                Text(didRequestOnboardingReview ? "CONTINUE" : "RATE QUIT ALL")
-                    .font(.system(size: 15, weight: .bold, design: .serif))
-                    .foregroundColor(.white)
-                    .tracking(1.5)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 56)
-                    .background(
-                        LinearGradient(colors: [gold.opacity(0.9), Color(hex: "8B6914")], startPoint: .top, endPoint: .bottom)
-                    )
-                    .cornerRadius(16)
-                    .shadow(color: gold.opacity(0.3), radius: 12, y: 6)
-            }
-            .padding(.horizontal, 20)
-
-            Button {
-                HapticManager.shared.selection()
-                withAnimation(.spring(duration: 0.4)) { currentStep = 8 }
-            } label: {
-                Text("MAYBE LATER")
-                    .font(.system(size: 12, weight: .semibold, design: .serif))
-                    .foregroundColor(gold.opacity(0.55))
-                    .tracking(1.2)
-            }
-            .padding(.bottom, 32)
-        }
-    }
-
-    // MARK: - Step 8: Paywall
+    // MARK: - Step 7: Paywall
     private var paywallStep: some View {
         PaywallView {
             HapticManager.shared.notification(.success)
@@ -872,16 +806,6 @@ struct OnboardingView: View {
                 completeOnboarding()
             }
         }
-    }
-
-    private func requestOnboardingReview() {
-        guard let windowScene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first(where: { $0.activationState == .foregroundActive }) else {
-            return
-        }
-
-        SKStoreReviewController.requestReview(in: windowScene)
     }
 
     private func localized(_ key: String) -> String {
