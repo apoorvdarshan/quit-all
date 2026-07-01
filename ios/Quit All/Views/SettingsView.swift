@@ -8,7 +8,6 @@ struct SettingsView: View {
 
     let showsDoneButton: Bool
 
-    @State private var showAddictions = false
     @State private var showResetAlert = false
     @State private var notificationsEnabled = true
 
@@ -21,31 +20,6 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             List {
-                // Addictions
-                Section {
-                    Button {
-                        showAddictions = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "list.bullet")
-                                .foregroundColor(gold)
-                            Text("My Addictions")
-                                .font(.system(size: 15, weight: .medium, design: .serif))
-                                .foregroundColor(.white)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(gold.opacity(0.4))
-                        }
-                    }
-                } header: {
-                    Text("TRACKING")
-                        .font(.system(size: 11, weight: .semibold, design: .serif))
-                        .foregroundColor(gold.opacity(0.6))
-                        .tracking(1.5)
-                }
-                .listRowBackground(Color(hex: "111111"))
-
                 // Notifications
                 Section {
                     Toggle(isOn: $notificationsEnabled) {
@@ -131,9 +105,6 @@ struct SettingsView: View {
                         }
                     }
                 }
-            }
-            .sheet(isPresented: $showAddictions) {
-                AddictionsView()
             }
             .alert("Reset All Data?", isPresented: $showResetAlert) {
                 Button("Cancel", role: .cancel) {}

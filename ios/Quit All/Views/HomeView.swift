@@ -40,6 +40,11 @@ struct HomeView: View {
                     Label("Stats", systemImage: "chart.bar.fill")
                 }
 
+            AddictionsView(showsDoneButton: false)
+                .tabItem {
+                    Label("Habits", systemImage: "target")
+                }
+
             SettingsView(showsDoneButton: false)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")

@@ -3,6 +3,8 @@ import CoreData
 
 // MARK: - Addictions Management View
 struct AddictionsView: View {
+    var showsDoneButton: Bool = true
+
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
 
@@ -92,13 +94,15 @@ struct AddictionsView: View {
             .navigationTitle("My Addictions")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Done")
-                            .font(.system(size: 15, weight: .semibold, design: .serif))
-                            .foregroundColor(gold)
+                if showsDoneButton {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            Text("Done")
+                                .font(.system(size: 15, weight: .semibold, design: .serif))
+                                .foregroundColor(gold)
+                        }
                     }
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
