@@ -85,28 +85,6 @@ App Store Connect submission details for Quit All v1.2, build 4. Each field is i
 
     Version 1.2, build 4.
 
-## What's New (v1.1)
-
-    Quit All 1.1 is a major update for SOS support, onboarding, purchases, localization, and app polish.
-
-    NEW
-    - SOS craving support now includes online GIF loops through KLIPY plus offline fallback video loops.
-    - Onboarding now previews GIF/video loops on every feature slide.
-    - GIFs are preloaded ahead of upcoming slides for smoother swiping.
-    - Added broad native localization coverage so the app can follow the iPhone language setting.
-    - Added Lifetime Premium alongside monthly and yearly options.
-    - Added an App Store update checker in Settings.
-    - Added Home Screen and Lock Screen widgets for quick progress visibility.
-    - Added a dedicated About tab with support, share, rate, Product Hunt, Instagram, LinkedIn, and X links.
-
-    POLISH & FIXES
-    - Stats and Settings now live directly in the bottom tab bar.
-    - About information moved out of Settings into its own tab.
-    - Onboarding review-style copy was replaced with real app benefit cards.
-    - GIF fallback rotation is more varied and stable.
-    - RevenueCat and App Store purchase setup was improved.
-    - Version 1.1, build 3.
-
 ## Privacy URL
 
     https://quit-all.com/privacy
