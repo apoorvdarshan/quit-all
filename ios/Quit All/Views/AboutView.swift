@@ -131,20 +131,6 @@ struct AboutView: View {
                 .listRowBackground(Color(hex: "111111"))
 
                 Section {
-                    Link(destination: URL(string: "https://ko-fi.com/apoorvdarshan")!) {
-                        HStack {
-                            Image(systemName: "heart.fill")
-                                .foregroundColor(gold)
-                            Text("Support on Ko-fi")
-                                .font(.system(size: 15, weight: .medium, design: .serif))
-                                .foregroundColor(.white)
-                            Spacer()
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption)
-                                .foregroundColor(gold.opacity(0.4))
-                        }
-                    }
-
                     Link(destination: URL(string: "https://www.producthunt.com/products/quit-all-break-every-habit")!) {
                         HStack {
                             Image(systemName: "hand.thumbsup.fill")
