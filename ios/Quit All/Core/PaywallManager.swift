@@ -150,6 +150,10 @@ final class PaywallManager {
         }
     }
 
+    static func ensureConfigured() async {
+        await ensureRevenueCatConfigured()
+    }
+
     private static func ensureRevenueCatConfigured() async {
         startRevenueCatConfiguration()
         await revenueCatConfigurationTask?.value

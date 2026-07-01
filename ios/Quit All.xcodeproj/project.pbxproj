@@ -478,8 +478,8 @@
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 23RV7FYH36;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_KEY_CFBundleDisplayName = "Quit All";
 				INFOPLIST_FILE = "Quit All Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Quit All";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -513,8 +513,8 @@
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 23RV7FYH36;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_KEY_CFBundleDisplayName = "Quit All";
 				INFOPLIST_FILE = "Quit All Widget/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Quit All";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
