@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Quit All v1.1, build 3. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Quit All v1.2, build 4. Each field is in a code block for easy copy-paste.
 
 ## App Name
 
@@ -39,7 +39,9 @@ App Store Connect submission details for Quit All v1.1, build 3. Each field is i
     - Craving logs, trigger tracking, mood logging, and pattern insights
     - No-shame relapse logging so you can restart without losing context
     - Smart notifications for higher-risk times
+    - Manage, edit, and reorder your habits from a dedicated Habits tab
     - About, support, share, rate, and social links
+    - Support the app with optional tips (they unlock nothing)
     - Local-first design with no account required
 
     PRIVATE BY DESIGN
@@ -53,8 +55,8 @@ App Store Connect submission details for Quit All v1.1, build 3. Each field is i
     Quit All Premium unlocks the full app experience, including SOS craving support, stats, milestones, savings projections, widgets, smart notifications, GIF/video loops, and relapse tracking.
 
     Premium options:
-    - Monthly subscription
-    - Yearly subscription with a 3-day free trial when eligible
+    - Weekly subscription with a 7-day free trial when eligible
+    - Yearly subscription with a 7-day free trial when eligible
     - Lifetime one-time purchase
 
     Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Manage or cancel anytime from Apple ID settings.
@@ -66,6 +68,22 @@ App Store Connect submission details for Quit All v1.1, build 3. Each field is i
     Privacy Policy: https://quit-all.com/privacy
     Terms of Service: https://quit-all.com/terms
     Contact: ad13dtu@gmail.com
+
+## What's New (v1.2)
+
+    Quit All 1.2 refreshes pricing, adds a tip jar, and makes tracking your habits easier.
+
+    NEW
+    - New Weekly plan with a 7-day free trial, plus a 7-day free trial on Yearly.
+    - New Habits tab to add, edit, and reorder what you're quitting, right from the tab bar.
+    - New Support the App section with optional tips if Quit All has helped you.
+
+    IMPROVEMENTS
+    - The paywall is simpler and now always shows your free trial up front.
+    - Lower Yearly and Lifetime pricing.
+    - Polish and stability fixes.
+
+    Version 1.2, build 4.
 
 ## What's New (v1.1)
 
@@ -113,12 +131,13 @@ App Store Connect submission details for Quit All v1.1, build 3. Each field is i
     1. Launch the app and complete onboarding.
     2. Choose one or more habits to track.
     3. Test the paywall from onboarding or from app launch after onboarding.
-    4. After purchase, test Home, SOS, Stats, Cost, Milestones, Relapse, Settings, About, and the Home Screen or Lock Screen widget.
+    4. After purchase, test Home, SOS, Stats, Habits, Cost, Milestones, Relapse, Settings, About, the Support the App tips, and the Home Screen or Lock Screen widget.
 
     In-app purchases:
-    - Monthly: com.quitall.premium.monthly
-    - Yearly: com.quitall.premium.yearly
+    - Weekly: com.quitall.premium.weekly (7-day free trial)
+    - Yearly: com.quitall.premium.yearly (7-day free trial)
     - Lifetime: com.quitall.premium.lifetime
+    - Optional tips (consumable, unlock nothing): com.quitall.tip.small, com.quitall.tip.medium, com.quitall.tip.large, com.quitall.tip.huge
 
     Purchases are processed by Apple and entitlement state is managed through RevenueCat. Subscriptions can be tested with Apple sandbox/TestFlight.
 

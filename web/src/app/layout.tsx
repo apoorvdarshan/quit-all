@@ -89,7 +89,7 @@ const jsonLd = {
   applicationCategory: "HealthApplication",
   applicationSubCategory: "Addiction Recovery",
   inLanguage: "en",
-  description: "App to quit smoking, stop vaping, quit drinking alcohol, quit weed, stop gambling, quit caffeine, and break social media addiction. Track sobriety streaks, survive cravings with GIFs and offline fallback loops, see money saved, use widgets, and get pattern-based reminders. 3-day free trial available for yearly premium when eligible.",
+  description: "App to quit smoking, stop vaping, quit drinking alcohol, quit weed, stop gambling, quit caffeine, and break social media addiction. Track sobriety streaks, survive cravings with GIFs and offline fallback loops, see money saved, use widgets, and get pattern-based reminders. 7-day free trial available on weekly and yearly premium when eligible.",
   sameAs: [
     "https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934",
     "https://www.producthunt.com/products/quit-all-break-every-habit",
@@ -101,19 +101,19 @@ const jsonLd = {
   offers: [
     {
       "@type": "Offer",
-      price: "9.99",
+      price: "6.99",
       priceCurrency: "USD",
-      description: "Monthly premium subscription",
+      description: "Weekly premium subscription with 7-day free trial when eligible",
     },
     {
       "@type": "Offer",
-      price: "49.99",
+      price: "34.99",
       priceCurrency: "USD",
-      description: "Yearly premium subscription with 3-day free trial when eligible",
+      description: "Yearly premium subscription with 7-day free trial when eligible",
     },
     {
       "@type": "Offer",
-      price: "99.99",
+      price: "69.99",
       priceCurrency: "USD",
       description: "Lifetime premium one-time purchase",
     },

@@ -26,9 +26,10 @@ const sections = [
   {
     title: "Subscriptions and Purchases",
     items: [
-      "Quit All offers auto-renewable subscriptions: Monthly ($9.99/month) and Yearly ($49.99/year)",
-      "The Yearly subscription includes a 3-day free trial when eligible; the Monthly subscription does not include a free trial",
-      "Quit All also offers a Lifetime Premium non-consumable purchase ($99.99 one-time)",
+      "Quit All offers auto-renewable subscriptions: Weekly ($6.99/week) and Yearly ($34.99/year)",
+      "The Weekly and Yearly subscriptions include a 7-day free trial when eligible",
+      "Quit All also offers a Lifetime Premium non-consumable purchase ($69.99 one-time)",
+      "Quit All offers optional one-time tips to support development; tips are consumable purchases that unlock no additional features or content",
       "Prices may vary by country, currency, taxes, App Store price changes, and Apple regional pricing",
       "Payment is charged to your Apple ID account at confirmation or at the end of a trial period when a trial applies",
       "Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period",

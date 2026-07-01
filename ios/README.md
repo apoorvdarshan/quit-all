@@ -21,7 +21,8 @@
 - **Relapse Flow** — No-shame relapse logging (activity, mood, plan) with instant streak reset
 - **Smart Notifications** — Pattern-based alerts at your highest risk times and danger zones
 - **Edit & Reorder** — Edit daily spending, motivation, drag-to-reorder, add/remove addictions, and reset order from Settings
-- **StoreKit 2 Paywall** — 3-day free trial on yearly, Monthly ($9.99), Yearly ($49.99), and Lifetime ($99.99) premium access, manage subscription from Settings
+- **StoreKit 2 Paywall** — 7-day free trial, Weekly ($6.99), Yearly ($34.99), and Lifetime ($69.99) premium access, manage subscription from Settings
+- **Support the App** — optional in-app tips ($2.99–$19.99 consumables) in the About tab
 - **Haptic Feedback** — Tactile feedback on all key interactions
 - **Dark Casino Gold Theme** — Luxury dark theme with gold accents, Cormorant serif fonts, and Gemini-generated icons
 

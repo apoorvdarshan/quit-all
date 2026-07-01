@@ -69,10 +69,10 @@ SUPPORTED ADDICTIONS
 
 SUBSCRIPTION
 Quit All Premium unlocks every feature:
-• Monthly: $9.99/month
-• Yearly: $49.99/year (save 58%)
-• Lifetime: $99.99 one-time purchase
-Yearly includes a 3-day free trial for eligible new subscribers. Cancel subscriptions anytime. Payment charged to Apple ID.
+• Weekly: $6.99/week
+• Yearly: $34.99/year (save 90%)
+• Lifetime: $69.99 one-time purchase
+Weekly and Yearly include a 7-day free trial for eligible new subscribers. Cancel subscriptions anytime. Payment charged to Apple ID.
 
 Privacy Policy: https://quit-all.com/privacy
 Terms of Use: https://quit-all.com/terms

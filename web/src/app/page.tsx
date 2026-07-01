@@ -223,9 +223,9 @@ export default function Home() {
           <motion.div className="pricing-grid" initial="hidden" whileInView="visible" viewport={{ once: true }}>
             <motion.div variants={fadeUp} custom={0} className="pricing-card"
               whileHover={{ y: -8, transition: { duration: 0.3 } }}>
-              <p className="pricing-name">Monthly</p>
-              <p className="pricing-price">$9.99<span>/mo</span></p>
-              <p className="pricing-sub">Billed monthly</p>
+              <p className="pricing-name">Weekly</p>
+              <p className="pricing-price">$6.99<span>/wk</span></p>
+              <p className="pricing-sub">Billed weekly</p>
               <ul className="pricing-features">
                 <li>All 9 addiction types</li>
                 <li>SOS GIFs, memes &amp; offline loops</li>
@@ -233,31 +233,31 @@ export default function Home() {
                 <li>Milestones &amp; sharing</li>
                 <li>Smart notifications</li>
               </ul>
-              <p className="pricing-trial">No free trial</p>
-              <a href="https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934" target="_blank" className="pricing-btn pricing-btn-secondary">Subscribe Monthly</a>
+              <p className="pricing-trial">7-day free trial when eligible</p>
+              <a href="https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934" target="_blank" className="pricing-btn pricing-btn-secondary">Start Free Trial</a>
             </motion.div>
 
             <motion.div variants={fadeUp} custom={1} className="pricing-card featured"
               whileHover={{ y: -8, transition: { duration: 0.3 } }}>
-              <div className="pricing-badge">Save 48%</div>
+              <div className="pricing-badge">Save 90%</div>
               <p className="pricing-name">Yearly</p>
-              <p className="pricing-price">$49.99<span>/yr</span></p>
-              <p className="pricing-sub">$4.17/month — best value</p>
+              <p className="pricing-price">$34.99<span>/yr</span></p>
+              <p className="pricing-sub">$2.92/month — best value</p>
               <ul className="pricing-features">
-                <li>Everything in Monthly</li>
-                <li>Save $69.89 per year</li>
+                <li>Everything in Weekly</li>
+                <li>90% cheaper than paying weekly</li>
                 <li>Home &amp; Lock Screen widgets</li>
                 <li>Support development</li>
                 <li>Cancel anytime</li>
               </ul>
-              <p className="pricing-trial">3-day free trial when eligible</p>
+              <p className="pricing-trial">7-day free trial when eligible</p>
               <a href="https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934" target="_blank" className="pricing-btn pricing-btn-primary">Start Free Trial</a>
             </motion.div>
 
             <motion.div variants={fadeUp} custom={2} className="pricing-card"
               whileHover={{ y: -8, transition: { duration: 0.3 } }}>
               <p className="pricing-name">Lifetime</p>
-              <p className="pricing-price">$99.99<span>/once</span></p>
+              <p className="pricing-price">$69.99<span>/once</span></p>
               <p className="pricing-sub">One-time purchase</p>
               <ul className="pricing-features">
                 <li>All premium features forever</li>
