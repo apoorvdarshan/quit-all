@@ -74,8 +74,6 @@ const sections = [
 export default function Terms() {
   return (
     <>
-      <title>Terms of Service — Quit All</title>
-      <meta name="description" content="Quit All Terms of Service. Subscription, lifetime purchase, medical disclaimer, third-party service, and usage terms for the addiction tracking iOS app." />
       <motion.nav className="nav"
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

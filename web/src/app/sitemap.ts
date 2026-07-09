@@ -2,7 +2,8 @@ import type { MetadataRoute } from "next";
 import { seoPages, siteUrl } from "./seoPages";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const lastModified = new Date("2026-05-12");
+  // Refreshed on each build/deploy so Search Console sees an up-to-date lastmod.
+  const lastModified = new Date();
 
   return [
     {

@@ -62,8 +62,6 @@ const sections = [
 export default function Privacy() {
   return (
     <>
-      <title>Privacy Policy — Quit All</title>
-      <meta name="description" content="Quit All Privacy Policy. Habit data stays on your device. No account required. Purchases use Apple and RevenueCat; SOS GIFs use Klipy through a Vercel proxy." />
       <motion.nav className="nav"
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

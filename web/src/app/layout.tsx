@@ -123,6 +123,41 @@ const jsonLd = {
   },
 };
 
+// Organization + WebSite entity graph — helps Google understand the brand
+// (searched as "quit all", "allquit", "quitall", "all quit") and can enable
+// brand sitelinks in search results.
+const entityJsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://quit-all.com/#organization",
+      name: "Quit All",
+      alternateName: ["AllQuit", "Quit All App", "Quitall"],
+      url: "https://quit-all.com",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://quit-all.com/logo.png",
+      },
+      sameAs: [
+        "https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934",
+        "https://www.instagram.com/quitall_com/",
+        "https://x.com/apoorvdarshan",
+        "https://www.producthunt.com/products/quit-all-break-every-habit",
+      ],
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://quit-all.com/#website",
+      name: "Quit All",
+      alternateName: ["AllQuit", "Quitall", "All Quit"],
+      url: "https://quit-all.com",
+      inLanguage: "en",
+      publisher: { "@id": "https://quit-all.com/#organization" },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -134,6 +169,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(entityJsonLd) }}
         />
       </head>
       <body className="min-h-screen">{children}<Analytics /></body>

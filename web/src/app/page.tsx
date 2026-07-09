@@ -58,6 +58,43 @@ const screenshots = [
   { src: "/ss-stats-new.jpg", alt: "Quit All stats dashboard" },
 ];
 
+const faqs = [
+  {
+    q: "What is Quit All?",
+    a: "Quit All is a private iPhone app for quitting multiple habits at once — smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. It tracks your streaks, helps you survive cravings with an SOS mode (GIFs and offline video loops), shows the money you're saving, and lets you log relapses without shame.",
+  },
+  {
+    q: "Is Quit All the same as AllQuit or Quitall?",
+    a: "Yes. Quit All is sometimes searched as “AllQuit,” “Quitall,” or “all quit” — they all refer to the same app: Quit All - Break Every Habit on the App Store.",
+  },
+  {
+    q: "What habits can I quit with Quit All?",
+    a: "You can track quitting smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine — individually or several at the same time, each with its own streak, savings, and craving history.",
+  },
+  {
+    q: "Is Quit All free?",
+    a: "Quit All is free to download. Premium unlocks the full experience and includes a 7-day free trial on the Weekly and Yearly plans when eligible, plus a one-time Lifetime option. You can cancel anytime in your Apple ID settings.",
+  },
+  {
+    q: "Does Quit All work offline?",
+    a: "Yes. Your streaks and habit data are stored on your device, so the app works without a connection. During a craving, SOS mode uses online GIFs when available and falls back to bundled offline video loops when you have no signal.",
+  },
+  {
+    q: "Is my data private?",
+    a: "Yes. Quit All requires no account or login, and your habit data stays on your iPhone. There's no ad tracking, and your habit data is never sold. Purchases are handled by Apple.",
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 export default function Home() {
   const heroRef = useRef(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
@@ -316,6 +353,26 @@ export default function Home() {
         <div className="container">
           <h2>Quit Smoking, Vaping, Alcohol and More</h2>
           <p>Quit All, sometimes searched as AllQuit, helps you quit smoking, stop vaping, quit drinking alcohol, break gambling patterns, quit weed, reduce caffeine, stop overspending, and cut down on social media. Track every streak in one place, use the SOS craving button for Powered by KLIPY GIFs plus offline fallback loops, log relapses without shame, and see savings and milestones build over time. No account is required. Habit data stays on your iPhone, with purchases handled through Apple and RevenueCat.</p>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="seo-faq" style={{ paddingTop: 24, paddingBottom: 56 }}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+        <div className="container">
+          <p className="features-label">FAQ</p>
+          <h2>Questions about Quit All</h2>
+          <div className="seo-faq-list">
+            {faqs.map((f) => (
+              <article key={f.q} className="faq-item">
+                <h3>{f.q}</h3>
+                <p>{f.a}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
 
