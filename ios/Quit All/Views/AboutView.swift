@@ -81,20 +81,6 @@ struct AboutView: View {
                 .listRowBackground(Color(hex: "111111"))
 
                 Section {
-                    Link(destination: URL(string: "https://www.linkedin.com/company/quit-all/")!) {
-                        HStack {
-                            Image(systemName: "building.2.fill")
-                                .foregroundColor(gold)
-                            Text("Follow on LinkedIn")
-                                .font(.system(size: 15, weight: .medium, design: .serif))
-                                .foregroundColor(.white)
-                            Spacer()
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption)
-                                .foregroundColor(gold.opacity(0.4))
-                        }
-                    }
-
                     Link(destination: URL(string: "https://www.instagram.com/quitall_com/")!) {
                         HStack {
                             Image(systemName: "camera.fill")
