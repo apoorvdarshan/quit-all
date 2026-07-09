@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Quit All v1.2.1, build 6. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Quit All v1.2.1, build 1. Each field is in a code block for easy copy-paste.
 
 ## App Name
 
@@ -13,10 +13,6 @@ App Store Connect submission details for Quit All v1.2.1, build 6. Each field is
 ## Promotional Text (170 chars max)
 
     Track quitting, cravings, savings, and streaks for smoking, vaping, alcohol, social media, gambling, spending, caffeine, and more.
-
-## Keywords (100 chars max)
-
-    quit smoking,habit tracker,sobriety,cravings,streaks,alcohol,vaping,gambling,savings,relapse
 
 ## Category
 
@@ -75,7 +71,11 @@ App Store Connect submission details for Quit All v1.2.1, build 6. Each field is
     - Cleaned up the About screen.
     - Performance and stability improvements.
 
-    Version 1.2.1, build 6.
+    Version 1.2.1, build 1.
+
+## Keywords (100 chars max)
+
+    quit smoking,habit tracker,sobriety,cravings,streaks,alcohol,vaping,gambling,savings,relapse
 
 ## Privacy URL
 
