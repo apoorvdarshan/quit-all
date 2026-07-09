@@ -56,7 +56,6 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 - **No-shame relapse flow** — log activity, mood, and plan without losing progress stigma
 - **Smart notifications** — alerts at your personal high-risk times
 - **Hard paywall + 7-day free trial** — RevenueCat + StoreKit 2, Weekly $6.99, Yearly $34.99, Lifetime $69.99
-- **Support the app** — optional in-app tips (Ko-fi on the web)
 
 ### Tech Stack
 

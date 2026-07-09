@@ -1,6 +1,6 @@
 # App Store Listing
 
-App Store Connect submission details for Quit All v1.2, build 5. Each field is in a code block for easy copy-paste.
+App Store Connect submission details for Quit All v1.2.1, build 6. Each field is in a code block for easy copy-paste.
 
 ## App Name
 
@@ -41,7 +41,6 @@ App Store Connect submission details for Quit All v1.2, build 5. Each field is i
     - Smart notifications for higher-risk times
     - Manage, edit, and reorder your habits from a dedicated Habits tab
     - About, support, share, rate, and social links
-    - Support the app with optional tips (they unlock nothing)
     - Local-first design with no account required
 
     PRIVATE BY DESIGN
@@ -69,21 +68,14 @@ App Store Connect submission details for Quit All v1.2, build 5. Each field is i
     Terms of Service: https://quit-all.com/terms
     Contact: ad13dtu@gmail.com
 
-## What's New (v1.2)
+## What's New (v1.2.1)
 
-    Quit All 1.2 refreshes pricing, adds a tip jar, and makes tracking your habits easier.
+    Quit All 1.2.1 is a maintenance update with under-the-hood improvements.
 
-    NEW
-    - New Weekly plan with a 7-day free trial, plus a 7-day free trial on Yearly.
-    - New Habits tab to add, edit, and reorder what you're quitting, right from the tab bar.
-    - New Support the App section with optional tips if Quit All has helped you.
+    - Cleaned up the About screen.
+    - Performance and stability improvements.
 
-    IMPROVEMENTS
-    - The paywall is simpler and now always shows your free trial up front.
-    - Lower Yearly and Lifetime pricing.
-    - Polish and stability fixes.
-
-    Version 1.2, build 5.
+    Version 1.2.1, build 6.
 
 ## Privacy URL
 
@@ -109,13 +101,12 @@ App Store Connect submission details for Quit All v1.2, build 5. Each field is i
     1. Launch the app and complete onboarding.
     2. Choose one or more habits to track.
     3. Test the paywall from onboarding or from app launch after onboarding.
-    4. After purchase, test Home, SOS, Stats, Habits, Cost, Milestones, Relapse, Settings, About, the Support the App tips, and the Home Screen or Lock Screen widget.
+    4. After purchase, test Home, SOS, Stats, Habits, Cost, Milestones, Relapse, Settings, About, and the Home Screen or Lock Screen widget.
 
     In-app purchases:
     - Weekly: com.quitall.premium.weekly (7-day free trial)
     - Yearly: com.quitall.premium.yearly (7-day free trial)
     - Lifetime: com.quitall.premium.lifetime
-    - Optional tips (consumable, unlock nothing): com.quitall.tip.small, com.quitall.tip.medium, com.quitall.tip.large, com.quitall.tip.huge
 
     Purchases are processed by Apple and entitlement state is managed through RevenueCat. Subscriptions can be tested with Apple sandbox/TestFlight.
 
