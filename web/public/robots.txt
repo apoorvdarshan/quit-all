@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://quit-all.com/sitemap.xml
+Sitemap: https://www.quit-all.com/sitemap.xml

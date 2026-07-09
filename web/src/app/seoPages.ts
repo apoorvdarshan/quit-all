@@ -19,7 +19,7 @@ export type SeoPage = {
   keywords: string[];
 };
 
-export const siteUrl = "https://quit-all.com";
+export const siteUrl = "https://www.quit-all.com";
 
 export const seoPages: SeoPage[] = [
   {

@@ -30,14 +30,14 @@ export const metadata: Metadata = {
   authors: [{ name: "Apoorv Darshan" }],
   creator: "Apoorv Darshan",
   publisher: "Apoorv Darshan",
-  metadataBase: new URL("https://quit-all.com"),
+  metadataBase: new URL("https://www.quit-all.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://quit-all.com",
+    url: "https://www.quit-all.com",
     siteName: "Quit All",
     title: "Quit All - One App to Quit Smoking, Vaping, Alcohol & More",
     description: "One app to quit smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, and caffeine. Track streaks, survive cravings with GIFs, save money, and use widgets.",
@@ -82,9 +82,9 @@ const jsonLd = {
   "@type": "MobileApplication",
   name: "Quit All - Break Every Habit",
   alternateName: ["Quit All Addiction Tracker", "AllQuit", "Quit All App"],
-  url: "https://quit-all.com",
+  url: "https://www.quit-all.com",
   downloadUrl: "https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934",
-  image: "https://quit-all.com/og.png",
+  image: "https://www.quit-all.com/og.png",
   operatingSystem: "iOS 17+",
   applicationCategory: "HealthApplication",
   applicationSubCategory: "Addiction Recovery",
@@ -131,13 +131,13 @@ const entityJsonLd = {
   "@graph": [
     {
       "@type": "Organization",
-      "@id": "https://quit-all.com/#organization",
+      "@id": "https://www.quit-all.com/#organization",
       name: "Quit All",
       alternateName: ["AllQuit", "Quit All App", "Quitall"],
-      url: "https://quit-all.com",
+      url: "https://www.quit-all.com",
       logo: {
         "@type": "ImageObject",
-        url: "https://quit-all.com/logo.png",
+        url: "https://www.quit-all.com/logo.png",
       },
       sameAs: [
         "https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934",
@@ -148,12 +148,12 @@ const entityJsonLd = {
     },
     {
       "@type": "WebSite",
-      "@id": "https://quit-all.com/#website",
+      "@id": "https://www.quit-all.com/#website",
       name: "Quit All",
       alternateName: ["AllQuit", "Quitall", "All Quit"],
-      url: "https://quit-all.com",
+      url: "https://www.quit-all.com",
       inLanguage: "en",
-      publisher: { "@id": "https://quit-all.com/#organization" },
+      publisher: { "@id": "https://www.quit-all.com/#organization" },
     },
   ],
 };

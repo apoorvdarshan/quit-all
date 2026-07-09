@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/privacy" },
   openGraph: {
     type: "website",
-    url: "https://quit-all.com/privacy",
+    url: "https://www.quit-all.com/privacy",
     siteName: "Quit All",
     title: "Privacy Policy — Quit All",
     description:

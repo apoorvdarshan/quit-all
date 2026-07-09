@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/terms" },
   openGraph: {
     type: "website",
-    url: "https://quit-all.com/terms",
+    url: "https://www.quit-all.com/terms",
     siteName: "Quit All",
     title: "Terms of Service — Quit All",
     description:
