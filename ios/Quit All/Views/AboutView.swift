@@ -116,8 +116,6 @@ struct AboutView: View {
                 }
                 .listRowBackground(Color(hex: "111111"))
 
-                tipJarSection
-
                 Section {
                     Link(destination: URL(string: "https://www.producthunt.com/products/quit-all-break-every-habit")!) {
                         HStack {
@@ -197,68 +195,8 @@ struct AboutView: View {
             .task {
                 await updateChecker.checkForUpdate()
             }
-            .task {
-                await TipManager.shared.loadProducts()
-            }
-            .alert("Thank you 💛", isPresented: tipThankYouBinding) {
-                Button("You're welcome", role: .cancel) {}
-            } message: {
-                Text("Your tip genuinely helps keep Quit All going. It means a lot.")
-            }
         }
         .preferredColorScheme(.dark)
-    }
-
-    @ViewBuilder
-    private var tipJarSection: some View {
-        Section {
-            if TipManager.shared.options.isEmpty {
-                HStack {
-                    Text("Loading tips…")
-                        .font(.system(size: 14, design: .serif))
-                        .foregroundColor(.white.opacity(0.4))
-                    Spacer()
-                    ProgressView().tint(gold)
-                }
-            } else {
-                ForEach(TipManager.shared.options) { option in
-                    Button {
-                        Task { await TipManager.shared.purchase(option) }
-                    } label: {
-                        HStack(spacing: 12) {
-                            Text(option.emoji)
-                                .font(.system(size: 20))
-                            Text(option.title)
-                                .font(.system(size: 15, weight: .medium, design: .serif))
-                                .foregroundColor(.white)
-                            Spacer()
-                            Text(option.price)
-                                .font(.system(size: 14, weight: .semibold, design: .serif))
-                                .foregroundColor(gold)
-                        }
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(TipManager.shared.isPurchasing)
-                }
-            }
-        } header: {
-            Text("SUPPORT THE APP")
-                .font(.system(size: 11, weight: .semibold, design: .serif))
-                .foregroundColor(gold.opacity(0.6))
-                .tracking(1.5)
-        } footer: {
-            Text("Tips are optional and unlock nothing — just a thank-you that helps keep Quit All going.")
-                .font(.system(size: 11, design: .serif))
-                .foregroundColor(.white.opacity(0.25))
-        }
-        .listRowBackground(Color(hex: "111111"))
-    }
-
-    private var tipThankYouBinding: Binding<Bool> {
-        Binding(
-            get: { TipManager.shared.showThankYou },
-            set: { TipManager.shared.showThankYou = $0 }
-        )
     }
 
     @ViewBuilder

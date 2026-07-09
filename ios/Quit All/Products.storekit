@@ -28,66 +28,6 @@
       "productID" : "com.quitall.premium.lifetime",
       "referenceName" : "Lifetime Premium",
       "type" : "NonConsumable"
-    },
-    {
-      "displayPrice" : "2.99",
-      "familyShareable" : false,
-      "internalID" : "T1PSMALL0",
-      "localizations" : [
-        {
-          "description" : "A small tip to support Quit All's development.",
-          "displayName" : "Small Tip",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "com.quitall.tip.small",
-      "referenceName" : "Small Tip",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "4.99",
-      "familyShareable" : false,
-      "internalID" : "T1PMEDIUM",
-      "localizations" : [
-        {
-          "description" : "A tip to support Quit All's development.",
-          "displayName" : "Medium Tip",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "com.quitall.tip.medium",
-      "referenceName" : "Medium Tip",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "9.99",
-      "familyShareable" : false,
-      "internalID" : "T1PLARGE0",
-      "localizations" : [
-        {
-          "description" : "A generous tip to support Quit All.",
-          "displayName" : "Large Tip",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "com.quitall.tip.large",
-      "referenceName" : "Large Tip",
-      "type" : "Consumable"
-    },
-    {
-      "displayPrice" : "19.99",
-      "familyShareable" : false,
-      "internalID" : "T1PHUGE00",
-      "localizations" : [
-        {
-          "description" : "A huge tip to support Quit All. Thank you!",
-          "displayName" : "Huge Tip",
-          "locale" : "en_US"
-        }
-      ],
-      "productID" : "com.quitall.tip.huge",
-      "referenceName" : "Huge Tip",
-      "type" : "Consumable"
     }
   ],
   "settings" : {
