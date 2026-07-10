@@ -1,7 +1,7 @@
 import Foundation
 
 // MARK: - Klipy Media Library
-// Fetches remote GIF-style loops through the Vercel proxy so the API key stays server-side.
+// Fetches remote GIF-style loops through the Cloudflare proxy so the API key stays server-side.
 struct KlipyMediaItem: Identifiable, Hashable {
     let id: String
     let title: String

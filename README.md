@@ -65,7 +65,7 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 | CoreData (local-only, no backend) | Vanilla CSS (no Tailwind) |
 | RevenueCat + StoreKit 2 | Framer Motion (animations) |
 | WidgetKit + UserNotifications | JSON-LD structured data for SEO |
-| KLIPY GIF proxy + bundled MP4 fallbacks | Vercel hosting + API routes |
+| KLIPY GIF proxy + bundled MP4 fallbacks | Cloudflare Workers via OpenNext |
 | Dark casino-gold theme, Cormorant serif | Same theme system as iOS |
 
 ## Running locally
@@ -89,11 +89,17 @@ npm install
 npm run dev    # http://localhost:3000
 ```
 
-The `web/` folder is the Vercel root — pushes that don't touch `web/` skip deployment.
+The `web/` folder deploys to Cloudflare Workers through the OpenNext adapter:
 
-KLIPY requests can be proxied through Vercel at `/api/klipy/...` so the iOS app never ships the API key. Configure `KLIPY_API_KEY` in Vercel, then call endpoints like `/api/klipy/v2/search?q=smoking`. Online GIF content shows Powered by KLIPY attribution in the app. Optional overrides: `KLIPY_API_BASE_URL` and `KLIPY_API_KEY_PARAM`.
+```bash
+cd web
+npm run preview   # build and test in the Workers runtime
+npm run deploy    # build and deploy with Wrangler
+```
 
-The iOS RevenueCat public SDK key is loaded from `/api/app-config` so it can be rotated from Vercel without shipping a new app build. Configure `REVENUECAT_IOS_API_KEY` in Vercel. Debug builds send their bundle ID and can use `REVENUECAT_IOS_DEBUG_API_KEY` for the RevenueCat Test Store. The app falls back to its bundled public key if the config endpoint is unavailable.
+KLIPY requests are proxied through Cloudflare at `/api/klipy/...` so the iOS app never ships the API key. Configure `KLIPY_API_KEY` with `wrangler secret put KLIPY_API_KEY`, then call endpoints like `/api/klipy/v2/search?q=smoking`. Online GIF content shows Powered by KLIPY attribution in the app. Optional overrides: `KLIPY_API_BASE_URL` and `KLIPY_API_KEY_PARAM`.
+
+The iOS RevenueCat public SDK key is loaded from `/api/app-config` so it can be rotated without shipping a new app build. Configure `REVENUECAT_IOS_API_KEY` as a Cloudflare Worker secret. The app falls back to its bundled public key if the config endpoint is unavailable.
 
 ## Links
 

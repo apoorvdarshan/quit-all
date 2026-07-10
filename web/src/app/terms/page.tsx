@@ -59,7 +59,7 @@ const sections = [
   },
   {
     title: "Third-Party Services",
-    content: "Quit All uses Apple StoreKit/App Store for purchases and refunds, RevenueCat for entitlement management and refund-request handling, Klipy for online GIF content, and Vercel for the website and API proxy. These services may be subject to their own terms and availability.",
+    content: "Quit All uses Apple StoreKit/App Store for purchases and refunds, RevenueCat for entitlement management and refund-request handling, Klipy for online GIF content, and Cloudflare for the website and API proxy. These services may be subject to their own terms and availability.",
   },
   {
     title: "Limitation of Liability",
@@ -94,7 +94,7 @@ export default function Terms() {
         <motion.div className="legal-header" initial="hidden" animate="visible">
           <motion.p variants={fadeUp} custom={0} className="legal-label">Legal</motion.p>
           <motion.h1 variants={fadeUp} custom={1} className="legal-title">Terms of Service</motion.h1>
-          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: May 22, 2026</motion.p>
+          <motion.p variants={fadeUp} custom={2} className="legal-date">Last updated: July 10, 2026</motion.p>
         </motion.div>
 
         <motion.div className="legal-divider" initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
