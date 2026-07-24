@@ -1,0 +1,6 @@
+node_modules/
+review/
+output/*
+!output/quit-all-social-v1-1080x1920-master.mp4
+!output/quit-all-social-v1-master-contact-sheet.png
+!output/quit-all-social-v1-qa-report.txt

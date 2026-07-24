@@ -1,0 +1,157 @@
+{
+  "asset_root": "/Users/apoorvdarshan/quit-all/marketing/quit-all-social-video-v1/assets",
+  "asset_count": 6,
+  "items": [
+    {
+      "path": "01-streak.png",
+      "extension": ".png",
+      "bytes": 528630,
+      "sha256": "115eede23891f668831982513d7f00b565a9b503d2bd52e60f920590d29a4f7a",
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1260,
+            "height": 2736,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "format_name": "png_pipe",
+          "size": "528630"
+        }
+      }
+    },
+    {
+      "path": "02-habits.png",
+      "extension": ".png",
+      "bytes": 462848,
+      "sha256": "1c3ef22326e23fed26f062be5814d9fb5625bf3cc31bfbd219d9c9577077ff97",
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1260,
+            "height": 2736,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "format_name": "png_pipe",
+          "size": "462848"
+        }
+      }
+    },
+    {
+      "path": "03-sos.png",
+      "extension": ".png",
+      "bytes": 794393,
+      "sha256": "d943c4655585ccc0708cf90cc82f0ee1be31d726d7300c5e6fbf16006ba060cd",
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1260,
+            "height": 2736,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "format_name": "png_pipe",
+          "size": "794393"
+        }
+      }
+    },
+    {
+      "path": "04-stats.png",
+      "extension": ".png",
+      "bytes": 404077,
+      "sha256": "e50d5eedb1d888729566b516841c373bca760ffa70e5d075f1ccc125db13d8ae",
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1260,
+            "height": 2736,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "format_name": "png_pipe",
+          "size": "404077"
+        }
+      }
+    },
+    {
+      "path": "05-restart.png",
+      "extension": ".png",
+      "bytes": 1044801,
+      "sha256": "0461e49ad365cb51e4eaf1140ab6c2203894c2c0ad9de423742f951e3a9df4fa",
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1260,
+            "height": 2736,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "format_name": "png_pipe",
+          "size": "1044801"
+        }
+      }
+    },
+    {
+      "path": "app-icon.png",
+      "extension": ".png",
+      "bytes": 313506,
+      "sha256": "5d4da712464994573502097694ee755f7a395b6118bd0c7a1664a30094b4c52d",
+      "media": {
+        "programs": [],
+        "stream_groups": [],
+        "streams": [
+          {
+            "index": 0,
+            "codec_name": "png",
+            "codec_type": "video",
+            "width": 1024,
+            "height": 1024,
+            "pix_fmt": "rgba",
+            "r_frame_rate": "25/1"
+          }
+        ],
+        "format": {
+          "format_name": "png_pipe",
+          "size": "313506"
+        }
+      }
+    }
+  ],
+  "duplicates": []
+}
