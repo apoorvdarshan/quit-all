@@ -170,9 +170,9 @@ workflow checks all of them on every pull request and push to `main` that
 touches them. `APPSTORE.md` is a human-readable copy; edit `store/metadata` for
 anything automation uploads.
 
-**Screenshots** come from the App Store-ready marketing images already in the
-repo: `marketing/1260x2736/` (`APP_IPHONE_67`, the 6.7"/6.9" slot) and
-`marketing/1242x2688/` (`APP_IPHONE_65`, 6.5"), 10 each. They are byte-identical to the live listing
+**Screenshots** live beside the listing, one folder per display type:
+`store/metadata/ios/en-US/screenshots/APP_IPHONE_67/` (the 6.7"/6.9" slot) and
+`store/metadata/ios/en-US/screenshots/APP_IPHONE_65/` (6.5"), 10 each. They are byte-identical to the live listing
 (checked by checksum), and `screenshots.json` keeps the live order
 (3, 2, 1, 4, 6, 5, 7, 8, 9, 10). With the switch on, each set that differs is
 replaced by exactly the listed files (a set whose live files already match by

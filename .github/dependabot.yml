@@ -7,8 +7,6 @@
 #                   to requirements-store.txt) that runs with the App Store
 #                   Connect key in the release jobs
 #   npm /web        the website and KLIPY proxy deployed to Cloudflare Workers
-#   npm /marketing/quit-all-social-video-v1
-#                   the Remotion project that renders the promo video
 #   swift           the RevenueCat SDK (purchases-ios-spm), pinned in the Xcode
 #                   project's Package.resolved under ios/Quit All.xcodeproj.
 #                   Dependabot finds the project in /ios without a Package.swift
@@ -73,13 +71,3 @@ updates:
         versions: [">=16.4.0"]
     commit-message:
       prefix: "Web"
-
-  - package-ecosystem: npm
-    directory: /marketing/quit-all-social-video-v1
-    schedule:
-      interval: monthly
-    groups:
-      promo-video:
-        patterns: ["*"]
-    commit-message:
-      prefix: "Marketing"

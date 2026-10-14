@@ -1,6 +1,6 @@
 # Fails a pull request that adds or upgrades to a dependency with a known
-# high or critical vulnerability (npm under web/ and marketing/, pip store
-# tooling, GitHub Actions), using GitHub's dependency graph diff for the PR.
+# high or critical vulnerability (npm under web/, pip store tooling, GitHub
+# Actions), using GitHub's dependency graph diff for the PR.
 
 name: Dependency review
 
