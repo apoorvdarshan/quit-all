@@ -153,6 +153,7 @@ struct RelapseView: View {
                     .stroke(selectedActivity == activity ? Color(hex: "D4AF37") : Color(hex: "D4AF37").opacity(0.08), lineWidth: 1)
             )
         }
+        .accessibilityIdentifier("relapse.activity.\(activity.rawValue)")
     }
 
     // MARK: - Step 2: How are you feeling?
@@ -203,6 +204,7 @@ struct RelapseView: View {
                     .stroke(selectedMood == mood ? Color(hex: "D4AF37").opacity(0.6) : Color(hex: "D4AF37").opacity(0.08), lineWidth: 1)
             )
         }
+        .accessibilityIdentifier("relapse.mood.\(mood.rawValue)")
     }
 
     // MARK: - Step 3: What will you do differently?
@@ -218,6 +220,7 @@ struct RelapseView: View {
             TextField("Type here...", text: $nextTimePlan, axis: .vertical)
                 .foregroundColor(.white)
                 .lineLimit(3...6)
+                .accessibilityIdentifier("relapse.plan")
                 .padding()
                 .background(Color(hex: "111111"))
                 .cornerRadius(12)

@@ -145,6 +145,7 @@ struct PaywallView: View {
                         .shadow(color: gold.opacity(0.4), radius: 16, y: 6)
                     }
                     .disabled(isPurchasing)
+                    .accessibilityIdentifier("paywall.purchase")
                     .padding(.horizontal, 20)
 
                     // Trial/billing info
@@ -171,6 +172,7 @@ struct PaywallView: View {
                             .font(.system(size: 13, design: .serif))
                             .foregroundColor(Color(hex: "8B0000"))
                             .padding(.horizontal, 20)
+                            .accessibilityIdentifier("paywall.error")
                     }
 
                     // Restore
@@ -187,6 +189,7 @@ struct PaywallView: View {
                         }
                     }
                     .disabled(isRestoring)
+                    .accessibilityIdentifier("paywall.restore")
 
                     // Legal
                     HStack(spacing: 16) {
@@ -330,6 +333,7 @@ struct PaywallView: View {
                     .stroke(isSelected ? gold.opacity(0.5) : Color.white.opacity(0.06), lineWidth: 1)
             )
         }
+        .accessibilityIdentifier("paywall.plan.\(title.lowercased())")
     }
 
     private func selectProduct(id: String) {

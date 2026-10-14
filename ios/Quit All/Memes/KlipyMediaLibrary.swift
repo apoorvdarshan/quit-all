@@ -19,6 +19,9 @@ final class KlipyMediaLibrary {
     private init() {}
 
     func searchLoops(for type: AddictionType, count: Int) async -> [KlipyMediaItem] {
+        // Simulator tests stay offline: callers fall back to the bundled video loops.
+        guard !AppTestEnvironment.isActive else { return [] }
+
         let savedState = searchState(for: type)
         let activeQuery = savedState.position == nil
             ? queryVariants(for: type).randomElement() ?? query(for: type)

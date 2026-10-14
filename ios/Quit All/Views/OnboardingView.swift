@@ -236,6 +236,7 @@ struct OnboardingView: View {
                     .stroke(isSelected ? gold.opacity(0.5) : Color.white.opacity(0.06), lineWidth: 1)
             )
         }
+        .accessibilityIdentifier("onboarding.habit.\(type.rawValue)")
     }
 
     // MARK: - Step 1: Detail Input
@@ -293,6 +294,7 @@ struct OnboardingView: View {
                                         .keyboardType(.decimalPad)
                                         .foregroundColor(lightGold)
                                         .font(.system(size: 22, weight: .bold, design: .serif))
+                                        .accessibilityIdentifier("onboarding.dailyCost")
                                 }
                             }
 
@@ -300,6 +302,7 @@ struct OnboardingView: View {
                                 TextField("For my health, family...", text: binding(for: type, in: $addictionMotivations))
                                     .font(.system(size: 15, design: .serif))
                                     .foregroundColor(.white.opacity(0.8))
+                                    .accessibilityIdentifier("onboarding.motivation")
                             }
 
                             inputField(label: "WHEN DID YOU LAST DO IT?") {
@@ -477,6 +480,7 @@ struct OnboardingView: View {
                                 .stroke(isSelected ? gold.opacity(0.4) : Color.white.opacity(0.06), lineWidth: 1)
                         )
                     }
+                    .accessibilityIdentifier("onboarding.symptom.\(symptom)")
                 }
             }
             .padding(.horizontal, 20)

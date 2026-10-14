@@ -1,0 +1,76 @@
+name: iOS tests
+
+# Unit and UI tests on an iOS simulator. Unsigned Debug build only: this workflow
+# never archives, uploads or submits anything. The iOS Release workflow calls it
+# before a tag build, so a release is always built from a tested commit.
+on:
+  pull_request:
+    paths:
+      - 'ios/**'
+      - '!ios/**/*.md'
+      - '!ios/screenshots/**'
+      - '!ios/logo.png'
+      - '!ios/Quit All.xcodeproj/xcuserdata/**'
+      - 'scripts/test-ios.sh'
+      - '.github/workflows/ios-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - '!ios/**/*.md'
+      - '!ios/screenshots/**'
+      - '!ios/logo.png'
+      - '!ios/Quit All.xcodeproj/xcuserdata/**'
+      - 'scripts/test-ios.sh'
+      - '.github/workflows/ios-tests.yml'
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+# A newer push to a pull request supersedes its older run. Pushes to main and
+# release callers each keep their own run and are never cancelled.
+concurrency:
+  group: ios-tests-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ios-tests:
+    runs-on: xcode-27
+    timeout-minutes: 60
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_27.app/Contents/Developer
+      IOS_TEST_PACKAGES: ${{ github.workspace }}/.ios-test-packages
+    steps:
+      # The app, its tests and the runner script only: no marketing or web assets.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /ios/
+            !/ios/screenshots/
+            /scripts/test-ios.sh
+
+      - name: Cache pinned Swift packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: .ios-test-packages
+          key: ios-spm-${{ runner.os }}-${{ runner.arch }}-xcode27-${{ hashFiles('ios/**/Package.resolved') }}
+
+      - name: Build and run unit and UI tests
+        env:
+          IOS_TEST_RESULTS: ${{ runner.temp }}/ios-test-results
+          IOS_TEST_DERIVED_DATA: ${{ runner.temp }}/ios-test-build
+        run: bash scripts/test-ios.sh
+
+      - name: Retain test results and failure screenshots
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ios-test-results
+          path: ${{ runner.temp }}/ios-test-results
+          if-no-files-found: warn
+          retention-days: 7

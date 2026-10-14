@@ -12,12 +12,26 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		850C5972597772D96BF1F5DE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BA8210B52F6F292B00542FAB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BA8210BC2F6F292B00542FAB;
+			remoteInfo = "Quit All";
+		};
 		C001000D2FB500000000000D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BA8210B52F6F292B00542FAB /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = C00100062FB5000000000006;
 			remoteInfo = "Quit All Widget";
+		};
+		CC9F7559F92271279F17F0FB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BA8210B52F6F292B00542FAB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BA8210BC2F6F292B00542FAB;
+			remoteInfo = "Quit All";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -36,6 +50,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		3040AAF5553CE083474ABC2B /* QuitAllTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuitAllTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5C975B288A3C75A17ECCD87D /* QuitAllUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuitAllUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BA8210BD2F6F292B00542FAB /* Quit All.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Quit All.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C00100012FB5000000000001 /* Quit All Widget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Quit All Widget.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -51,6 +67,16 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		7E923C186B74071131184FC5 /* QuitAllTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = QuitAllTests;
+			sourceTree = "<group>";
+		};
+		907C293FCD0A652C54889807 /* QuitAllUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = QuitAllUITests;
+			sourceTree = "<group>";
+		};
 		BA8210BF2F6F292B00542FAB /* Quit All */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Quit All";
@@ -82,6 +108,20 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EB73C3CF8EC304E5170DBDDC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FE0BFCAA6E99465DDBB6BF5E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -90,6 +130,8 @@
 			children = (
 				BA8210BF2F6F292B00542FAB /* Quit All */,
 				C00100022FB5000000000002 /* Quit All Widget */,
+				7E923C186B74071131184FC5 /* QuitAllTests */,
+				907C293FCD0A652C54889807 /* QuitAllUITests */,
 				BA8210BE2F6F292B00542FAB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -99,6 +141,8 @@
 			children = (
 				BA8210BD2F6F292B00542FAB /* Quit All.app */,
 				C00100012FB5000000000001 /* Quit All Widget.appex */,
+				3040AAF5553CE083474ABC2B /* QuitAllTests.xctest */,
+				5C975B288A3C75A17ECCD87D /* QuitAllUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -106,6 +150,48 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		303B67E64CFAA733C39AA27A /* QuitAllTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 581BCB945728A14879ADFB55 /* Build configuration list for PBXNativeTarget "QuitAllTests" */;
+			buildPhases = (
+				A45CB014140EF7447A6FDEDF /* Sources */,
+				EB73C3CF8EC304E5170DBDDC /* Frameworks */,
+				B8E616B9919F53B091435E83 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C42744B7C64478DC96AC37CC /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				7E923C186B74071131184FC5 /* QuitAllTests */,
+			);
+			name = QuitAllTests;
+			productName = QuitAllTests;
+			productReference = 3040AAF5553CE083474ABC2B /* QuitAllTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		545A08B19ED635FDD026120E /* QuitAllUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0C7364881CF2E44539F644B0 /* Build configuration list for PBXNativeTarget "QuitAllUITests" */;
+			buildPhases = (
+				373C5928FCB31AB6AC039647 /* Sources */,
+				FE0BFCAA6E99465DDBB6BF5E /* Frameworks */,
+				804B7D9095DB78F2FC675B2B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				13169993AEE099616EA1BF1A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				907C293FCD0A652C54889807 /* QuitAllUITests */,
+			);
+			name = QuitAllUITests;
+			productName = QuitAllUITests;
+			productReference = 5C975B288A3C75A17ECCD87D /* QuitAllUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		BA8210BC2F6F292B00542FAB /* Quit All */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = BA8210CD2F6F292C00542FAB /* Build configuration list for PBXNativeTarget "Quit All" */;
@@ -163,6 +249,14 @@
 				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
+					303B67E64CFAA733C39AA27A = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = BA8210BC2F6F292B00542FAB;
+					};
+					545A08B19ED635FDD026120E = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = BA8210BC2F6F292B00542FAB;
+					};
 					BA8210BC2F6F292B00542FAB = {
 						CreatedOnToolsVersion = 26.3;
 					};
@@ -217,11 +311,27 @@
 			targets = (
 				BA8210BC2F6F292B00542FAB /* Quit All */,
 				C00100062FB5000000000006 /* Quit All Widget */,
+				303B67E64CFAA733C39AA27A /* QuitAllTests */,
+				545A08B19ED635FDD026120E /* QuitAllUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		804B7D9095DB78F2FC675B2B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B8E616B9919F53B091435E83 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BA8210BB2F6F292B00542FAB /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -239,6 +349,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		373C5928FCB31AB6AC039647 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A45CB014140EF7447A6FDEDF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		BA8210B92F6F292B00542FAB /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -256,14 +380,100 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		13169993AEE099616EA1BF1A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Quit All";
+			target = BA8210BC2F6F292B00542FAB /* Quit All */;
+			targetProxy = 850C5972597772D96BF1F5DE /* PBXContainerItemProxy */;
+		};
 		C001000C2FB500000000000C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C00100062FB5000000000006 /* Quit All Widget */;
 			targetProxy = C001000D2FB500000000000D /* PBXContainerItemProxy */;
 		};
+		C42744B7C64478DC96AC37CC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "Quit All";
+			target = BA8210BC2F6F292B00542FAB /* Quit All */;
+			targetProxy = CC9F7559F92271279F17F0FB /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		3302FAC34C9B4AD9427C2FDE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 23RV7FYH36;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.apoorvdarshan.Quit-AllTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Quit All.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Quit All";
+			};
+			name = Release;
+		};
+		3C51B454D1A006B67B18426E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 23RV7FYH36;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.apoorvdarshan.Quit-AllUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = "Quit All";
+			};
+			name = Debug;
+		};
+		99830BB6CC962B10AABB2696 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 23RV7FYH36;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.apoorvdarshan.Quit-AllUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = "Quit All";
+			};
+			name = Release;
+		};
+		9D9D6D145D18229E07448BD4 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 23RV7FYH36;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.apoorvdarshan.Quit-AllTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Quit All.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Quit All";
+			};
+			name = Debug;
+		};
 		BA8210CB2F6F292C00542FAB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -542,6 +752,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0C7364881CF2E44539F644B0 /* Build configuration list for PBXNativeTarget "QuitAllUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3C51B454D1A006B67B18426E /* Debug */,
+				99830BB6CC962B10AABB2696 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		581BCB945728A14879ADFB55 /* Build configuration list for PBXNativeTarget "QuitAllTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9D9D6D145D18229E07448BD4 /* Debug */,
+				3302FAC34C9B4AD9427C2FDE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		BA8210B82F6F292B00542FAB /* Build configuration list for PBXProject "Quit All" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

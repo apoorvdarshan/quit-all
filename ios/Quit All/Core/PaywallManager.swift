@@ -28,8 +28,19 @@ final class PaywallManager {
     var isLoading: Bool = false
 
     private init() {
+        if AppTestEnvironment.isActive {
+            // Simulator tests: RevenueCat is never configured, so no store request
+            // is made and nothing can be purchased.
+            isSubscribed = AppTestEnvironment.grantsPremium
+            return
+        }
         Self.startRevenueCatConfiguration()
         Task { await checkEntitlements() }
+    }
+
+    /// Premium unlocks only from an active entitlement with one of the app's IDs.
+    static func grantsPremium(isEntitlementActive: (String) -> Bool) -> Bool {
+        entitlementIDs.contains(where: isEntitlementActive)
     }
 
     var hasAccess: Bool {
@@ -50,6 +61,14 @@ final class PaywallManager {
 
     // MARK: - Load Products
     func loadProducts() async {
+        if AppTestEnvironment.isActive {
+            // No store in simulator tests: the paywall shows its fallback prices.
+            packages = []
+            purchaseError = nil
+            isSubscribed = AppTestEnvironment.grantsPremium
+            return
+        }
+
         isLoading = true
         purchaseError = nil
 
@@ -73,6 +92,8 @@ final class PaywallManager {
 
     // MARK: - Purchase
     func purchase(_ package: Package) async -> Bool {
+        guard !AppTestEnvironment.isActive else { return false }
+
         isLoading = true
         purchaseError = nil
 
@@ -92,6 +113,13 @@ final class PaywallManager {
 
     // MARK: - Restore
     func restorePurchases() async {
+        if AppTestEnvironment.isActive {
+            // Restores only the entitlement the UI test simulates.
+            purchaseError = nil
+            isSubscribed = AppTestEnvironment.grantsPremium
+            return
+        }
+
         isLoading = true
         purchaseError = nil
 
@@ -109,6 +137,11 @@ final class PaywallManager {
 
     // MARK: - Check Entitlements
     func checkEntitlements() async {
+        if AppTestEnvironment.isActive {
+            isSubscribed = AppTestEnvironment.grantsPremium
+            return
+        }
+
         do {
             await Self.ensureRevenueCatConfigured()
             let customerInfo = try await Purchases.shared.customerInfo()
@@ -120,6 +153,7 @@ final class PaywallManager {
 
     // MARK: - Listen for Updates
     func listenForTransactions() async {
+        guard !AppTestEnvironment.isActive else { return }
         await Self.ensureRevenueCatConfigured()
         for await customerInfo in Purchases.shared.customerInfoStream {
             apply(customerInfo: customerInfo)
@@ -145,7 +179,7 @@ final class PaywallManager {
     }
 
     private func apply(customerInfo: CustomerInfo) {
-        isSubscribed = Self.entitlementIDs.contains {
+        isSubscribed = Self.grantsPremium {
             customerInfo.entitlements[$0]?.isActive == true
         }
     }

@@ -44,7 +44,8 @@ final class AppUpdateChecker: ObservableObject {
     }
 
     func checkForUpdate(force: Bool = false) async {
-        guard !isChecking else { return }
+        // Simulator tests never call the App Store lookup endpoint.
+        guard !isChecking, !AppTestEnvironment.isActive else { return }
 
         if !force,
            let lastCheckedAt,
@@ -108,7 +109,7 @@ final class AppUpdateChecker: ObservableObject {
         UIApplication.shared.open(appStoreURL)
     }
 
-    private static func isVersion(_ storeVersion: String, newerThan currentVersion: String) -> Bool {
+    static func isVersion(_ storeVersion: String, newerThan currentVersion: String) -> Bool {
         let storeParts = numericParts(from: storeVersion)
         let currentParts = numericParts(from: currentVersion)
         let count = max(storeParts.count, currentParts.count)

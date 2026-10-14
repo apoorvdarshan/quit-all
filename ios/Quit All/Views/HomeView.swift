@@ -205,6 +205,7 @@ struct HomeView: View {
                                 .stroke(isSelected ? Color(hex: "D4AF37").opacity(0.6) : Color.white.opacity(0.06), lineWidth: 1)
                         )
                     }
+                    .accessibilityIdentifier("home.habitCard.\(addiction.name ?? "")")
                 }
             }
             .padding(.horizontal, 20)
@@ -264,6 +265,7 @@ struct HomeView: View {
                         )
                         .contentTransition(.numericText())
                         .shadow(color: Color(hex: "D4AF37").opacity(0.3), radius: 12)
+                        .accessibilityIdentifier("home.streakValue")
 
                     Text("\(streak.unit) clean from \(addiction.name?.lowercased() ?? "")")
                         .font(.system(size: 13, weight: .medium, design: .serif))
@@ -273,6 +275,7 @@ struct HomeView: View {
                         .lineLimit(2)
                         .minimumScaleFactor(0.7)
                         .frame(maxWidth: 200)
+                        .accessibilityIdentifier("home.streakUnit")
                 }
             }
             .onTapGesture {
@@ -303,6 +306,7 @@ struct HomeView: View {
                     .foregroundColor(Color(hex: "D4AF37").opacity(0.6))
                     .tracking(0.5)
                     .padding(.top, 4)
+                    .accessibilityIdentifier("home.nextMilestone")
             }
 
             Spacer()
@@ -320,6 +324,7 @@ struct HomeView: View {
                 .foregroundColor(Color(hex: "F5E6A3"))
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .accessibilityIdentifier("home.stat.\(label)")
             Text(label.uppercased())
                 .font(.system(size: 9, weight: .semibold, design: .serif))
                 .foregroundColor(.white.opacity(0.35))
@@ -374,6 +379,7 @@ struct HomeView: View {
                     .stroke(Color(hex: "D4AF37").opacity(0.3), lineWidth: 1)
             )
         }
+        .accessibilityIdentifier("home.sos")
         .padding(.horizontal, 20)
         .padding(.bottom, 32)
         .pulsingAnimation()
