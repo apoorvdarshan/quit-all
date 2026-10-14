@@ -81,7 +81,7 @@ struct AboutView: View {
                 .listRowBackground(Color(hex: "111111"))
 
                 Section {
-                    Link(destination: URL(string: "https://www.instagram.com/quitall_com/")!) {
+                    Link(destination: URL(string: "https://www.instagram.com/apoorvcodes/")!) {
                         HStack {
                             Image(systemName: "camera.fill")
                                 .foregroundColor(gold)
@@ -89,6 +89,9 @@ struct AboutView: View {
                                 .font(.system(size: 15, weight: .medium, design: .serif))
                                 .foregroundColor(.white)
                             Spacer()
+                            Text(verbatim: "@apoorvcodes")
+                                .font(.system(size: 13, design: .serif))
+                                .foregroundColor(gold.opacity(0.6))
                             Image(systemName: "arrow.up.right")
                                 .font(.caption)
                                 .foregroundColor(gold.opacity(0.4))
@@ -103,6 +106,9 @@ struct AboutView: View {
                                 .font(.system(size: 15, weight: .medium, design: .serif))
                                 .foregroundColor(.white)
                             Spacer()
+                            Text(verbatim: "@apoorvdarshan")
+                                .font(.system(size: 13, design: .serif))
+                                .foregroundColor(gold.opacity(0.6))
                             Image(systemName: "arrow.up.right")
                                 .font(.caption)
                                 .foregroundColor(gold.opacity(0.4))

@@ -92,7 +92,7 @@ const jsonLd = {
   sameAs: [
     "https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934",
     "https://www.producthunt.com/products/quit-all-break-every-habit",
-    "https://www.instagram.com/quitall_com/",
+    "https://www.instagram.com/apoorvcodes/",
     "https://x.com/apoorvdarshan",
     "https://trustmrr.com/startup/quit-all-break-every-habit",
   ],
@@ -140,7 +140,7 @@ const entityJsonLd = {
       },
       sameAs: [
         "https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934",
-        "https://www.instagram.com/quitall_com/",
+        "https://www.instagram.com/apoorvcodes/",
         "https://x.com/apoorvdarshan",
         "https://www.producthunt.com/products/quit-all-break-every-habit",
       ],
