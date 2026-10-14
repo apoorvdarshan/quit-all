@@ -52,10 +52,28 @@ struct PersistenceController {
 
     let container: NSPersistentContainer
 
+    /// One model instance per process. Several containers (the app, previews,
+    /// unit tests) must share it, or Core Data cannot map the CD* classes to a
+    /// single entity description.
+    private static let managedObjectModel: NSManagedObjectModel = {
+        guard let url = Bundle.main.url(forResource: "Quit_All", withExtension: "momd"),
+              let model = NSManagedObjectModel(contentsOf: url) else {
+            fatalError("Missing Core Data model Quit_All.momd")
+        }
+        return model
+    }()
+
     init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "Quit_All")
+        container = NSPersistentContainer(name: "Quit_All", managedObjectModel: Self.managedObjectModel)
         if inMemory {
             container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+        } else if let testStoreURL = AppTestEnvironment.storeURL {
+            // Debug simulator UI tests only; see AppTestEnvironment.
+            try? FileManager.default.createDirectory(
+                at: testStoreURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            container.persistentStoreDescriptions.first!.url = testStoreURL
         }
         container.loadPersistentStores { _, error in
             if let error = error as NSError? {

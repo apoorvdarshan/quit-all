@@ -3,6 +3,9 @@ import CoreData
 
 @main
 struct Quit_AllApp: App {
+    // Declared first: simulator UI-test launch flags are applied before any state
+    // below is read. A no-op in Release and device builds.
+    private let testLaunchPreparation: Void = AppTestEnvironment.prepareLaunch()
     let persistenceController = PersistenceController.shared
 
     @State private var hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")

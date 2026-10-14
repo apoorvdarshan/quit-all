@@ -24,8 +24,10 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 
 ```
 .
-├── ios/    # SwiftUI iOS app (Xcode project) → App Store
-└── web/    # Next.js marketing site → quit-all.com
+├── ios/        # SwiftUI iOS app (Xcode project) + unit and UI tests → App Store
+├── store/      # App Store listing, screenshot order and product catalog (source of truth)
+├── scripts/    # iOS test runner and App Store release automation
+└── web/        # Next.js marketing site → quit-all.com
 ```
 
 ## Preview
@@ -100,6 +102,20 @@ npm run deploy    # build and deploy with Wrangler
 KLIPY requests are proxied through Cloudflare at `/api/klipy/...` so the iOS app never ships the API key. Configure `KLIPY_API_KEY` with `wrangler secret put KLIPY_API_KEY`, then call endpoints like `/api/klipy/v2/search?q=smoking`. Online GIF content shows Powered by KLIPY attribution in the app. Optional overrides: `KLIPY_API_BASE_URL` and `KLIPY_API_KEY_PARAM`.
 
 The iOS RevenueCat public SDK key is loaded from `/api/app-config` so it can be rotated without shipping a new app build. Configure `REVENUECAT_IOS_API_KEY` as a Cloudflare Worker secret. The app falls back to its bundled public key if the config endpoint is unavailable.
+
+## Testing and releases
+
+### Tests
+
+```bash
+bash scripts/test-ios.sh   # unit + UI tests on a temporary iPhone simulator (Xcode 27)
+```
+
+`ios/QuitAllTests` covers streaks, milestones, savings, habit and relapse storage, craving patterns, the widget snapshot and the premium entitlement rule; `ios/QuitAllUITests` walks through onboarding, the paywall, Home, SOS, relapse, habits, stats and settings. Tests run offline: in Debug simulator builds the app has a test mode that never contacts RevenueCat, the App Store or KLIPY, never asks for notification permission and can't buy anything. The **iOS tests** workflow runs both suites on every pull request and push to `main` that changes the app. Details: [`docs/ios-testing.md`](docs/ios-testing.md).
+
+### Releases
+
+GitHub Actions builds, signs and uploads the App Store binary — Xcode Cloud is being removed for this app and must not be re-created. Pushing a `vX.Y.Z` tag that equals `MARKETING_VERSION` runs [`ios-release.yml`](.github/workflows/ios-release.yml): it runs the tests, then only the store steps whose repository variables are switched on (`IOS_RELEASE_AUTOMATION`, `IOS_UPLOAD_BUILD`, `IOS_UPLOAD_LISTING`, `IOS_UPLOAD_WHATS_NEW`, `IOS_UPLOAD_SCREENSHOTS`, `IOS_SUBMIT_REVIEW`, `IOS_PUBLIC_RELEASE`; all off by default), and creates the GitHub Release with the matching [`RELEASE_NOTES.md`](RELEASE_NOTES.md) section. **Run workflow** on iOS Release only validates a signed build with App Store Connect and never uploads. The App Store listing, What's New and screenshot order live in [`store/metadata`](store/metadata). Details: [`store/README.md`](store/README.md).
 
 ## Links
 

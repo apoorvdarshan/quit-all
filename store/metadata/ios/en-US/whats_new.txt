@@ -1,0 +1,6 @@
+Quit All 1.2.1 is a maintenance update with under-the-hood improvements.
+
+- Cleaned up the About screen.
+- Performance and stability improvements.
+
+Version 1.2.1, build 6.

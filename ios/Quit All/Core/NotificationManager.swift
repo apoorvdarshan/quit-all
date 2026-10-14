@@ -7,6 +7,8 @@ final class NotificationManager {
     private init() {}
 
     func requestPermission() async -> Bool {
+        // Simulator tests never show the system permission prompt.
+        guard !AppTestEnvironment.isActive else { return false }
         do {
             return try await UNUserNotificationCenter.current()
                 .requestAuthorization(options: [.alert, .badge, .sound])
@@ -22,6 +24,8 @@ final class NotificationManager {
         startDate: Date,
         context: NSManagedObjectContext
     ) async {
+        guard !AppTestEnvironment.isActive else { return }
+
         // Remove existing notifications for this addiction
         let prefix = "quit_\(addictionType.rawValue)_"
         let center = UNUserNotificationCenter.current()

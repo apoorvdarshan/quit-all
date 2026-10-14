@@ -91,6 +91,7 @@ struct SOSView: View {
                     .font(.title2)
                     .foregroundColor(.gray)
             }
+            .accessibilityIdentifier("sos.close")
 
             Spacer()
 
@@ -216,6 +217,7 @@ struct SOSView: View {
                                 .stroke(selectedTrigger == trigger ? gold : gold.opacity(0.08), lineWidth: 1)
                         )
                     }
+                    .accessibilityIdentifier("sos.trigger.\(trigger.rawValue)")
                 }
             }
             .padding(.horizontal, 20)
@@ -290,6 +292,7 @@ struct SOSView: View {
                             .stroke(gold.opacity(0.4), lineWidth: 1)
                     )
                 }
+                .accessibilityIdentifier("sos.outcome.survived")
 
                 Button {
                     HapticManager.shared.relapse()
@@ -316,6 +319,7 @@ struct SOSView: View {
                             .stroke(darkRed.opacity(0.3), lineWidth: 1)
                     )
                 }
+                .accessibilityIdentifier("sos.outcome.relapsed")
             }
             .padding(.horizontal, 20)
 

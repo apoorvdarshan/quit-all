@@ -1,0 +1,93 @@
+# Store automation, offline: switch parsing, build wait/selection, listing and
+# screenshot checks, product catalog and release notes. Never contacts App Store
+# Connect and never uploads anything. Safe to run at any time.
+
+name: Store automation (offline)
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/store/**'
+      - 'scripts/release_notes.py'
+      - 'store/**'
+      - 'RELEASE_NOTES.md'
+      - 'requirements-store.txt'
+      - 'marketing/1260x2736/**'
+      - 'marketing/1242x2688/**'
+      - 'ios/Quit All.xcodeproj/project.pbxproj'
+      - 'ios/Quit All/Core/PaywallManager.swift'
+      - 'ios/Quit All/Products.storekit'
+      - '.github/workflows/ios-release.yml'
+      - '.github/workflows/store-automation.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/store/**'
+      - 'scripts/release_notes.py'
+      - 'store/**'
+      - 'RELEASE_NOTES.md'
+      - 'requirements-store.txt'
+      - 'marketing/1260x2736/**'
+      - 'marketing/1242x2688/**'
+      - 'ios/Quit All.xcodeproj/project.pbxproj'
+      - 'ios/Quit All/Core/PaywallManager.swift'
+      - 'ios/Quit All/Products.storekit'
+      - '.github/workflows/ios-release.yml'
+      - '.github/workflows/store-automation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: store-automation-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  offline-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /scripts/store/
+            /scripts/release_notes.py
+            /store/
+            /RELEASE_NOTES.md
+            /requirements-store.txt
+            /marketing/1260x2736/
+            /marketing/1242x2688/
+            /ios/Quit All.xcodeproj/project.pbxproj
+            /ios/Quit All/Core/PaywallManager.swift
+            /ios/Quit All/Products.storekit
+
+      - name: Install store tooling (hash-pinned)
+        run: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-store.txt
+
+      - name: Print switches (must stay safe by default)
+        env:
+          IOS_RELEASE_AUTOMATION: ${{ vars.IOS_RELEASE_AUTOMATION }}
+          IOS_UPLOAD_BUILD: ${{ vars.IOS_UPLOAD_BUILD }}
+          IOS_UPLOAD_LISTING: ${{ vars.IOS_UPLOAD_LISTING }}
+          IOS_UPLOAD_WHATS_NEW: ${{ vars.IOS_UPLOAD_WHATS_NEW }}
+          IOS_UPLOAD_SCREENSHOTS: ${{ vars.IOS_UPLOAD_SCREENSHOTS }}
+          IOS_SUBMIT_REVIEW: ${{ vars.IOS_SUBMIT_REVIEW }}
+          IOS_PUBLIC_RELEASE: ${{ vars.IOS_PUBLIC_RELEASE }}
+          IOS_BUILD_POLL_SECONDS: ${{ vars.IOS_BUILD_POLL_SECONDS }}
+          IOS_BUILD_WAIT_MINUTES: ${{ vars.IOS_BUILD_WAIT_MINUTES }}
+        run: python3 scripts/store/print_gates.py --platform ios
+
+      - name: Test switches, build wait, build selection and repo inputs (offline)
+        run: python3 -m unittest -v scripts/store/test_ios_release.py
+
+      - name: Dry-run every App Store Connect operation against the committed inputs
+        run: |
+          version="$(cat store/metadata/ios/whats_new_version.txt)"
+          UPLOAD_LISTING=true UPLOAD_WHATS_NEW=true UPLOAD_SCREENSHOTS=true \
+          SUBMIT_IOS_REVIEW=true PUBLIC_RELEASE=false \
+            python3 scripts/store/asc_release.py --dry-run --version "$version" \
+            --build-id DRY-RUN --build-number 1

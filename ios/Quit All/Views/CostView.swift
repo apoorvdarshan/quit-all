@@ -70,6 +70,7 @@ struct CostView: View {
                     )
                 )
                 .shadow(color: gold.opacity(0.3), radius: 12)
+                .accessibilityIdentifier("cost.totalSaved")
 
             Text("since quitting \(addiction.name?.lowercased() ?? "")")
                 .font(.system(size: 12, design: .serif))

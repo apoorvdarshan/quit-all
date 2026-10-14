@@ -2,6 +2,8 @@
 
 App Store Connect submission details for Quit All v1.2.1, build 1. Each field is in a code block for easy copy-paste.
 
+The listing that release automation uploads lives in [`store/metadata/ios/`](store/metadata/ios/) (exported from App Store Connect); keep this file in sync by hand or treat it as a readable copy. See [`store/README.md`](store/README.md).
+
 ## App Name
 
     Quit All - Break Every Habit

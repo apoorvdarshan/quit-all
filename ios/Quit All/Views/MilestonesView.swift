@@ -120,6 +120,7 @@ struct MilestonesView: View {
             .opacity(unlocked ? 1.0 : 0.5)
         }
         .disabled(!unlocked)
+        .accessibilityIdentifier("milestone.\(milestone.type.rawValue)")
     }
 
     // MARK: - Shareable Card

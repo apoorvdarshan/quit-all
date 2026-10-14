@@ -71,6 +71,7 @@ struct AddictionsView: View {
                                     .foregroundColor(gold.opacity(0.3))
                             }
                         }
+                        .accessibilityIdentifier("habits.row.\(addiction.name ?? "")")
                     }
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
@@ -114,6 +115,7 @@ struct AddictionsView: View {
                                 .font(.system(size: 15, weight: .semibold))
                                 .foregroundColor(gold)
                         }
+                        .accessibilityIdentifier("habits.add")
 
                         Menu {
                             Button {
@@ -215,6 +217,7 @@ struct EditAddictionView: View {
                                     .keyboardType(.decimalPad)
                                     .foregroundColor(lightGold)
                                     .font(.system(size: 22, weight: .bold, design: .serif))
+                                    .accessibilityIdentifier("editHabit.dailyCost")
                             }
                             .padding()
                             .background(Color(hex: "111111"))
@@ -393,6 +396,7 @@ struct AddNewAddictionView: View {
                                                 .stroke(selectedType == type ? gold.opacity(0.5) : Color.white.opacity(0.06), lineWidth: 1)
                                         )
                                     }
+                                    .accessibilityIdentifier("addHabit.type.\(type.rawValue)")
                                 }
                             }
                             .padding(.horizontal, 20)
@@ -412,6 +416,7 @@ struct AddNewAddictionView: View {
                                             .keyboardType(.decimalPad)
                                             .foregroundColor(lightGold)
                                             .font(.system(size: 22, weight: .bold, design: .serif))
+                                            .accessibilityIdentifier("addHabit.dailyCost")
                                     }
                                     .padding()
                                     .background(Color(hex: "111111"))
