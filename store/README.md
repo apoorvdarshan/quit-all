@@ -28,7 +28,8 @@ vX.Y.Z tag ─► resolve switches (tag must equal MARKETING_VERSION; bad values
                         ─► cloud-signed App Store export ─► verify signature, profile,
                            entitlements and app group of the app and the widget
                         ─► upload
-                        ─► wait until THIS build is VALID (poll 30 s, up to 120 min from upload start)
+                        ─► wait-for-build job: wait until THIS build is VALID
+                           (poll 30 s, up to 120 min from upload start)
        IOS_UPLOAD_LISTING / IOS_UPLOAD_WHATS_NEW / IOS_UPLOAD_SCREENSHOTS ─► version metadata
        IOS_SUBMIT_REVIEW ─► select this run's build, read it back, set release type
                          ─► recheck build + selection ─► submit version and products
@@ -47,6 +48,21 @@ Submission fails instead of continuing when the build times out, fails
 processing, is expired, is ambiguous, belongs to another app or version, was
 uploaded before this run, or is not the build selected on the version. An
 older build is never substituted.
+
+Waiting for the build is its own job (`wait-for-build`), which hands the
+processed build's id to the store job. When a later store step fails (for
+example App Store Connect changed in between), **Re-run failed jobs** reuses
+that result instead of waiting again against the original upload deadline,
+which would always time out; the store step still re-verifies the build before
+selecting it.
+
+Tag runs share one concurrency group with `queue: max`: releases run one at a
+time, and a newer tag waits in the queue instead of cancelling a pending one.
+Manual validation runs each get their own group and never cancel a release.
+
+If the build job fails, its logs are kept as the `ios-release-logs-<run id>-<attempt>`
+artifact for 7 days, with the App Store Connect key ID and issuer ID replaced by
+`<ASC_KEY_ID>` and `<ASC_ISSUER_ID>` (artifacts are not masked like the console).
 
 ## Switches
 
