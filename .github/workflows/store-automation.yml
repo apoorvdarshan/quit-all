@@ -1,6 +1,8 @@
 # Store automation, offline: switch parsing, build wait/selection, listing and
-# screenshot checks, product catalog and release notes. Never contacts App Store
-# Connect and never uploads anything. Safe to run at any time.
+# screenshot checks, metadata reruns, the App Store Connect preflight, product
+# submission, failure-log redaction, product catalog and release notes. Never
+# contacts App Store Connect and never uploads anything. Safe to run at any time.
+# A newer push to a pull request cancels its older run; main runs never cancel.
 
 name: Store automation (offline)
 
@@ -65,6 +67,12 @@ jobs:
             /ios/Quit All/Core/PaywallManager.swift
             /ios/Quit All/Products.storekit
 
+      # Same Python as the release jobs; never the runner image's system Python.
+      - name: Set up Python for the store tooling
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.13"
+
       - name: Install store tooling (hash-pinned)
         run: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-store.txt
 
@@ -81,7 +89,9 @@ jobs:
           IOS_BUILD_WAIT_MINUTES: ${{ vars.IOS_BUILD_WAIT_MINUTES }}
         run: python3 scripts/store/print_gates.py --platform ios
 
-      - name: Test switches, build wait, build selection and repo inputs (offline)
+      # Every committed input is checked here, including the listing, What's New
+      # and screenshot files a release run checks only when their switch is on.
+      - name: Test switches, build wait, build selection, log redaction and repo inputs (offline)
         run: python3 -m unittest -v scripts/store/test_ios_release.py
 
       - name: Dry-run every App Store Connect operation against the committed inputs
@@ -89,5 +99,5 @@ jobs:
           version="$(cat store/metadata/ios/whats_new_version.txt)"
           UPLOAD_LISTING=true UPLOAD_WHATS_NEW=true UPLOAD_SCREENSHOTS=true \
           SUBMIT_IOS_REVIEW=true PUBLIC_RELEASE=false \
-            python3 scripts/store/asc_release.py --dry-run --version "$version" \
+            python3 -u scripts/store/asc_release.py --dry-run --version "$version" \
             --build-id DRY-RUN --build-number 1
