@@ -16,6 +16,12 @@
   <a href="https://quit-all.com/terms">Terms</a>
 </p>
 
+<p align="center">
+  <a href="https://www.bestpractices.dev/projects/15503"><img src="https://www.bestpractices.dev/projects/15503/badge" alt="OpenSSF Best Practices"></a>
+  <a href="https://scorecard.dev/viewer/?uri=github.com/apoorvdarshan/quit-all"><img src="https://api.scorecard.dev/projects/github.com/apoorvdarshan/quit-all/badge" alt="OpenSSF Scorecard"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"></a>
+</p>
+
 ---
 
 Monorepo for the **Quit All** iOS app and its marketing website.
