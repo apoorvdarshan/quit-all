@@ -1,0 +1,66 @@
+name: Bug report
+description: Something isn't working as expected in Quit All
+title: "Bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please fill out the sections below so it can be reproduced quickly.
+        Security issues belong in [private vulnerability reporting](https://github.com/apoorvdarshan/quit-all/security/advisories/new), not here.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where did you see the bug?
+      multiple: true
+      options:
+        - iOS app
+        - Widget
+        - Website (quit-all.com)
+        - Subscription / purchase
+        - Other / unclear
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: From the About screen in the app, or the App Store listing.
+      placeholder: e.g. 1.2.1
+  - type: input
+    id: device-os
+    attributes:
+      label: Device and iOS version
+      placeholder: e.g. iPhone 16 Pro, iOS 26.1
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Exact steps someone else can follow.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshots or screen recording
+      description: Drag and drop images or a short video here if helpful. Remove any personal information first.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional context

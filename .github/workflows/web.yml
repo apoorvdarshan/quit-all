@@ -1,0 +1,101 @@
+# Website checks: lint, tests (including the generated-input fuzz tests for the
+# KLIPY proxy), the Cloudflare Workers build, and a smoke test of that build in
+# the local Workers runtime. Never deploys.
+#
+# Pull requests and pushes that change web/ run 1,000 fuzz cases per property;
+# the weekly scheduled run uses 50,000.
+
+name: Web
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - '.github/workflows/web.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web.yml'
+  schedule:
+    # Weekly on Wednesdays.
+    - cron: '23 3 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer push to a pull request supersedes its older run. Pushes to main,
+# scheduled and manual runs each keep their own run and are never cancelled.
+concurrency:
+  group: web-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+      WRANGLER_SEND_METRICS: false
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /web/
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint -- --max-warnings=0
+
+      - name: Tests and fuzzing
+        env:
+          FUZZ_RUNS: ${{ github.event_name == 'schedule' && '50000' || '1000' }}
+        run: npm test
+
+      - name: Build for Cloudflare Workers
+        run: npm run build
+
+      # Serves the built Worker locally (no Cloudflare account, no real KLIPY key)
+      # and checks that pages render and the API routes answer as expected.
+      - name: Smoke-test the Worker build
+        run: |
+          npx wrangler dev --port 8787 --ip 127.0.0.1 \
+            --var KLIPY_API_KEY:ci-placeholder \
+            --var KLIPY_API_BASE_URL:http://127.0.0.1:9 \
+            > "$RUNNER_TEMP/wrangler.log" 2>&1 &
+          for _ in $(seq 1 60); do
+            curl -s -o /dev/null http://127.0.0.1:8787/ && break
+            sleep 2
+          done
+          status=0
+          check() {
+            code="$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8787$1")"
+            echo "$1 -> $code (expected $2)"
+            [ "$code" = "$2" ] || status=1
+          }
+          check / 200
+          check /privacy 200
+          check /terms 200
+          check /sitemap.xml 200
+          check /api/app-config 200
+          check '/api/klipy/v3/search' 400
+          check '/api/klipy/v2/search?q=x' 502
+          kill %1 || true
+          if [ "$status" -ne 0 ]; then
+            cat "$RUNNER_TEMP/wrangler.log"
+            exit 1
+          fi

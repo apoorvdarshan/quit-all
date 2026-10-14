@@ -1,0 +1,85 @@
+# CodeQL static analysis of the Swift app and widget. Swift extraction needs a
+# macOS runner and a full compile under the CodeQL tracer. CodeQL 2.27 supports
+# Swift 5.4–6.3, so this compiles with Xcode 26.4.1 (Swift 6.3) rather than the
+# Xcode 27 (Swift 6.4) used by the tests. It builds an unsigned Debug app for a
+# generic iOS device, without any build cache, and never archives or uploads.
+#
+# Runs for pull requests and pushes that change the app, weekly, and on demand.
+
+name: CodeQL (Swift)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - '!ios/**/*.md'
+      - '!ios/screenshots/**'
+      - '!ios/logo.png'
+      - '!ios/Quit All.xcodeproj/xcuserdata/**'
+      - '.github/workflows/codeql-swift.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'ios/**'
+      - '!ios/**/*.md'
+      - '!ios/screenshots/**'
+      - '!ios/logo.png'
+      - '!ios/Quit All.xcodeproj/xcuserdata/**'
+      - '.github/workflows/codeql-swift.yml'
+  schedule:
+    # Weekly on Mondays.
+    - cron: '41 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-swift-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyze (swift)
+    runs-on: macos-26
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      security-events: write # upload SARIF to code scanning
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.4.1.app/Contents/Developer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /ios/
+            !/ios/screenshots/
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          languages: swift
+          build-mode: manual
+
+      - name: Build the app under CodeQL
+        run: |
+          swift --version
+          xcodebuild build \
+            -project "ios/Quit All.xcodeproj" \
+            -scheme "Quit All" \
+            -configuration Debug \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/codeql-build" \
+            -onlyUsePackageVersionsFromResolvedFile \
+            CODE_SIGNING_ALLOWED=NO \
+            COMPILATION_CACHE_ENABLE_CACHING=NO
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@24c54180a607b1449ed407dd24f251e4e9147c8d # v4.38.3
+        with:
+          category: /language:swift
