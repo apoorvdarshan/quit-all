@@ -8,9 +8,10 @@ key=value lines to $GITHUB_OUTPUT when it is set):
                 run may do. Missing values mean off; invalid values fail.
   build-number  Next CFBundleVersion: max(project value, highest ASC build + 1).
   wait-build    Poll App Store Connect until the build uploaded by THIS run is
-                processed (VALID, unexpired, matching app/version/build number).
-                Fails on timeout, processing failure, ambiguity or mismatch and
-                never falls back to another build.
+                processed (VALID, unexpired, matching app/version/build number,
+                uploaded after this run started uploading). Fails on timeout,
+                processing failure, ambiguity, mismatch or a missing upload time
+                and never falls back to another build.
 
 See store/README.md for what each switch controls.
 """
@@ -188,6 +189,17 @@ def parse_asc_date(value: str) -> float:
     return dt.datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
 
 
+def upload_time(attrs: Mapping[str, Any]) -> float | None:
+    """The build's uploadedDate in epoch seconds, or None when it is missing or unreadable."""
+    value = attrs.get("uploadedDate")
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        return parse_asc_date(value.strip())
+    except ValueError:
+        return None
+
+
 class BuildState:
     WAITING = "waiting"
     READY = "ready"
@@ -229,17 +241,24 @@ def evaluate_builds(
 
     build = matches[0]
     attrs = build.get("attributes") or {}
-    uploaded = attrs.get("uploadedDate")
-    if uploaded and parse_asc_date(uploaded) < uploaded_after - UPLOAD_CLOCK_SKEW_SECONDS:
+    uploaded_at = upload_time(attrs)
+    if uploaded_at is not None and uploaded_at < uploaded_after - UPLOAD_CLOCK_SKEW_SECONDS:
         raise ReleaseError(
-            f"build {build_number} was uploaded at {uploaded}, before this run's upload; "
-            "refusing to use an older build"
+            f"build {build_number} was uploaded at {attrs.get('uploadedDate')}, before this run's "
+            "upload; refusing to use an older build"
         )
     state = attrs.get("processingState")
     if state in {"FAILED", "INVALID"}:
         raise ReleaseError(f"App Store Connect processing ended in {state} for build {build_number}")
     if state != "VALID":
         return BuildState.WAITING, f"processing state {state or 'unknown'}", None
+    if uploaded_at is None:
+        # Fail closed: without an upload time the build cannot be shown to be this
+        # run's upload, so it is never used.
+        raise ReleaseError(
+            f"build {build_number} has no readable uploadedDate ({attrs.get('uploadedDate')!r}), "
+            "so it cannot be shown to be the build uploaded by this run; refusing to use it"
+        )
     if attrs.get("expired"):
         raise ReleaseError(f"build {build_number} is expired")
     return BuildState.READY, f"build {build_number} is VALID", build

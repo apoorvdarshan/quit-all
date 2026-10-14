@@ -1,0 +1,35 @@
+# Dependabot version updates for the CI and release tooling. Dependabot security
+# alerts are enabled separately, in the repository settings.
+#
+#   github-actions  the commit-SHA-pinned actions in .github/workflows
+#   pip             the hash-locked store tooling (requirements-store.in compiled
+#                   to requirements-store.txt) that runs with the App Store
+#                   Connect key in the release jobs
+#
+# Monthly, one grouped pull request per ecosystem: an actions bump that touches
+# ios-tests.yml runs the macOS test suite, and macOS minutes cost money on this
+# private repository. Swift packages are not listed because Dependabot version
+# updates need a Package.swift manifest, and the app's packages are pinned in the
+# Xcode project (Package.resolved) instead.
+
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "CI"
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      store-tooling:
+        patterns: ["*"]
+    commit-message:
+      prefix: "Store tooling"

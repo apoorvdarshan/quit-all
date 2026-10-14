@@ -6,14 +6,30 @@ directory there is uploaded, and App Store Connect must already have that
 locale on the version. App info fields (name, subtitle, privacy URL) are kept
 for reference only and are not uploaded.
 
+Metadata steps are idempotent: the live text and screenshots are read first and
+only what differs is written. A rerun therefore also works after a review
+submission was started (READY_FOR_REVIEW still takes text changes, not
+screenshots) or completed (WAITING_FOR_REVIEW takes no changes): it passes when
+the metadata is already in place and fails, before any write, when a change
+would be needed.
+
 Submitting for review covers both the App Store version and any Ready-to-Submit
-in-app purchases or subscriptions listed in store/catalog/products.json. As of
-the 2026 workflow, subscriptions attach to the review submission through the
-`subscriptionVersion` relationship on Review Submission Items; a first-time
-subscription must go out with the version or App Review rejects the build."""
+in-app purchases or subscriptions listed in store/catalog/products.json. They
+are attached to the same draft review submission as the version (subscriptions
+through the `subscriptionVersion` relationship, one-time purchases through
+`inAppPurchaseVersion`), so everything goes to App Review with one submit, after
+the final build recheck. (A rerun that finds the version already waiting for
+review with this run's build sends a late product in a product-only draft.) A
+first-time subscription must go out with the version or App Review rejects the
+build.
+
+`--preflight` runs before anything is built: read-only checks (GET requests
+only) that the App Store version exists, is in a state the enabled switches can
+use, and has every repository locale, so a release fails before it uploads."""
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -27,6 +43,8 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 ASC_BASE = "https://api.appstoreconnect.apple.com/v1"
+# In-app purchase versions are listed under the v2 inAppPurchases resource.
+ASC_V2_BASE = "https://api.appstoreconnect.apple.com/v2"
 DEFAULT_BUNDLE_ID = "com.apoorvdarshan.Quit-All"
 DEFAULT_APP_ID = "6760978934"
 METADATA_DIR = ROOT / "store" / "metadata"
@@ -42,6 +60,7 @@ SCREENSHOT_SIZES = {
 SCREENSHOT_MANIFEST = "screenshots.json"
 WHATS_NEW_VERSION_FILE = "whats_new_version.txt"
 
+# Every metadata field, screenshots included, can be written in these states.
 EDITABLE_VERSION_STATES = {
     "PREPARE_FOR_SUBMISSION",
     "DEVELOPER_REJECTED",
@@ -50,8 +69,13 @@ EDITABLE_VERSION_STATES = {
     "INVALID_BINARY",
 }
 # READY_FOR_REVIEW means the version already sits in a draft review submission
-# (for example after a failed submit); it can still be submitted.
+# (for example after a failed submit); it can still be submitted, and Apple still
+# accepts text changes then, but not new screenshots.
 SUBMITTABLE_VERSION_STATES = EDITABLE_VERSION_STATES | {"READY_FOR_REVIEW"}
+TEXT_EDITABLE_VERSION_STATES = EDITABLE_VERSION_STATES | {"READY_FOR_REVIEW"}
+# A rerun may find the version here after its earlier attempt started or
+# completed the submission. Metadata switches pass only when nothing would change.
+UNCHANGED_METADATA_STATES = {"READY_FOR_REVIEW", "WAITING_FOR_REVIEW"}
 
 
 def fail(msg: str) -> None:
@@ -200,14 +224,20 @@ def client_from_environment() -> AscClient:
 
 
 def find_app(client: AscClient, bundle_id: str) -> str:
+    """The id of the one App Store Connect app whose bundle id is exactly bundle_id.
+
+    The filter is not trusted to be exact: rows for other bundle ids are ignored,
+    and anything but exactly one exact match stops the run.
+    """
     query = urllib.parse.urlencode({"filter[bundleId]": bundle_id})
-    payload = client.get(f"/apps?{query}")
-    data = payload.get("data") or []
-    if not data:
-        fail(f"no App Store Connect app for bundle id {bundle_id}")
-    if len(data) > 1:
-        fail(f"ambiguous: {len(data)} App Store Connect apps for bundle id {bundle_id}")
-    return data[0]["id"]
+    rows = iter_collection(client, f"/apps?{query}")
+    matches = [row for row in rows if (row.get("attributes") or {}).get("bundleId") == bundle_id]
+    if not matches:
+        fail(f"no App Store Connect app has bundle id {bundle_id}")
+    if len(matches) > 1:
+        ids = ", ".join(str(row.get("id")) for row in matches)
+        fail(f"ambiguous: {len(matches)} App Store Connect apps have bundle id {bundle_id} ({ids})")
+    return matches[0]["id"]
 
 
 def get_ios_app_store_version(
@@ -250,7 +280,10 @@ def localization_for_locale(
     payload = client.get(f"{collection_path}?{query}")
     data = payload.get("data") or []
     if not data:
-        fail(f"no localization {locale} at {collection_path}")
+        fail(
+            f"App Store Connect has no {locale} localization at {collection_path}; "
+            "add that language to the version in App Store Connect first"
+        )
     return data[0]
 
 
@@ -293,43 +326,136 @@ def check_listing_text(loc_dir: Path, fields: tuple[tuple[str, str, int | None],
     return problems
 
 
-def upload_listing(
-    client: AscClient,
-    *,
-    app_id: str,
-    version_id: str,
-    locale: str,
-    metadata_dir: Path,
-    include_listing: bool = True,
-    include_whats_new: bool = False,
-) -> None:
-    """Update the version localization. Listing text and What's New are separate gates."""
-    del app_id  # app info (name/subtitle/privacy) locked while prior version is live
-    loc_dir = metadata_dir / "ios" / locale
+def wanted_version_text(
+    loc_dir: Path, *, include_listing: bool, include_whats_new: bool
+) -> dict[str, str]:
+    """Version-localization fields the enabled switches upload for one locale.
 
-    version_loc = localization_for_locale(
-        client, f"/appStoreVersions/{version_id}/appStoreVersionLocalizations", locale
-    )
+    Listing text and What's New are separate gates; app info fields (name,
+    subtitle, privacy URL) are never uploaded.
+    """
     fields = (LISTING_FIELDS if include_listing else ()) + (
         (WHATS_NEW_FIELD,) if include_whats_new else ()
     )
-    version_attrs: dict[str, str] = {}
+    wanted: dict[str, str] = {}
     for field, filename, _limit in fields:
         value = read_text(loc_dir / filename)
         if value:
-            version_attrs[field] = value
-    if version_attrs:
-        client.patch(
-            f"/appStoreVersionLocalizations/{version_loc['id']}",
-            {
-                "data": {
-                    "type": "appStoreVersionLocalizations",
-                    "id": version_loc["id"],
-                    "attributes": version_attrs,
-                }
-            },
+            wanted[field] = value
+    return wanted
+
+
+def normalized_text(value: Any) -> str:
+    """Text as compared with App Store Connect (line endings and outer whitespace ignored)."""
+    if not isinstance(value, str):
+        return ""
+    return value.replace("\r\n", "\n").strip()
+
+
+def file_md5(path: Path) -> str:
+    """The MD5 App Store Connect keeps as a screenshot's sourceFileChecksum."""
+    return hashlib.md5(path.read_bytes(), usedforsecurity=False).hexdigest()
+
+
+class LocalePlan:
+    """What the metadata step would write for one locale, read with GET requests only."""
+
+    def __init__(self, locale: str, localization_id: str) -> None:
+        self.locale = locale
+        self.localization_id = localization_id
+        # Version-localization fields the switches upload, and the ones that differ.
+        self.text_fields: list[str] = []
+        self.text_changes: dict[str, str] = {}
+        # Screenshot display types the switch uploads, and the ones that differ.
+        self.screenshots: dict[str, list[Path]] = {}
+        self.stale_screenshots: list[str] = []
+
+
+def plan_metadata(
+    client: AscClient,
+    *,
+    version_id: str,
+    locales: list[str],
+    metadata_dir: Path,
+    include_listing: bool,
+    include_whats_new: bool,
+    screenshot_sets: dict[str, dict[str, list[Path]]],
+) -> list[LocalePlan]:
+    """Compare the repository metadata with App Store Connect without changing anything.
+
+    Fails if App Store Connect lacks a repository locale on the version.
+    """
+    plans: list[LocalePlan] = []
+    for locale in locales:
+        sets = screenshot_sets.get(locale) or {}
+        if not (include_listing or include_whats_new or sets):
+            continue
+        loc = localization_for_locale(
+            client, f"/appStoreVersions/{version_id}/appStoreVersionLocalizations", locale
         )
-        print(f"  updated version localization ({locale}): {', '.join(version_attrs)}")
+        plan = LocalePlan(locale, loc["id"])
+        wanted = wanted_version_text(
+            metadata_dir / "ios" / locale,
+            include_listing=include_listing,
+            include_whats_new=include_whats_new,
+        )
+        live = loc.get("attributes") or {}
+        plan.text_fields = list(wanted)
+        plan.text_changes = {
+            field: value
+            for field, value in wanted.items()
+            if normalized_text(live.get(field)) != normalized_text(value)
+        }
+        plan.screenshots = dict(sets)
+        plan.stale_screenshots = [
+            display_type
+            for display_type, pngs in sets.items()
+            if not screenshots_up_to_date(client, loc["id"], display_type, pngs)
+        ]
+        plans.append(plan)
+    return plans
+
+
+def metadata_problems(plans: list[LocalePlan], *, version: str, state: str) -> list[str]:
+    """Changes the version's state cannot take; empty when the plan can be applied."""
+    problems: list[str] = []
+    for plan in plans:
+        if plan.text_changes and state not in TEXT_EDITABLE_VERSION_STATES:
+            problems.append(
+                f"{plan.locale}: {', '.join(plan.text_changes)} differ from App Store Connect, "
+                f"and version {version!r} takes no text changes while {state}"
+            )
+        if plan.stale_screenshots and state not in EDITABLE_VERSION_STATES:
+            problems.append(
+                f"{plan.locale}: the {', '.join(plan.stale_screenshots)} screenshots differ from "
+                f"App Store Connect, and version {version!r} takes no new screenshots while {state}"
+            )
+    return problems
+
+
+def apply_metadata(client: AscClient, plans: list[LocalePlan]) -> None:
+    """Write only what differs: changed text fields and stale screenshot sets."""
+    for plan in plans:
+        if plan.text_changes:
+            client.patch(
+                f"/appStoreVersionLocalizations/{plan.localization_id}",
+                {
+                    "data": {
+                        "type": "appStoreVersionLocalizations",
+                        "id": plan.localization_id,
+                        "attributes": plan.text_changes,
+                    }
+                },
+            )
+            print(f"  updated version localization ({plan.locale}): {', '.join(plan.text_changes)}")
+        elif plan.text_fields:
+            print(f"  version localization ({plan.locale}) already up to date: {', '.join(plan.text_fields)}")
+        for display_type, pngs in plan.screenshots.items():
+            if display_type in plan.stale_screenshots:
+                print(f"  {plan.locale} {display_type}: {len(pngs)} screenshot(s)")
+                replace_screenshot_set(client, plan.localization_id, display_type, pngs)
+            else:
+                print(f"  {plan.locale} {display_type}: already up to date ({len(pngs)} screenshot(s))")
 
 
 def png_size(path: Path) -> tuple[int, int] | None:
@@ -341,12 +467,14 @@ def png_size(path: Path) -> tuple[int, int] | None:
     return int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
 
 
-def load_screenshot_sets(metadata_dir: Path, locale: str, root: Path = ROOT) -> dict[str, list[Path]]:
+def load_screenshot_sets(metadata_dir: Path, locale: str, root: Path | None = None) -> dict[str, list[Path]]:
     """Ordered screenshots per display type for one locale, from its screenshots.json.
 
-    Paths in the manifest are relative to the repository root. Fails with a
-    clear message if the manifest, a file, or an image size is wrong.
+    Paths in the manifest are relative to the repository root (ROOT unless
+    given). Fails with a clear message if the manifest, a file, or an image
+    size is wrong.
     """
+    root = ROOT if root is None else root
     manifest_path = metadata_dir / "ios" / locale / SCREENSHOT_MANIFEST
     if not manifest_path.is_file():
         fail(
@@ -398,12 +526,42 @@ def screenshot_sets_for_localization(
     return payload.get("data") or []
 
 
-def ensure_screenshot_set(
+def find_screenshot_set(
     client: AscClient, version_loc_id: str, display_type: str
-) -> dict[str, Any]:
+) -> dict[str, Any] | None:
     for item in screenshot_sets_for_localization(client, version_loc_id):
         if (item.get("attributes") or {}).get("screenshotDisplayType") == display_type:
             return item
+    return None
+
+
+def screenshots_up_to_date(
+    client: AscClient, version_loc_id: str, display_type: str, pngs: list[Path]
+) -> bool:
+    """True when the live set already holds exactly these files, in this order (read-only).
+
+    Compares App Store Connect's sourceFileChecksum (MD5) with the files; a
+    screenshot whose processing failed never counts as up to date.
+    """
+    shot_set = find_screenshot_set(client, version_loc_id, display_type)
+    if shot_set is None:
+        return False
+    payload = client.get(f"/appScreenshotSets/{shot_set['id']}/appScreenshots")
+    live: list[str] = []
+    for shot in payload.get("data") or []:
+        attrs = shot.get("attributes") or {}
+        if (attrs.get("assetDeliveryState") or {}).get("state") == "FAILED":
+            return False
+        live.append(str(attrs.get("sourceFileChecksum") or "").lower())
+    return live == [file_md5(path) for path in pngs]
+
+
+def ensure_screenshot_set(
+    client: AscClient, version_loc_id: str, display_type: str
+) -> dict[str, Any]:
+    existing = find_screenshot_set(client, version_loc_id, display_type)
+    if existing is not None:
+        return existing
     created = client.post(
         "/appScreenshotSets",
         {
@@ -438,6 +596,7 @@ def upload_screenshot_file(
     client: AscClient, screenshot_set_id: str, image_path: Path
 ) -> None:
     raw = image_path.read_bytes()
+    checksum = hashlib.md5(raw, usedforsecurity=False).hexdigest()
     reserved = client.post(
         "/appScreenshots",
         {
@@ -467,13 +626,14 @@ def upload_screenshot_file(
         headers = {h["name"]: h["value"] for h in op.get("requestHeaders") or []}
         method = (op.get("method") or "PUT").upper()
         client.upload_bytes(op["url"], chunk, headers, method=method)
+    # The checksum lets a rerun recognise a set that is already up to date.
     client.patch(
         f"/appScreenshots/{shot_id}",
         {
             "data": {
                 "type": "appScreenshots",
                 "id": shot_id,
-                "attributes": {"uploaded": True},
+                "attributes": {"uploaded": True, "sourceFileChecksum": checksum},
             }
         },
     )
@@ -508,21 +668,6 @@ def replace_screenshot_set(
     if pending_old_ids:
         delete_screenshots(client, pending_old_ids)
         print(f"  removed {len(pending_old_ids)} previous {display_type} screenshot(s)")
-
-
-def upload_screenshots(
-    client: AscClient,
-    *,
-    version_id: str,
-    locale: str,
-    sets: dict[str, list[Path]],
-) -> None:
-    version_loc = localization_for_locale(
-        client, f"/appStoreVersions/{version_id}/appStoreVersionLocalizations", locale
-    )
-    for display_type, pngs in sets.items():
-        print(f"  {locale} {display_type}: {len(pngs)} screenshot(s)")
-        replace_screenshot_set(client, version_loc["id"], display_type, pngs)
 
 
 def iter_collection(client: AscClient, path: str) -> list[dict[str, Any]]:
@@ -613,12 +758,12 @@ def draft_item_relationships(client: AscClient, submission_id: str) -> list[dict
     return iter_collection(
         client,
         f"/reviewSubmissions/{submission_id}/items"
-        "?limit=50&include=subscriptionVersion,appStoreVersion",
+        "?limit=50&include=subscriptionVersion,appStoreVersion,inAppPurchaseVersion",
     )
 
 
 def draft_item_version_ids(client: AscClient, submission_id: str) -> set[str]:
-    """Return the subscription/app version ids already attached to a draft."""
+    """Return the subscription/in-app purchase/app version ids already attached to a draft."""
     ids: set[str] = set()
     for item in draft_item_relationships(client, submission_id):
         relationships = item.get("relationships") or {}
@@ -663,6 +808,14 @@ def submit_product_draft(client: AscClient, submission_id: str) -> None:
     print(f"  submitted product review submission {submission_id}")
 
 
+def newest_version_id(versions: list[dict[str, Any]]) -> str | None:
+    """The highest-numbered product version (App Store Connect allows one in flight)."""
+    candidates = [v for v in versions if (v.get("attributes") or {}).get("version")]
+    if not candidates:
+        return versions[0]["id"] if versions else None
+    return max(candidates, key=lambda v: v["attributes"]["version"])["id"]
+
+
 def current_subscription_version(
     client: AscClient, subscription_id: str
 ) -> str | None:
@@ -671,11 +824,12 @@ def current_subscription_version(
     App Store Connect allows only one in-flight version per subscription, so the
     highest-numbered version in a submittable state is the one to attach.
     """
-    versions = iter_collection(client, f"/subscriptions/{subscription_id}/versions")
-    candidates = [v for v in versions if (v.get("attributes") or {}).get("version")]
-    if not candidates:
-        return versions[0]["id"] if versions else None
-    return max(candidates, key=lambda v: v["attributes"]["version"])["id"]
+    return newest_version_id(iter_collection(client, f"/subscriptions/{subscription_id}/versions"))
+
+
+def current_in_app_purchase_version(client: AscClient, iap_id: str) -> str | None:
+    """Return the in-app purchase's current in-flight version id, if any (v2 resource)."""
+    return newest_version_id(iter_collection(client, f"{ASC_V2_BASE}/inAppPurchases/{iap_id}/versions"))
 
 
 def submit_in_app_purchases(
@@ -685,14 +839,17 @@ def submit_in_app_purchases(
     intended_ids: set[str] | None = None,
     submission_id: str | None = None,
 ) -> ProductSubmitResult:
-    """Attach Ready-to-Submit subscriptions / IAPs to App Review.
+    """Attach Ready-to-Submit subscriptions / IAPs to the draft review submission.
 
-    As of the 2026 App Store Connect workflow, subscriptions are added to the
-    app's review submission through the `subscriptionVersion` relationship on
-    Review Submission Items — not the `subscription` relationship, which the API
-    rejects. Attaching the current in-flight version also clears a
-    `DEVELOPER_REJECTED` state left by a prior submission. One-time purchases
-    (the lifetime unlock) use the separate `inAppPurchaseSubmissions` endpoint.
+    As of the 2026 App Store Connect workflow, products are added to the app's
+    review submission as Review Submission Items: subscriptions through the
+    `subscriptionVersion` relationship (not `subscription`, which the API
+    rejects) and one-time purchases (the lifetime unlock) through
+    `inAppPurchaseVersion`. Attaching the current in-flight version also clears a
+    `DEVELOPER_REJECTED` state left by a prior submission. Nothing reaches App
+    Review here: the draft is submitted later in one step, so a failed build
+    recheck sends nothing. The deprecated standalone `inAppPurchaseSubmissions`
+    endpoint, which submitted a purchase immediately, is not used.
 
     Only products listed in `store/catalog/products.json` are considered, so an
     unrelated Ready-to-Submit product is not dragged into this release. Products
@@ -778,16 +935,34 @@ def submit_in_app_purchases(
         if attrs.get("state") != "READY_TO_SUBMIT":
             continue
         name = attrs.get("name") or iap["id"]
+        version_id = current_in_app_purchase_version(client, iap["id"])
+        if not version_id:
+            failures.append(f"in-app purchase {name} ({pid}): no version to submit")
+            continue
+        if version_id in already_attached:
+            submitted += 1
+            has_products = True
+            print(f"  in-app purchase {name}: already attached (idempotent)")
+            continue
         try:
             client.post(
-                "/inAppPurchaseSubmissions",
+                "/reviewSubmissionItems",
                 {
                     "data": {
-                        "type": "inAppPurchaseSubmissions",
+                        "type": "reviewSubmissionItems",
                         "relationships": {
-                            "inAppPurchaseV2": {
-                                "data": {"type": "inAppPurchases", "id": iap["id"]}
-                            }
+                            "reviewSubmission": {
+                                "data": {
+                                    "type": "reviewSubmissions",
+                                    "id": submission_id,
+                                }
+                            },
+                            "inAppPurchaseVersion": {
+                                "data": {
+                                    "type": "inAppPurchaseVersions",
+                                    "id": version_id,
+                                }
+                            },
                         },
                     }
                 },
@@ -796,9 +971,11 @@ def submit_in_app_purchases(
             failures.append(f"in-app purchase {name} ({pid})")
             continue
         submitted += 1
-        print(f"  in-app purchase {name}: submitted for review")
+        added_items = True
+        has_products = True
+        print(f"  in-app purchase {name}: attached to review submission")
 
-    print(f"  in-app purchases / subscriptions submitted: {submitted}")
+    print(f"  in-app purchases / subscriptions attached: {submitted}")
     if failures:
         raise ProductSubmitError(
             "these required products were not added to App Review: "
@@ -976,7 +1153,18 @@ class _RecordingClient:
         return {"data": {"id": "fake"}}
 
 
-ITEMS_PATH = "/reviewSubmissions/SUB1/items?limit=50&include=subscriptionVersion,appStoreVersion"
+ITEMS_PATH = (
+    "/reviewSubmissions/SUB1/items?limit=50&include=subscriptionVersion,appStoreVersion,inAppPurchaseVersion"
+)
+
+
+def _attached_ids(posts: list[tuple[str, dict[str, Any]]], relationship: str) -> set[str]:
+    """Version ids attached to a review submission through one item relationship."""
+    return {
+        body["data"]["relationships"][relationship]["data"]["id"]
+        for path, body in posts
+        if path == "/reviewSubmissionItems" and relationship in body["data"]["relationships"]
+    }
 
 
 def dry_run_self_check() -> None:
@@ -1016,30 +1204,39 @@ def dry_run_self_check() -> None:
             {"id": f"V{i}b", "attributes": {"version": 2, "state": "READY_FOR_REVIEW"}},
             {"id": f"V{i}", "attributes": {"version": 1, "state": "DEVELOPER_REJECTED"}},
         ]
+    # The lifetime purchase's approved version 1 and its new version 2, out of order.
+    collections[f"{ASC_V2_BASE}/inAppPurchases/IAP1/versions"] = [
+        {"id": "IV1", "attributes": {"version": 1, "state": "APPROVED"}},
+        {"id": "IV2", "attributes": {"version": 2, "state": "PREPARE_FOR_SUBMISSION"}},
+    ]
     intended = {weekly, yearly, lifetime, "com.quitall.premium.lifetime.v0"}
     fake = _RecordingClient(collections)
     result = submit_in_app_purchases(fake, app_id, intended_ids=intended)
     assert result.submitted == 3, f"expected 3 products, got {result.submitted}"
     assert result.added_items, "expected added_items=True"
+    assert result.has_products, "expected has_products=True"
     assert result.submission_id == "SUB1", f"wrong submission: {result.submission_id}"
     item_posts = [body for path, body in fake.posts if path == "/reviewSubmissionItems"]
-    attached_versions = {
-        body["data"]["relationships"]["subscriptionVersion"]["data"]["id"] for body in item_posts
-    }
+    attached_versions = _attached_ids(fake.posts, "subscriptionVersion")
     assert attached_versions == {"V0b", "V1b"}, (
         f"expected the current (v2) version of each subscription, got {attached_versions}"
+    )
+    attached_purchases = _attached_ids(fake.posts, "inAppPurchaseVersion")
+    assert attached_purchases == {"IV2"}, (
+        f"only the Ready-to-Submit lifetime purchase's current version may be attached, got {attached_purchases}"
     )
     assert all(
         body["data"]["relationships"]["reviewSubmission"]["data"]["id"] == "SUB1"
         for body in item_posts
     ), "wrong review submission target"
-    iap_posts = [body for path, body in fake.posts if path == "/inAppPurchaseSubmissions"]
-    assert [body["data"]["relationships"]["inAppPurchaseV2"]["data"]["id"] for body in iap_posts] == ["IAP1"], (
-        "only the Ready-to-Submit lifetime purchase may be submitted"
+    assert not [path for path, _ in fake.posts if path == "/inAppPurchaseSubmissions"], (
+        "the deprecated immediate in-app purchase submission must not be used"
     )
+    assert not fake.requests, "attaching products must not submit anything"
 
-    # Retry: the same draft already holds one subscription version, so the rerun
-    # must not post it again (App Store Connect rejects duplicates).
+    # Retry: the same draft already holds a subscription version and the lifetime
+    # purchase's version, so the rerun must not post them again (App Store
+    # Connect rejects duplicates).
     collections[ITEMS_PATH] = [
         {
             "id": "ITEM0",
@@ -1047,17 +1244,22 @@ def dry_run_self_check() -> None:
                 "subscriptionVersion": {"data": {"type": "subscriptionVersions", "id": "V0b"}},
                 "appStoreVersion": {"data": None},
             },
-        }
+        },
+        {
+            "id": "ITEM1",
+            "relationships": {
+                "inAppPurchaseVersion": {"data": {"type": "inAppPurchaseVersions", "id": "IV2"}},
+                "appStoreVersion": {"data": None},
+            },
+        },
     ]
     retry = _RecordingClient(collections)
     result2 = submit_in_app_purchases(retry, app_id, intended_ids=intended)
     assert result2.submitted == 3, f"expected 3 products on retry, got {result2.submitted}"
     assert result2.has_products, "retry must report the draft holds products"
-    retry_versions = {
-        body["data"]["relationships"]["subscriptionVersion"]["data"]["id"]
-        for path, body in retry.posts
-        if path == "/reviewSubmissionItems"
-    }
+    retry_versions = _attached_ids(retry.posts, "subscriptionVersion") | _attached_ids(
+        retry.posts, "inAppPurchaseVersion"
+    )
     assert retry_versions == {"V1b"}, f"retry attached the wrong versions: {retry_versions}"
     assert draft_holds_app_version(retry, "SUB1") is False, "false app-version detection"
 
@@ -1098,7 +1300,7 @@ def validate_local_inputs(
     metadata_dir: Path,
     locales: list[str],
     version: str | None,
-    root: Path = ROOT,
+    root: Path | None = None,
 ) -> dict[str, dict[str, list[Path]]]:
     """Check every repo input before any App Store Connect call.
 
@@ -1143,7 +1345,79 @@ def validate_local_inputs(
     return sets
 
 
-def main() -> None:
+def version_state_problems(state: str, version: str, *, edits_metadata: bool, submit: bool) -> list[str]:
+    """Version states the enabled switches cannot use at all, checked before anything else."""
+    problems: list[str] = []
+    metadata_states = TEXT_EDITABLE_VERSION_STATES | UNCHANGED_METADATA_STATES
+    if edits_metadata and state not in metadata_states:
+        problems.append(
+            f"version {version!r} is not editable for metadata (state={state}); "
+            f"expected one of: {', '.join(sorted(metadata_states))}"
+        )
+    # WAITING_FOR_REVIEW is accepted only as a rerun after a completed submit,
+    # and only when review holds this run's build (checked by the caller).
+    if submit and state not in SUBMITTABLE_VERSION_STATES | {"WAITING_FOR_REVIEW"}:
+        problems.append(f"version {version!r} cannot be submitted for review (state={state})")
+    return problems
+
+
+def preflight(
+    client: AscClient,
+    *,
+    bundle_id: str,
+    expected_app_id: str,
+    version_string: str,
+    locales: list[str],
+    metadata_dir: Path,
+    do_listing: bool,
+    do_whats_new: bool,
+    do_screenshots: bool,
+    screenshot_sets: dict[str, dict[str, list[Path]]],
+    do_submit: bool,
+) -> None:
+    """Read-only App Store Connect checks before anything is built or uploaded.
+
+    GET requests only: the App Store version must exist (the automation never
+    creates one), be in a state the enabled switches can use and have every
+    repository locale, and its metadata must be changeable where it differs.
+    The live step repeats every check, because App Store Connect can change
+    while the build is processed.
+    """
+    app_id = find_app(client, bundle_id)
+    if app_id != expected_app_id:
+        fail(f"{bundle_id} resolved to App Store Connect app {app_id}, expected {expected_app_id}")
+    version = get_ios_app_store_version(client, app_id, version_string)
+    state = (version.get("attributes") or {}).get("appStoreState") or ""
+    edits_metadata = do_listing or do_whats_new or do_screenshots
+    problems = version_state_problems(state, version_string, edits_metadata=edits_metadata, submit=do_submit)
+    if do_submit and state == "WAITING_FOR_REVIEW":
+        problems.append(
+            f"version {version_string!r} is already WAITING_FOR_REVIEW, so the build this run would "
+            "upload could never be selected; take the version out of review in App Store Connect first"
+        )
+    if not problems and edits_metadata:
+        plans = plan_metadata(
+            client,
+            version_id=version["id"],
+            locales=locales,
+            metadata_dir=metadata_dir,
+            include_listing=do_listing,
+            include_whats_new=do_whats_new,
+            screenshot_sets=screenshot_sets,
+        )
+        problems += metadata_problems(plans, version=version_string, state=state)
+        for plan in plans:
+            changes = list(plan.text_changes) + plan.stale_screenshots
+            print(f"  {plan.locale}: {'will update ' + ', '.join(changes) if changes else 'already up to date'}")
+    if problems:
+        fail(
+            "App Store Connect is not ready for this release (nothing was built or changed):\n  "
+            + "\n  ".join(problems)
+        )
+    print(f"ASC preflight passed: version {version_string} is {state}; nothing was changed")
+
+
+def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--metadata-dir",
@@ -1175,7 +1449,12 @@ def main() -> None:
         action="store_true",
         help="Validate flags and local files only — no ASC HTTP calls",
     )
-    args = parser.parse_args()
+    parser.add_argument(
+        "--preflight",
+        action="store_true",
+        help="Read-only App Store Connect checks before the build is uploaded (GET requests only)",
+    )
+    args = parser.parse_args(argv)
 
     do_listing = truthy("UPLOAD_LISTING")
     do_whats_new = truthy("UPLOAD_WHATS_NEW")
@@ -1191,7 +1470,7 @@ def main() -> None:
         return
     if do_public and not do_submit:
         fail("PUBLIC_RELEASE only applies when SUBMIT_IOS_REVIEW is on")
-    if do_submit and not (args.build_id and args.build_number):
+    if do_submit and not args.preflight and not (args.build_id and args.build_number):
         fail(
             "submitting needs --build-id and --build-number for the build uploaded by "
             "this run; an older build is never substituted"
@@ -1225,6 +1504,23 @@ def main() -> None:
         fail("--version is required for live ASC calls (pass marketing version from tag)")
 
     client = client_from_environment()
+    edits_metadata = do_listing or do_whats_new or do_screenshots
+    if args.preflight:
+        preflight(
+            client,
+            bundle_id=args.bundle_id,
+            expected_app_id=args.app_id,
+            version_string=args.version,
+            locales=locales,
+            metadata_dir=args.metadata_dir,
+            do_listing=do_listing,
+            do_whats_new=do_whats_new,
+            do_screenshots=do_screenshots,
+            screenshot_sets=screenshot_sets,
+            do_submit=do_submit,
+        )
+        return
+
     app_id = find_app(client, args.bundle_id)
     if app_id != args.app_id:
         fail(f"{args.bundle_id} resolved to App Store Connect app {app_id}, expected {args.app_id}")
@@ -1234,15 +1530,44 @@ def main() -> None:
     print(
         f"ASC app={app_id} version={args.version} id={version_id} state={state}"
     )
-    edits_metadata = do_listing or do_whats_new or do_screenshots
 
-    if state == "WAITING_FOR_REVIEW":
-        if do_submit and not edits_metadata:
-            # A rerun after a successful submit: only accept it if review holds
-            # exactly this run's build.
-            confirm_selected_build(client, version_id, args.build_id)
+    problems = version_state_problems(state, args.version, edits_metadata=edits_metadata, submit=do_submit)
+    if problems:
+        fail("; ".join(problems))
+    in_review = state == "WAITING_FOR_REVIEW"
+    if in_review and do_submit:
+        # A rerun after a successful submit: only accept it if review holds
+        # exactly this run's build.
+        confirm_selected_build(client, version_id, args.build_id)
+
+    if edits_metadata:
+        # Read everything first, so a change the version's state cannot take
+        # fails before anything is written. Only what differs is written, which
+        # also makes a rerun after a started or completed submission work.
+        plans = plan_metadata(
+            client,
+            version_id=version_id,
+            locales=locales,
+            metadata_dir=args.metadata_dir,
+            include_listing=do_listing,
+            include_whats_new=do_whats_new,
+            screenshot_sets=screenshot_sets,
+        )
+        problems = metadata_problems(plans, version=args.version, state=state)
+        if problems:
+            fail(
+                "cannot update the version metadata (nothing was changed):\n  "
+                + "\n  ".join(problems)
+                + "\n  To change it, take the version out of review in App Store Connect, then rerun."
+            )
+        print("updating App Store metadata (only what differs)…")
+        apply_metadata(client, plans)
+
+    if in_review:
+        if do_submit:
             print(
-                "ASC submit skipped — version already WAITING_FOR_REVIEW (idempotent)"
+                "ASC submit skipped — version already WAITING_FOR_REVIEW with this run's "
+                "build (idempotent)"
             )
             try:
                 result = submit_in_app_purchases(client, app_id)
@@ -1262,51 +1587,14 @@ def main() -> None:
                         "version; remove it in App Store Connect and rerun"
                     )
                 submit_product_draft(client, result.submission_id)
-            print("ASC release step finished")
-            return
-        if edits_metadata:
-            fail(
-                f"cannot update listing/What's New/screenshots while version {args.version!r} "
-                "is WAITING_FOR_REVIEW"
-            )
-        do_submit = False
-
-    if edits_metadata:
-        if state not in EDITABLE_VERSION_STATES:
-            fail(
-                f"version {args.version!r} is not editable for metadata (state={state}); "
-                f"expected one of: {', '.join(sorted(EDITABLE_VERSION_STATES))}"
-            )
-
-    if do_submit and state not in SUBMITTABLE_VERSION_STATES:
-        fail(
-            f"version {args.version!r} cannot be submitted for review (state={state})"
-        )
-
-    if do_listing or do_whats_new:
-        parts = [name for name, on in (("listing", do_listing), ("What's New", do_whats_new)) if on]
-        print(f"uploading ASC {' + '.join(parts)}…")
-        for locale in locales:
-            upload_listing(
-                client,
-                app_id=app_id,
-                version_id=version_id,
-                locale=locale,
-                metadata_dir=args.metadata_dir,
-                include_listing=do_listing,
-                include_whats_new=do_whats_new,
-            )
-
-    if do_screenshots:
-        print("uploading ASC screenshots…")
-        for locale, sets in screenshot_sets.items():
-            upload_screenshots(client, version_id=version_id, locale=locale, sets=sets)
+        print("ASC release step finished")
+        return
 
     if do_submit:
         print("selecting this run's build…")
         select_build(client, version_id, args.build_id, args.version, args.build_number)
         set_release_type(client, version_id, public_release=do_public)
-        print("submitting in-app purchases / subscriptions for review…")
+        print("attaching in-app purchases / subscriptions to the review submission…")
         submission_id = get_or_create_draft_submission(client, app_id)
         try:
             result = submit_in_app_purchases(
@@ -1318,7 +1606,8 @@ def main() -> None:
             # the version enter review without it.
             fail(f"{exc} Not submitting the app version.")
         # Recheck immediately before submitting: the selection must still be
-        # this run's processed build.
+        # this run's processed build. Nothing has reached App Review yet; the
+        # version and its products go out together with the one submit below.
         verify_build(client, args.build_id, args.version, args.build_number)
         confirm_selected_build(client, version_id, args.build_id)
         print("submitting for App Store review…")
