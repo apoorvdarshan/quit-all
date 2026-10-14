@@ -64,15 +64,24 @@ class QuitAllUITestCase: XCTestCase {
     }
 
     /// Taps the only button with this label once a screen transition has finished.
+    ///
+    /// Waits until exactly one such button exists (during a transition the old and
+    /// the new screen can both show one), then lets XCUITest tap it: `tap()` itself
+    /// waits for the app to go idle, so the transition has finished, retries the
+    /// element lookup, scrolls the button into view and fails if it cannot be hit.
+    /// The wait deliberately does not poll `isHittable` too: that cost two extra
+    /// accessibility queries per check, and one slow snapshot (seen on CI right
+    /// after the keyboard was dismissed) used up the whole wait even though the
+    /// button was on screen.
     func tapButton(_ label: String, in app: XCUIApplication, timeout: TimeInterval = 10,
                    file: StaticString = #filePath, line: UInt = #line) {
         let query = app.buttons.matching(identifier: label)
         let single = XCTNSPredicateExpectation(
-            predicate: NSPredicate { _, _ in query.count == 1 && query.firstMatch.isHittable },
+            predicate: NSPredicate { _, _ in query.count == 1 },
             object: nil
         )
         XCTAssertEqual(XCTWaiter.wait(for: [single], timeout: timeout), .completed,
-                       "Expected one tappable \"\(label)\" button, found \(query.count)", file: file, line: line)
+                       "Expected one \"\(label)\" button, found \(query.count)", file: file, line: line)
         query.firstMatch.tap()
     }
 

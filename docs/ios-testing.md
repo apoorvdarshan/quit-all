@@ -30,7 +30,12 @@ script fails if any test fails or if either bundle ran no tests.
 
 Tests run in English with the US region (`-testLanguage en -testRegion US`) and
 in UTC, so currency, date and streak text is the same on every machine. They run
-serially on one simulator. On CI, Swift package checkouts are cached by
+serially on one simulator. UI tests wait for what they need (an element to
+exist, or a button label to be unique on screen) and then let XCUITest's own
+`tap()` wait for the app to go idle and bring the element into view; they do not
+poll hittability themselves, because a single slow accessibility snapshot (seen
+on CI right after the keyboard is dismissed) could use up a short wait while the
+button was already on screen. On CI, Swift package checkouts are cached by
 `Package.resolved`; the build and the test results are never cached. The
 `UnitTests.xcresult` and `UITests.xcresult` bundles (with failure screenshots),
 coverage and the logs are kept as the `ios-test-results` artifact for seven
