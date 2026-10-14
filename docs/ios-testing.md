@@ -18,17 +18,25 @@ bash scripts/test-ios.sh
 The script creates its own simulator and deletes it afterwards, so existing
 simulators and their data are left alone. Packages and build products are
 reused under `~/Library/Developer/Xcode/DerivedData/QuitAll-simulator-tests`;
-results go to a new `TestResults` subdirectory and the command prints the
-`.xcresult` path. Override `IOS_TEST_DERIVED_DATA`, `IOS_TEST_PACKAGES` or
+results go to a new `TestResults` subdirectory and the command prints its
+path. Override `IOS_TEST_DERIVED_DATA`, `IOS_TEST_PACKAGES` or
 `IOS_TEST_RESULTS` when needed; an existing result bundle is never overwritten.
+
+The script builds once, runs the unit tests, then the UI tests. The unit tests
+run inside the app, so before the UI tests start the script stops that test
+host and waits until it has exited; the first UI test then launches the app
+cleanly instead of racing the host's shutdown. Both phases always run; the
+script fails if any test fails or if either bundle ran no tests.
 
 Tests run in English with the US region (`-testLanguage en -testRegion US`) and
 in UTC, so currency, date and streak text is the same on every machine. They run
-serially on one simulator. The run fails if any test fails or if either test
-bundle ran no tests. On CI, Swift package checkouts are cached by
+serially on one simulator. On CI, Swift package checkouts are cached by
 `Package.resolved`; the build and the test results are never cached. The
-`.xcresult` bundle (with failure screenshots), coverage and the build log are
-kept as the `ios-test-results` artifact for seven days.
+`UnitTests.xcresult` and `UITests.xcresult` bundles (with failure screenshots),
+coverage and the logs are kept as the `ios-test-results` artifact for seven
+days. The extra simulator sysdiagnose on failure is skipped
+(`-collect-test-diagnostics never`): collecting it once stalled a run for ten
+minutes, and the result bundles already hold the failure details.
 
 ## What the tests cover
 

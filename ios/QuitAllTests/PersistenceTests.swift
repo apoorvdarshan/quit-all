@@ -36,19 +36,34 @@ final class PersistenceTests: QuitAllTestCase {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("QuitAllTests-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: directory) }
         let storeURL = directory.appendingPathComponent("Quit_All.sqlite")
         let model = makeContext().persistentStoreCoordinator!.managedObjectModel
         let start = ago(days: 7, hours: 3)
+        var opened: [NSManagedObjectContext] = []
+        defer {
+            // Close every store before deleting its files; SQLite must not
+            // have its database unlinked while it is still open.
+            for context in opened {
+                let coordinator = context.persistentStoreCoordinator!
+                for store in coordinator.persistentStores {
+                    try? coordinator.remove(store)
+                }
+            }
+            try? FileManager.default.removeItem(at: directory)
+        }
 
-        do {
-            let context = try openStore(at: storeURL, model: model)
-            let habit = makeAddiction(.alcohol, startDate: start, dailyCost: 9.5, in: context)
-            addCraving(to: habit, at: ago(days: 1), trigger: .social, survived: false, in: context)
-            try context.save()
+        let first = try openStore(at: storeURL, model: model)
+        opened.append(first)
+        let saved = makeAddiction(.alcohol, startDate: start, dailyCost: 9.5, in: first)
+        addCraving(to: saved, at: ago(days: 1), trigger: .social, survived: false, in: first)
+        try first.save()
+        let firstCoordinator = first.persistentStoreCoordinator!
+        for store in firstCoordinator.persistentStores {
+            try firstCoordinator.remove(store)
         }
 
         let reopened = try openStore(at: storeURL, model: model)
+        opened.append(reopened)
         let request: NSFetchRequest<CDAddiction> = CDAddiction.fetchRequest()
         let habits = try reopened.fetch(request)
         XCTAssertEqual(habits.count, 1)
