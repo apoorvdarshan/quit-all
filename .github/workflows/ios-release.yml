@@ -39,8 +39,10 @@
 #   "Re-run failed jobs" after a store-step failure reuses that result instead of
 #   waiting again against the original upload deadline (which would time out).
 #   The store step writes only metadata that differs, so that rerun also works
-#   after a review submission was started or completed. Products go to App
-#   Review only together with the version, after the final build recheck.
+#   after a review submission was started or completed. Products are attached to
+#   the draft and go to App Review with the version in one submit, after the
+#   final build recheck (a rerun that finds the version already waiting for
+#   review with this run's build sends a late product on its own).
 #   Tag runs run one at a time and queue rather than cancel each other.
 #   Store tooling runs on actions/setup-python (3.13), unbuffered (python3 -u).
 #

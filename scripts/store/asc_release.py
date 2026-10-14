@@ -18,8 +18,10 @@ in-app purchases or subscriptions listed in store/catalog/products.json. They
 are attached to the same draft review submission as the version (subscriptions
 through the `subscriptionVersion` relationship, one-time purchases through
 `inAppPurchaseVersion`), so everything goes to App Review with one submit, after
-the final build recheck. A first-time subscription must go out with the version
-or App Review rejects the build.
+the final build recheck. (A rerun that finds the version already waiting for
+review with this run's build sends a late product in a product-only draft.) A
+first-time subscription must go out with the version or App Review rejects the
+build.
 
 `--preflight` runs before anything is built: read-only checks (GET requests
 only) that the App Store version exists, is in a state the enabled switches can

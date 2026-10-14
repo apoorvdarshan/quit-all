@@ -214,7 +214,8 @@ Each product's current version is attached to the same draft review
 submission as the app version (`subscriptionVersion` for subscriptions,
 `inAppPurchaseVersion` for the lifetime purchase), and nothing reaches App
 Review until the one submit after the final build recheck, so a failed recheck
-sends nothing. The deprecated `inAppPurchaseSubmissions` endpoint, which sent a
+sends nothing. (A rerun that finds the version already waiting for review with
+this run's build sends a late product in a draft of its own.) The deprecated `inAppPurchaseSubmissions` endpoint, which sent a
 purchase to review on its own and immediately, is not used. If a required
 product cannot be attached, the version is not submitted. The offline tests
 check that the catalog, `SubscriptionProduct` in `PaywallManager.swift` and
