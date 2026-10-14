@@ -1,4 +1,0 @@
-Audio: soundtrack.wav
-Source: Original procedural sound bed synthesized locally with FFmpeg for this Quit All video.
-License: Original work; no third-party samples, music, or attribution requirements.
-Usage: Quit All owned marketing channels and paid/organic social media.

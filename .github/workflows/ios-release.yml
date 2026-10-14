@@ -121,8 +121,6 @@ jobs:
             /ios/Quit All.xcodeproj/project.pbxproj
             /ios/Quit All/Core/PaywallManager.swift
             /ios/Quit All/Products.storekit
-            /marketing/1260x2736/
-            /marketing/1242x2688/
 
       # The store tooling never installs into the runner image's system Python.
       - name: Set up Python for the store tooling
@@ -513,8 +511,6 @@ jobs:
             /scripts/store/
             /store/
             /requirements-store.txt
-            /marketing/1260x2736/
-            /marketing/1242x2688/
 
       - name: Set up Python for the store tooling
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

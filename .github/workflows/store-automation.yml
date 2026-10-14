@@ -14,8 +14,6 @@ on:
       - 'store/**'
       - 'RELEASE_NOTES.md'
       - 'requirements-store.txt'
-      - 'marketing/1260x2736/**'
-      - 'marketing/1242x2688/**'
       - 'ios/Quit All.xcodeproj/project.pbxproj'
       - 'ios/Quit All/Core/PaywallManager.swift'
       - 'ios/Quit All/Products.storekit'
@@ -29,8 +27,6 @@ on:
       - 'store/**'
       - 'RELEASE_NOTES.md'
       - 'requirements-store.txt'
-      - 'marketing/1260x2736/**'
-      - 'marketing/1242x2688/**'
       - 'ios/Quit All.xcodeproj/project.pbxproj'
       - 'ios/Quit All/Core/PaywallManager.swift'
       - 'ios/Quit All/Products.storekit'
@@ -61,8 +57,6 @@ jobs:
             /store/
             /RELEASE_NOTES.md
             /requirements-store.txt
-            /marketing/1260x2736/
-            /marketing/1242x2688/
             /ios/Quit All.xcodeproj/project.pbxproj
             /ios/Quit All/Core/PaywallManager.swift
             /ios/Quit All/Products.storekit
