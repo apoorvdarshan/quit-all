@@ -81,6 +81,17 @@ class QuitAllUITestCase: XCTestCase {
         app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", prefix)).firstMatch
     }
 
+    /// An element of any type by accessibility identifier (a multi-line
+    /// TextField, for example, is exposed as a text view).
+    func element(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
+        app.descendants(matching: .any).matching(identifier: identifier).firstMatch
+    }
+
+    /// A control whose combined label (icon names plus text) contains `text`.
+    func control(_ query: XCUIElementQuery, containing text: String) -> XCUIElement {
+        query.matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
+    }
+
     func replaceText(of field: XCUIElement, with text: String) {
         field.tap()
         let existing = (field.value as? String) ?? ""

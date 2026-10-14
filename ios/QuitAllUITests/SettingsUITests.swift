@@ -14,14 +14,15 @@ final class SettingsUITests: QuitAllUITestCase {
 
         openTab("Settings", in: app)
         waitFor(app.navigationBars["Settings"])
-        XCTAssertTrue(app.switches["Smart Notifications"].exists)
-        XCTAssertTrue(app.buttons["Manage Purchase"].exists)
-        XCTAssertTrue(app.buttons["Reset All Data"].exists)
+        XCTAssertTrue(control(app.switches, containing: "Smart Notifications").exists)
+        XCTAssertTrue(control(app.buttons, containing: "Manage Purchase").exists)
+        XCTAssertTrue(control(app.buttons, containing: "Reset All Data").exists)
 
         openTab("About", in: app)
         waitFor(app.navigationBars["About"])
         XCTAssertTrue(app.staticTexts["Version"].exists)
-        XCTAssertTrue(app.buttons["Privacy Policy"].exists || app.links["Privacy Policy"].exists)
+        XCTAssertTrue(control(app.buttons, containing: "Privacy Policy").exists
+                      || control(app.links, containing: "Privacy Policy").exists)
 
         openTab("Home", in: app)
         waitFor(app.buttons["home.sos"])
@@ -31,7 +32,7 @@ final class SettingsUITests: QuitAllUITestCase {
         let app = launchSeededHome()
         openTab("Settings", in: app)
 
-        let reset = app.buttons["Reset All Data"]
+        let reset = control(app.buttons, containing: "Reset All Data")
         waitFor(reset)
         reset.tap()
         let alert = app.alerts["Reset All Data?"]

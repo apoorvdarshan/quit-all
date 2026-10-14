@@ -51,7 +51,7 @@ final class CravingAndRelapseUITests: QuitAllUITestCase {
         app.buttons["relapse.mood.Okay"].tap()
         tapButton("NEXT", in: app)
 
-        let plan = app.textFields["relapse.plan"]
+        let plan = element("relapse.plan", in: app)
         waitFor(plan)
         plan.tap()
         plan.typeText("Take a walk instead")

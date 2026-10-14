@@ -449,6 +449,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          filter: blob:none
           sparse-checkout-cone-mode: false
           sparse-checkout: |
             /scripts/release_notes.py
