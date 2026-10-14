@@ -1,16 +1,24 @@
-# Dependabot version updates for the CI and release tooling. Dependabot security
-# alerts are enabled separately, in the repository settings.
+# Dependabot version updates for the app's Swift package and the CI and release
+# tooling. Dependabot security alerts are enabled separately, in the repository
+# settings.
 #
 #   github-actions  the commit-SHA-pinned actions in .github/workflows
 #   pip             the hash-locked store tooling (requirements-store.in compiled
 #                   to requirements-store.txt) that runs with the App Store
 #                   Connect key in the release jobs
+#   swift           the RevenueCat SDK (purchases-ios-spm), pinned in the Xcode
+#                   project's Package.resolved under ios/Quit All.xcodeproj.
+#                   Dependabot finds the project in /ios without a Package.swift
+#                   and updates Package.resolved and the minimum version in
+#                   project.pbxproj together.
 #
-# Monthly, one grouped pull request per ecosystem: an actions bump that touches
-# ios-tests.yml runs the macOS test suite, and macOS minutes cost money on this
-# private repository. Swift packages are not listed because Dependabot version
-# updates need a Package.swift manifest, and the app's packages are pinned in the
-# Xcode project (Package.resolved) instead.
+# GitHub's dependency graph does not list that Swift package (checked
+# 2026-10-14), so Dependabot alerts cannot flag a vulnerable RevenueCat version;
+# these version updates are what keep it current.
+#
+# Monthly, one grouped pull request per ecosystem: a Swift package bump, and an
+# actions bump that touches ios-tests.yml, each run the iOS unit and UI tests on
+# a macOS runner, once on the pull request and again on main.
 
 version: 2
 updates:
@@ -33,3 +41,13 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: "Store tooling"
+
+  - package-ecosystem: swift
+    directory: /ios
+    schedule:
+      interval: monthly
+    groups:
+      swift-packages:
+        patterns: ["*"]
+    commit-message:
+      prefix: "iOS"
