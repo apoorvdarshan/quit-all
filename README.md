@@ -109,9 +109,12 @@ The iOS RevenueCat public SDK key is loaded from `/api/app-config` so it can be 
 
 ```bash
 bash scripts/test-ios.sh   # unit + UI tests on a temporary iPhone simulator (Xcode 27)
+cd web && npm test         # website tests, including fuzz tests for the KLIPY proxy
 ```
 
 `ios/QuitAllTests` covers streaks, milestones, savings, habit and relapse storage, craving patterns, the widget snapshot and the premium entitlement rule; `ios/QuitAllUITests` walks through onboarding, the paywall, Home, SOS, relapse, habits, stats and settings. Tests run offline: in Debug simulator builds the app has a test mode that never contacts RevenueCat, the App Store or KLIPY, never asks for notification permission and can't buy anything. The **iOS tests** workflow runs both suites on every pull request and push to `main` that changes the app. Details: [`docs/ios-testing.md`](docs/ios-testing.md).
+
+The **Web** workflow lints, tests and builds the site for Cloudflare Workers, then smoke-tests the built Worker. Its fast-check property tests check that the KLIPY proxy never leaks or loses its server-side key, never leaves the KLIPY origin and never forwards client credentials. They run 1,000 cases per property on each change and 50,000 weekly. **CodeQL** scans the Swift app, website, release tooling and workflows, **Dependency review** blocks pull requests that add vulnerable dependencies, and **OpenSSF Scorecard** reviews the repository's supply-chain security weekly.
 
 ### Releases
 
@@ -124,6 +127,12 @@ GitHub Actions builds, signs and uploads the App Store binary — Xcode Cloud's 
 - **Privacy Policy:** https://quit-all.com/privacy
 - **Terms of Service:** https://quit-all.com/terms
 
+## Contributing and security
+
+- **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md) — setup, tests and pull requests
+- **Code of conduct:** [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+- **Security:** report vulnerabilities privately as described in [`SECURITY.md`](SECURITY.md)
+
 ## License
 
-All rights reserved. © 2026 Apoorv Darshan.
+[MIT](LICENSE) © 2026 Apoorv Darshan.

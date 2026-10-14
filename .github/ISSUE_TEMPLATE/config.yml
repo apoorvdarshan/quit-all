@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/apoorvdarshan/quit-all/security/advisories/new
+    about: Report security issues privately, not as a public issue.
+  - name: Email the maintainer
+    url: mailto:ad13dtu@gmail.com
+    about: Contact for private or non-bug topics.

@@ -6,6 +6,9 @@
 #   pip             the hash-locked store tooling (requirements-store.in compiled
 #                   to requirements-store.txt) that runs with the App Store
 #                   Connect key in the release jobs
+#   npm /web        the website and KLIPY proxy deployed to Cloudflare Workers
+#   npm /marketing/quit-all-social-video-v1
+#                   the Remotion project that renders the promo video
 #   swift           the RevenueCat SDK (purchases-ios-spm), pinned in the Xcode
 #                   project's Package.resolved under ios/Quit All.xcodeproj.
 #                   Dependabot finds the project in /ios without a Package.swift
@@ -51,3 +54,32 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: "iOS"
+
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: monthly
+    groups:
+      web:
+        patterns: ["*"]
+    ignore:
+      # Next.js 16.4 builds but fails at runtime on Cloudflare Workers with
+      # OpenNext 1.20.11 ("Unexpected loadManifest(preview-props.json) call",
+      # opennextjs/opennextjs-cloudflare#1448). Stay on 16.3.x, which still gets
+      # patch releases, until that is fixed.
+      - dependency-name: next
+        versions: [">=16.4.0"]
+      - dependency-name: eslint-config-next
+        versions: [">=16.4.0"]
+    commit-message:
+      prefix: "Web"
+
+  - package-ecosystem: npm
+    directory: /marketing/quit-all-social-video-v1
+    schedule:
+      interval: monthly
+    groups:
+      promo-video:
+        patterns: ["*"]
+    commit-message:
+      prefix: "Marketing"
