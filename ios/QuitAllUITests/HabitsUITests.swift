@@ -16,8 +16,12 @@ final class HabitsUITests: QuitAllUITestCase {
         waitFor(dailyCost)
         dailyCost.tap()
         dailyCost.typeText("12")
-        app.staticTexts["QUIT DATE"].tap() // dismisses the keyboard
-        tapButton("ADD ADDICTION", in: app)
+        // Tap the button with the keyboard still up, like every other text entry in
+        // these tests: XCUITest scrolls it above the keyboard first, and the keyboard
+        // leaves with the sheet. Dismissing the keyboard on its own (by tapping a
+        // label behind it) and then hit-testing where it had been once stalled the
+        // next accessibility queries for 9–13 s on a busy CI runner.
+        app.buttons["ADD ADDICTION"].tap()
 
         let alcohol = app.buttons["habits.row.Alcohol"]
         waitFor(alcohol)
