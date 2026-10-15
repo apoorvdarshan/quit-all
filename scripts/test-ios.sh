@@ -57,7 +57,14 @@ destination=(
   -onlyUsePackageVersionsFromResolvedFile
 )
 
-xcodebuild build-for-testing "${destination[@]}" -enableCodeCoverage YES CODE_SIGNING_ALLOWED=NO \
+# CI sets IOS_COMPILATION_CACHE to a directory it restores and saves, so
+# unchanged Swift and C files reuse earlier compiler outputs. The tests always run.
+cache_settings=()
+if [ -n "${IOS_COMPILATION_CACHE:-}" ]; then
+  cache_settings=(COMPILATION_CACHE_ENABLE_CACHING=YES "COMPILATION_CACHE_CAS_PATH=$IOS_COMPILATION_CACHE")
+fi
+
+xcodebuild build-for-testing "${destination[@]}" -enableCodeCoverage YES ${cache_settings[@]+"${cache_settings[@]}"} CODE_SIGNING_ALLOWED=NO \
   2>&1 | tee "$results/build.log"
 
 # English/US so currency and date text is deterministic; the UI tests also
