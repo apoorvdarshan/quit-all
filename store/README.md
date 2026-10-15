@@ -20,6 +20,7 @@ one pipeline, or both would upload a build for the same tag.
 vX.Y.Z tag ─► store-script unit tests + release notes check (one non-empty section)
            ─► resolve switches (tag must equal MARKETING_VERSION; bad values fail)
            ─► offline checks of the listing files the enabled switches upload
+           ─► IOS_CREATE_VERSION: create the tag's App Store version if it is missing
            ─► read-only App Store Connect preflight (when a listing, What's New,
               screenshot or review switch is on): the version exists in a usable
               state, every locale is there, needed changes are possible
@@ -101,6 +102,7 @@ off, and also fails manual validation runs.
 | Variable | When `true` |
 |----------|-------------|
 | `IOS_RELEASE_AUTOMATION` | Master switch. When off, every iOS store operation below is skipped; the tag still runs the tests and creates the GitHub Release |
+| `IOS_CREATE_VERSION` | Create the tag's App Store version (Prepare for Submission) when App Store Connect does not have it, before the preflight. An existing version is left alone. Refuses, before anything is built, when another version is still on its way to the store (anything but Ready for Distribution, replaced or removed) or the tag is not newer than every existing version. Tag runs only |
 | `IOS_UPLOAD_BUILD` | Build, sign and upload the binary to App Store Connect, then wait for processing |
 | `IOS_UPLOAD_LISTING` | Description, keywords, promotional text, marketing and support URLs from `store/metadata/ios/<locale>/` |
 | `IOS_UPLOAD_WHATS_NEW` | What's New from `store/metadata/ios/<locale>/whats_new.txt`. `store/metadata/ios/whats_new_version.txt` must equal the tag's version, so last release's text can never ship again |
@@ -114,9 +116,9 @@ Copy the names from [`gates.env.example`](gates.env.example). Quit All ships
 only on iOS, so there are no Android or shared `STORE_*` switches.
 
 Listing, What's New, screenshots and review submission need the version (for
-example `1.2.2`) to exist in App Store Connect in an editable state; create it
-there before tagging. The automation never creates a version. With any of these
-switches on, a tag run checks this read-only before anything is built (the
+example `1.2.2`) to exist in App Store Connect in an editable state. With
+`IOS_CREATE_VERSION` on, the tag run creates a missing version itself;
+otherwise create it there before tagging. With any of these switches on, a tag run checks this read-only before anything is built (the
 preflight in the `prepare` job), so a missing or locked version, a missing
 locale, or a needed change the version's state cannot take fails the run before
 the upload instead of after it. Validation runs never run the preflight.
@@ -192,10 +194,10 @@ with a clear message, and so does turning the switch on without any
 3. If `IOS_UPLOAD_WHATS_NEW` is on, update `whats_new.txt` in every locale and
    set `whats_new_version.txt` to `1.2.2`.
 4. If any of `IOS_UPLOAD_LISTING`, `IOS_UPLOAD_WHATS_NEW`,
-   `IOS_UPLOAD_SCREENSHOTS` or `IOS_SUBMIT_REVIEW` is on, **create the 1.2.2 App
-   Store version in App Store Connect first** (it stays in Prepare for
-   Submission). The automation never creates one; the preflight stops the run
-   before the build if it is missing.
+   `IOS_UPLOAD_SCREENSHOTS` or `IOS_SUBMIT_REVIEW` is on, the 1.2.2 App Store
+   version must exist. With `IOS_CREATE_VERSION` on, the tag run creates it;
+   otherwise **create it in App Store Connect first** (it stays in Prepare for
+   Submission). The preflight stops the run before the build if it is missing.
 5. Optionally run **iOS Release → Run workflow** with `marketing_version`
    `1.2.2` (validation only; nothing is uploaded).
 6. Merge, then push the `v1.2.2` tag only when you intend that release.
@@ -226,7 +228,7 @@ check that the catalog, `SubscriptionProduct` in `PaywallManager.swift` and
 | Script | Role |
 |--------|------|
 | [`scripts/store/ios_release.py`](../scripts/store/ios_release.py) | Switches, tag/version check, build number, wait for this run's build |
-| [`scripts/store/asc_release.py`](../scripts/store/asc_release.py) | Read-only preflight (`--preflight`), listing, What's New, screenshots, build selection, product + version submission |
+| [`scripts/store/asc_release.py`](../scripts/store/asc_release.py) | Version creation (`--create-version`), read-only preflight (`--preflight`), listing, What's New, screenshots, build selection, product + version submission |
 | [`scripts/store/verify_ios_bundles.sh`](../scripts/store/verify_ios_bundles.sh) | App and widget identity, version, signature, profile and app group checks |
 | [`scripts/store/redact_logs.py`](../scripts/store/redact_logs.py) | Removes the App Store Connect key and issuer IDs (and any non-text file) from failure logs before they are kept |
 | [`scripts/store/test_ios_release.py`](../scripts/store/test_ios_release.py) | Offline tests: disabled/invalid switches, tag mismatch, validation mode, build wait timeout/failure/ambiguity/mismatch/old build/missing upload time, exact app lookup, selection read-back, preflight, metadata reruns, product submission, log redaction, token refresh, listing/screenshot/catalog inputs, release notes |
