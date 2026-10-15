@@ -64,15 +64,21 @@ xcodebuild build-for-testing "${destination[@]}" -enableCodeCoverage YES CODE_SI
 # pass the language, locale and a UTC time zone when they launch the app.
 # Failures keep their screenshots and logs in the result bundle; the extra
 # simulator sysdiagnose is skipped (collecting it can stall for 10 minutes).
+# The third argument is how many simulator clones run test classes in parallel
+# (1 runs everything on the created simulator).
 run_bundle() {
-  local bundle="$1" name="$2"
+  local bundle="$1" name="$2" workers="$3"
+  local parallel=(-parallel-testing-enabled NO)
+  if [ "$workers" -gt 1 ]; then
+    parallel=(-parallel-testing-enabled YES -parallel-testing-worker-count "$workers")
+  fi
   xcodebuild test-without-building "${destination[@]}" \
     -only-testing:"$bundle" \
     -resultBundlePath "$results/$name.xcresult" \
     -testLanguage en \
     -testRegion US \
     -enableCodeCoverage YES \
-    -parallel-testing-enabled NO \
+    "${parallel[@]}" \
     -maximum-concurrent-test-simulator-destinations 1 \
     -collect-test-diagnostics never \
     2>&1 | tee "$results/$name.log"
@@ -83,7 +89,7 @@ app_running() {
 }
 
 status=0
-run_bundle QuitAllTests UnitTests || status=1
+run_bundle QuitAllTests UnitTests 1 || status=1
 
 # The unit tests run inside the app, and the UI tests use the same app. Stop
 # that test host and wait until it is gone, so the first UI test launches the
@@ -98,7 +104,9 @@ if app_running; then
   exit 1
 fi
 
-run_bundle QuitAllUITests UITests || status=1
+# Each UI test class runs on one of two simulator clones. Every clone has its
+# own app data, and each test launches with --ui-testing-reset.
+run_bundle QuitAllUITests UITests 2 || status=1
 
 # A run that silently executed nothing must not pass: both bundles need tests.
 python3 - "$results" <<'PY'
