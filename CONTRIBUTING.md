@@ -3,7 +3,7 @@
 Thanks for your interest in contributing! Quit All is an iOS app for quitting habits, plus its website. The repository is a monorepo:
 
 - `ios/` — SwiftUI iOS app, Home and Lock Screen widget, unit and UI tests
-- `web/` — Next.js marketing site and API proxy at [quit-all.com](https://quit-all.com), deployed to Cloudflare Workers
+- `web/` — static marketing site and API Worker at [quit-all.com](https://quit-all.com), deployed to Cloudflare Workers
 - `store/` and `scripts/` — App Store listing and the release automation
 
 Bug reports, feature ideas and pull requests are welcome.
@@ -23,16 +23,16 @@ Debug simulator builds have a test mode that never contacts RevenueCat, the App 
 ```bash
 cd web
 npm ci
-npm run dev    # http://localhost:3000
+npm run dev    # http://localhost:8787
 ```
 
-`npm run preview` builds and serves the site in the Cloudflare Workers runtime. The KLIPY proxy needs a `KLIPY_API_KEY` secret; without one it answers with an error, which is fine for most site work.
+Pages are TypeScript templates in `web/src/site/` (content in `web/src/site/content/`), rendered to plain HTML in `web/dist/` by `npm run build`; styles and the one page script live in `web/public/assets/`. `npm run dev` serves the built site and the API Worker in the Cloudflare Workers runtime. The KLIPY proxy needs a `KLIPY_API_KEY` secret; without one it answers with an error, which is fine for most site work.
 
 ## Code Style
 
 - Follow the patterns already used next to the code you change.
 - **iOS:** SwiftUI with `@Observable` models and Core Data for local storage. Xcode discovers files through synchronized folders, so don't edit `project.pbxproj` just to add a source file. User-facing text lives in the `*.lproj/Localizable.strings` files; add new English strings and update the other languages where practical.
-- **Web:** TypeScript with `strict` mode. Keep `npm run lint` free of errors and warnings.
+- **Web:** no framework. TypeScript with `strict` mode for the templates, build and Worker; plain CSS and JavaScript in `public/`. Keep `npm run lint` free of errors and warnings.
 - Never commit API keys, signing material or other credentials. Secrets live in GitHub Actions secrets and Cloudflare Worker secrets.
 
 ## Automated tests and checks
@@ -45,12 +45,10 @@ Run the checks relevant to your change before opening a pull request:
 # iOS unit and UI tests on a temporary simulator (Mac with Xcode 27)
 bash scripts/test-ios.sh
 
-# Website: lint, tests (including generated-input fuzz tests) and production build
+# Website: lint, type check, tests (including generated-input fuzz tests) and build
 cd web
 npm ci
-npm run lint
-npm test
-npm run build
+npm run check
 
 # Release tooling (offline; never contacts App Store Connect)
 python3 -m unittest -v scripts/store/test_ios_release.py
@@ -61,7 +59,7 @@ The website tests include fast-check property tests for the KLIPY proxy that run
 GitHub Actions runs these checks automatically:
 
 - **iOS tests** — unit and UI tests for pull requests and pushes that change the app
-- **Web** — lint, tests and build for changes under `web/`, plus a weekly longer fuzzing run
+- **Web** — lint, type check, tests, build and a smoke test for changes under `web/`, plus a weekly longer fuzzing run
 - **Store automation (offline)** — release-tooling tests for changes to the store tooling or listing
 - **CodeQL** and **Dependency review** — static analysis and vulnerable-dependency checks on every pull request
 - **OpenSSF Scorecard** — weekly supply-chain security review
