@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "خرید مادام العمر";
 "one-time" = "یک بار";
 "One-time purchase. No renewal." = "خرید یکباره. بدون تمدید";
+
+/* About: open source */
+"OPEN SOURCE" = "متن‌باز";
+"Star on GitHub" = "در GitHub ستاره بدهید";
+"Report a Bug" = "گزارش اشکال";
+"Request a Feature" = "درخواست قابلیت";

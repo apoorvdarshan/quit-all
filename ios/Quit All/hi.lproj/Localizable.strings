@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "लाइफटाइम खरीदें";
 "one-time" = "एक बार";
 "One-time purchase. No renewal." = "एक बार की खरीदारी। कोई renewal नहीं।";
+
+/* About: open source */
+"OPEN SOURCE" = "ओपन सोर्स";
+"Star on GitHub" = "GitHub पर स्टार दें";
+"Report a Bug" = "बग रिपोर्ट करें";
+"Request a Feature" = "फ़ीचर का अनुरोध करें";

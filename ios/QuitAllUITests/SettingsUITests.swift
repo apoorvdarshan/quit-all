@@ -28,6 +28,28 @@ final class SettingsUITests: QuitAllUITestCase {
         waitFor(app.buttons["home.sos"])
     }
 
+    func testAboutLinksToTheSourceCodeAndIssueForms() {
+        let app = launchSeededHome()
+        openTab("About", in: app)
+        waitFor(app.navigationBars["About"])
+
+        for label in ["Star on GitHub", "Report a Bug", "Request a Feature"] {
+            var row = aboutRow(label, in: app)
+            var swipes = 0
+            while !row.exists && swipes < 6 {
+                app.swipeUp()
+                swipes += 1
+                row = aboutRow(label, in: app)
+            }
+            XCTAssertTrue(row.exists, "About shows \(label)")
+        }
+    }
+
+    private func aboutRow(_ label: String, in app: XCUIApplication) -> XCUIElement {
+        let button = control(app.buttons, containing: label)
+        return button.exists ? button : control(app.links, containing: label)
+    }
+
     func testResetAllDataReturnsToOnboardingForGood() {
         let app = launchSeededHome()
         openTab("Settings", in: app)
