@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "MUA TRỌN ĐỜI";
 "one-time" = "một lần";
 "One-time purchase. No renewal." = "Mua một lần. Không đổi mới.";
+
+/* About: open source */
+"OPEN SOURCE" = "MÃ NGUỒN MỞ";
+"Star on GitHub" = "Gắn sao trên GitHub";
+"Report a Bug" = "Báo lỗi";
+"Request a Feature" = "Đề xuất tính năng";

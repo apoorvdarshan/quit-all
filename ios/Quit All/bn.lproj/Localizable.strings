@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "লাইফটাইম কিনুন";
 "one-time" = "একবার";
 "One-time purchase. No renewal." = "এককালীন কেনাকাটা। কোন নবায়ন.";
+
+/* About: open source */
+"OPEN SOURCE" = "ওপেন সোর্স";
+"Star on GitHub" = "GitHub-এ স্টার দিন";
+"Report a Bug" = "বাগ রিপোর্ট করুন";
+"Request a Feature" = "ফিচারের অনুরোধ করুন";

@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "BUMILI NG LIFETIME";
 "one-time" = "isang beses";
 "One-time purchase. No renewal." = "Isang beses na pagbili. Walang renewal.";
+
+/* About: open source */
+"OPEN SOURCE" = "OPEN SOURCE";
+"Star on GitHub" = "Bigyan ng star sa GitHub";
+"Report a Bug" = "Mag-ulat ng Bug";
+"Request a Feature" = "Humiling ng Feature";

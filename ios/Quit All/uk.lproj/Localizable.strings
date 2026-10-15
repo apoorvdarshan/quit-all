@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "КУПИТИ ДОВІЧНО";
 "one-time" = "одноразовий";
 "One-time purchase. No renewal." = "Одноразова покупка. Без поновлення.";
+
+/* About: open source */
+"OPEN SOURCE" = "ВІДКРИТИЙ КОД";
+"Star on GitHub" = "Поставити зірку на GitHub";
+"Report a Bug" = "Повідомити про помилку";
+"Request a Feature" = "Запропонувати функцію";

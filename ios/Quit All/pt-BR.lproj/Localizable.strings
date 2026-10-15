@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "COMPRE PARA A VIDA";
 "one-time" = "uma vez";
 "One-time purchase. No renewal." = "Compra única. Sem renovação.";
+
+/* About: open source */
+"OPEN SOURCE" = "CÓDIGO ABERTO";
+"Star on GitHub" = "Dê uma estrela no GitHub";
+"Report a Bug" = "Relatar um bug";
+"Request a Feature" = "Sugerir um recurso";

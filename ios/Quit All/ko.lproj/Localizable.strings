@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "평생 구매";
 "one-time" = "일회성";
 "One-time purchase. No renewal." = "일회성 구매. 갱신이 없습니다.";
+
+/* About: open source */
+"OPEN SOURCE" = "오픈 소스";
+"Star on GitHub" = "GitHub에서 스타 주기";
+"Report a Bug" = "버그 신고";
+"Request a Feature" = "기능 요청";
