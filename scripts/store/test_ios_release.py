@@ -1482,6 +1482,34 @@ class CreateVersionTests(unittest.TestCase):
         self.assertEqual(code, 0, output)
         self.assertEqual(fake.calls, [])
 
+    def test_dry_run_rejects_a_bad_version_like_a_live_run(self) -> None:
+        fake = FakeAsc(has_version=False)
+        code, output = run_asc_main(fake, self.ON, "--create-version", "--dry-run", "--version", "1.2.2-beta")
+        self.assertEqual(code, 1)
+        self.assertIn("must look like", output)
+        self.assertEqual(fake.calls, [])
+
+    def test_create_version_never_runs_together_with_the_preflight(self) -> None:
+        fake = FakeAsc(has_version=False)
+        code, output = run_asc_main(fake, {**self.ON, "SUBMIT_IOS_REVIEW": "true"},
+                                    "--create-version", "--preflight", "--version", VERSION)
+        self.assertEqual(code, 1)
+        self.assertIn("separate steps", output)
+        self.assertEqual(fake.calls, [])
+
+    def test_a_created_version_that_does_not_read_back_fails_naming_it(self) -> None:
+        class Vanishing(FakeAsc):
+            def post(self, path: str, body: dict) -> dict:
+                result = super().post(path, body)
+                self.has_version = False  # App Store Connect does not list it yet
+                return result
+
+        fake = Vanishing(has_version=False)
+        code, output = self.create(fake)
+        self.assertEqual(code, 1)
+        self.assertIn(f"created App Store version {VERSION}, but reading it back found 0 records", output)
+        self.assertNotIn("turn on IOS_CREATE_VERSION", output)
+
 
 LIFETIME_READY = [{"id": "IAP1", "attributes": {"name": "Lifetime", "productId": "com.quitall.premium.lifetime",
                                                 "state": "READY_TO_SUBMIT"}}]
