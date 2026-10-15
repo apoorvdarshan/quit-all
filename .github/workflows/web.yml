@@ -1,5 +1,6 @@
-# Website checks: lint, tests (including the generated-input fuzz tests for the
-# KLIPY proxy), the Cloudflare Workers build, and a smoke test of that build in
+# Website checks: lint, type check, tests (including the generated-input fuzz
+# tests for the KLIPY proxy and the Worker routes), the static site build with
+# its link and metadata checks, and a smoke test of the built site and Worker in
 # the local Workers runtime. Never deploys.
 #
 # Pull requests and pushes that change web/ run 1,000 fuzz cases per property;
@@ -11,11 +12,13 @@ on:
   pull_request:
     paths:
       - 'web/**'
+      - 'ios/Quit All/Memes/MemeData.swift'
       - '.github/workflows/web.yml'
   push:
     branches: [main]
     paths:
       - 'web/**'
+      - 'ios/Quit All/Memes/MemeData.swift'
       - '.github/workflows/web.yml'
   schedule:
     # Weekly on Wednesdays.
@@ -36,7 +39,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      NEXT_TELEMETRY_DISABLED: 1
       WRANGLER_SEND_METRICS: false
     defaults:
       run:
@@ -46,8 +48,11 @@ jobs:
         with:
           persist-credentials: false
           sparse-checkout-cone-mode: false
+          # The tests check that the craving lines on the home page exist in the
+          # app's meme library.
           sparse-checkout: |
             /web/
+            /ios/Quit All/Memes/MemeData.swift
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -61,17 +66,21 @@ jobs:
       - name: Lint
         run: npm run lint -- --max-warnings=0
 
+      - name: Type check
+        run: npm run typecheck
+
       - name: Tests and fuzzing
         env:
           FUZZ_RUNS: ${{ github.event_name == 'schedule' && '50000' || '1000' }}
         run: npm test
 
-      - name: Build for Cloudflare Workers
+      - name: Build the static site (fails on broken links or missing metadata)
         run: npm run build
 
-      # Serves the built Worker locally (no Cloudflare account, no real KLIPY key)
-      # and checks that pages render and the API routes answer as expected.
-      - name: Smoke-test the Worker build
+      # Serves the built site and Worker locally (no Cloudflare account, no real
+      # KLIPY key) and checks that pages, the 404 page and the API routes answer
+      # as expected.
+      - name: Smoke-test the site and Worker
         run: |
           npx wrangler dev --port 8787 --ip 127.0.0.1 \
             --var KLIPY_API_KEY:ci-placeholder \
@@ -90,8 +99,13 @@ jobs:
           check / 200
           check /privacy 200
           check /terms 200
+          check /quit-smoking 200
+          check /digital-detox 200
           check /sitemap.xml 200
+          check /robots.txt 200
+          check /no-such-page 404
           check /api/app-config 200
+          check /api/unknown 404
           check '/api/klipy/v3/search' 400
           check '/api/klipy/v2/search?q=x' 502
           kill %1 || true

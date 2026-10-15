@@ -1,7 +1,7 @@
 # Static analysis (SAST) with GitHub CodeQL on every pull request, push to main
 # and weekly:
 #
-#   javascript-typescript  web/ (Next.js site and the KLIPY / app-config API routes)
+#   javascript-typescript  web/ (site build, page script and the KLIPY / app-config API Worker)
 #   python                 scripts/ (release notes and App Store release tooling)
 #   actions                .github/workflows/*.yml
 #

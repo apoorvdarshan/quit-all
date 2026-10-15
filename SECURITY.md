@@ -34,7 +34,7 @@ Only the latest App Store release of the iOS app and the currently deployed webs
 
 **In scope (website and proxy, `web/`):**
 
-- The Next.js site at quit-all.com, deployed to Cloudflare Workers
+- The static site at quit-all.com and its API Worker (`web/src/worker.ts`), deployed to Cloudflare Workers
 - The KLIPY proxy (`/api/klipy/...`): exposure of the server-side KLIPY key, requests to anything other than the allow-listed KLIPY endpoints, and header or cookie leakage
 - The app configuration endpoint (`/api/app-config`), which serves the public RevenueCat SDK key
 - Accuracy of the privacy policy and terms pages

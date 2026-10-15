@@ -1,7 +1,11 @@
-export type SeoPage = {
+// The nine habit guides, one per habit the app tracks. Each becomes a page at
+// /<slug> (for example /quit-smoking) and is linked from the home page.
+
+export type Guide = {
   slug: string;
   label: string;
-  eyebrow: string;
+  habit: string;
+  summary: string;
   title: string;
   metaTitle: string;
   metaDescription: string;
@@ -19,13 +23,12 @@ export type SeoPage = {
   keywords: string[];
 };
 
-export const siteUrl = "https://www.quit-all.com";
-
-export const seoPages: SeoPage[] = [
+export const guides: Guide[] = [
   {
     slug: "quit-smoking",
     label: "Quit Smoking",
-    eyebrow: "Smoking tracker",
+    habit: "Smoking",
+    summary: "Smoke-free days, cigarette cravings and the money you stop spending on packs.",
     title: "Quit Smoking With Streaks, Craving SOS, and Savings",
     metaTitle: "Quit Smoking App for iPhone | Quit All",
     metaDescription: "Quit smoking with an iPhone streak tracker, craving SOS GIFs, money saved, widgets, milestones, and relapse logging in Quit All.",
@@ -70,7 +73,8 @@ export const seoPages: SeoPage[] = [
   {
     slug: "quit-vaping",
     label: "Quit Vaping",
-    eyebrow: "Vape-free tracker",
+    habit: "Vaping",
+    summary: "Vape-free time down to the minute, and help when a nicotine urge spikes.",
     title: "Quit Vaping and Track Every Vape-Free Day",
     metaTitle: "Quit Vaping App for iPhone | Quit All",
     metaDescription: "Quit vaping with vape-free streaks, craving SOS GIFs, savings tracking, widgets, relapse logging, and motivation inside Quit All.",
@@ -115,7 +119,8 @@ export const seoPages: SeoPage[] = [
   {
     slug: "quit-drinking",
     label: "Quit Drinking",
-    eyebrow: "Sober counter",
+    habit: "Alcohol",
+    summary: "Sober days, alcohol-free milestones and the money you keep.",
     title: "Quit Drinking With a Private Sober Day Tracker",
     metaTitle: "Quit Drinking App and Sober Counter | Quit All",
     metaDescription: "Track sober days, alcohol-free streaks, craving moments, milestones, and money saved with the Quit All iPhone app.",
@@ -160,7 +165,8 @@ export const seoPages: SeoPage[] = [
   {
     slug: "quit-weed",
     label: "Quit Weed",
-    eyebrow: "Cannabis-free tracker",
+    habit: "Weed",
+    summary: "Weed-free days, cravings and the time and money you take back.",
     title: "Quit Weed and Track Cannabis-Free Progress",
     metaTitle: "Quit Weed App and Cannabis-Free Tracker | Quit All",
     metaDescription: "Track weed-free days, cravings, money saved, milestones, relapse history, and widgets with Quit All for iPhone.",
@@ -205,7 +211,8 @@ export const seoPages: SeoPage[] = [
   {
     slug: "stop-gambling",
     label: "Stop Gambling",
-    eyebrow: "Gambling tracker",
+    habit: "Gambling",
+    summary: "Gambling-free days and a pause before the next bet or deposit.",
     title: "Stop Gambling With Urge Support and Savings Tracking",
     metaTitle: "Stop Gambling App and Urge Tracker | Quit All",
     metaDescription: "Track gambling-free days, urges, relapse history, money saved, milestones, and reminders with Quit All for iPhone.",
@@ -250,7 +257,8 @@ export const seoPages: SeoPage[] = [
   {
     slug: "stop-overspending",
     label: "Stop Overspending",
-    eyebrow: "Spending tracker",
+    habit: "Overspending",
+    summary: "No-spend streaks and a pause before an impulse purchase.",
     title: "Stop Overspending and Track Money Saved",
     metaTitle: "Stop Overspending App and Savings Tracker | Quit All",
     metaDescription: "Track spending-free streaks, urges to buy, money saved, milestones, and relapse history with Quit All for iPhone.",
@@ -295,7 +303,8 @@ export const seoPages: SeoPage[] = [
   {
     slug: "quit-caffeine",
     label: "Quit Caffeine",
-    eyebrow: "Caffeine-free tracker",
+    habit: "Caffeine",
+    summary: "Coffee-free or caffeine-free days and what the daily drinks cost.",
     title: "Quit Caffeine and Count Caffeine-Free Days",
     metaTitle: "Quit Caffeine App and Coffee-Free Tracker | Quit All",
     metaDescription: "Track caffeine-free days, coffee cravings, energy drink spending, milestones, relapses, and widgets with Quit All.",
@@ -340,7 +349,8 @@ export const seoPages: SeoPage[] = [
   {
     slug: "digital-detox",
     label: "Digital Detox",
-    eyebrow: "Screen time habits",
+    habit: "Social media",
+    summary: "Days without compulsive scrolling, and something to do instead of opening the app.",
     title: "Digital Detox Tracking for Social Media and Scrolling",
     metaTitle: "Digital Detox App for Social Media Habits | Quit All",
     metaDescription: "Track social media breaks, scrolling urges, screen time habits, milestones, relapses, and progress widgets with Quit All.",
@@ -385,7 +395,8 @@ export const seoPages: SeoPage[] = [
   {
     slug: "quit-porn",
     label: "Quit Porn",
-    eyebrow: "Private habit tracker",
+    habit: "Porn",
+    summary: "Porn-free days, tracked privately, with support when an urge starts.",
     title: "Quit Porn With a Private Streak and Urge Tracker",
     metaTitle: "Quit Porn App and Private Streak Tracker | Quit All",
     metaDescription: "Track porn-free days, urges, relapse history, milestones, and private progress with Quit All for iPhone.",
@@ -429,4 +440,4 @@ export const seoPages: SeoPage[] = [
   },
 ];
 
-export const seoPageMap = new Map(seoPages.map((page) => [page.slug, page]));
+export const guideMap = new Map(guides.map((page) => [page.slug, page]));

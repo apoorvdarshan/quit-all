@@ -1,14 +1,18 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "quit-all-web",
-  "main": ".open-next/worker.js",
-  "compatibility_date": "2026-07-10",
-  "compatibility_flags": ["nodejs_compat"],
+  // Runs only for /api/* (see run_worker_first). Every other request is served
+  // straight from the static files in dist/, built by `npm run build`.
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-10-01",
   "workers_dev": false,
   "preview_urls": false,
   "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "directory": "dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
   },
   "observability": {
     "enabled": true
