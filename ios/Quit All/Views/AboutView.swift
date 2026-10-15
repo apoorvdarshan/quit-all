@@ -173,7 +173,7 @@ struct AboutView: View {
                 .listRowBackground(Color(hex: "111111"))
 
                 Section {
-                    Link(destination: URL(string: "https://www.producthunt.com/products/quit-all-break-every-habit")!) {
+                    Link(destination: URL(string: "https://www.producthunt.com/products/quit-all-break-every-habit-2")!) {
                         HStack {
                             Image(systemName: "hand.thumbsup.fill")
                                 .foregroundColor(gold)
