@@ -33,7 +33,7 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 ├── ios/        # SwiftUI iOS app (Xcode project) + unit and UI tests → App Store
 ├── store/      # App Store listing, screenshot order and product catalog (source of truth)
 ├── scripts/    # iOS test runner and App Store release automation
-└── web/        # Next.js marketing site → quit-all.com
+└── web/        # Static marketing site + API Worker → quit-all.com
 ```
 
 ## Preview
@@ -69,12 +69,12 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 
 | iOS (`ios/`) | Web (`web/`) |
 |---|---|
-| Swift + SwiftUI (iOS 17+) | Next.js + TypeScript |
-| CoreData (local-only, no backend) | Vanilla CSS (no Tailwind) |
-| RevenueCat + StoreKit 2 | Framer Motion (animations) |
-| WidgetKit + UserNotifications | JSON-LD structured data for SEO |
-| KLIPY GIF proxy + bundled MP4 fallbacks | Cloudflare Workers via OpenNext |
-| Dark casino-gold theme, Cormorant serif | Same theme system as iOS |
+| Swift + SwiftUI (iOS 17+) | Static HTML pages built from TypeScript templates (no framework) |
+| CoreData (local-only, no backend) | Plain CSS, self-hosted Cormorant Garamond and Schibsted Grotesk |
+| RevenueCat + StoreKit 2 | One small script for the craving-button demo |
+| WidgetKit + UserNotifications | JSON-LD structured data, sitemap and 9 habit guides for SEO |
+| KLIPY GIF proxy + bundled MP4 fallbacks | Cloudflare Workers Static Assets + a Worker for `/api/*` |
+| Dark casino-gold theme, Cormorant serif | Same palette and type as the app |
 
 ## Running locally
 
@@ -93,17 +93,13 @@ Full setup → [`ios/README.md`](ios/README.md)
 
 ```bash
 cd web
-npm install
-npm run dev    # http://localhost:3000
+npm ci
+npm run dev       # builds dist/ and serves the site and API Worker at http://localhost:8787
+npm run check     # lint, type check, tests and build
+npm run deploy    # build and deploy to Cloudflare with Wrangler
 ```
 
-The `web/` folder deploys to Cloudflare Workers through the OpenNext adapter:
-
-```bash
-cd web
-npm run preview   # build and test in the Workers runtime
-npm run deploy    # build and deploy with Wrangler
-```
+`npm run build` renders every page from `web/src/site/` into `web/dist/` and fails on a broken internal link or missing page metadata. Cloudflare serves `dist/` as static files; `web/src/worker.ts` runs only for `/api/*`.
 
 KLIPY requests are proxied through Cloudflare at `/api/klipy/...` so the iOS app never ships the API key. Configure `KLIPY_API_KEY` with `wrangler secret put KLIPY_API_KEY`, then call endpoints like `/api/klipy/v2/search?q=smoking`. Online GIF content shows Powered by KLIPY attribution in the app. Optional overrides: `KLIPY_API_BASE_URL` and `KLIPY_API_KEY_PARAM`.
 
@@ -115,12 +111,12 @@ The iOS RevenueCat public SDK key is loaded from `/api/app-config` so it can be 
 
 ```bash
 bash scripts/test-ios.sh   # unit + UI tests on a temporary iPhone simulator (Xcode 27)
-cd web && npm test         # website tests, including fuzz tests for the KLIPY proxy
+cd web && npm test         # website tests, including fuzz tests for the KLIPY proxy and API routes
 ```
 
 `ios/QuitAllTests` covers streaks, milestones, savings, habit and relapse storage, craving patterns, the widget snapshot and the premium entitlement rule; `ios/QuitAllUITests` walks through onboarding, the paywall, Home, SOS, relapse, habits, stats and settings. Tests run offline: in Debug simulator builds the app has a test mode that never contacts RevenueCat, the App Store or KLIPY, never asks for notification permission and can't buy anything. The **iOS tests** workflow runs both suites on every pull request and push to `main` that changes the app. Details: [`docs/ios-testing.md`](docs/ios-testing.md).
 
-The **Web** workflow lints, tests and builds the site for Cloudflare Workers, then smoke-tests the built Worker. Its fast-check property tests check that the KLIPY proxy never leaks or loses its server-side key, never leaves the KLIPY origin and never forwards client credentials. They run 1,000 cases per property on each change and 50,000 weekly. **CodeQL** scans the Swift app, website, release tooling and workflows, **Dependency review** blocks pull requests that add vulnerable dependencies, and **OpenSSF Scorecard** reviews the repository's supply-chain security weekly.
+The **Web** workflow lints, type-checks, tests and builds the site, then smoke-tests the built pages and API Worker. Its fast-check property tests check that the KLIPY proxy never leaks or loses its server-side key, never leaves the KLIPY origin and never forwards client credentials. They run 1,000 cases per property on each change and 50,000 weekly. **CodeQL** scans the Swift app, website, release tooling and workflows, **Dependency review** blocks pull requests that add vulnerable dependencies, and **OpenSSF Scorecard** reviews the repository's supply-chain security weekly.
 
 ### Releases
 

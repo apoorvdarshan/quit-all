@@ -9,15 +9,11 @@ ios/Quit All/EnvConfig.swift
 **/xcuserdata/
 **/*.xcuserstate
 
-# Node / Next.js (web)
+# Website (web/): dependencies, build output, Wrangler state
 web/node_modules/
-web/.next/
-web/out/
-web/.vercel/
-web/build/
-web/coverage/
+web/dist/
+web/.wrangler/
 web/*.tsbuildinfo
-web/next-env.d.ts
 
 # Env files
 web/.env*

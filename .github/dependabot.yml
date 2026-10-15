@@ -6,7 +6,7 @@
 #   pip             the hash-locked store tooling (requirements-store.in compiled
 #                   to requirements-store.txt) that runs with the App Store
 #                   Connect key in the release jobs
-#   npm /web        the website and KLIPY proxy deployed to Cloudflare Workers
+#   npm /web        the website build and test tooling (wrangler, TypeScript, ESLint)
 #   swift           the RevenueCat SDK (purchases-ios-spm), pinned in the Xcode
 #                   project's Package.resolved under ios/Quit All.xcodeproj.
 #                   Dependabot finds the project in /ios without a Package.swift
@@ -60,14 +60,5 @@ updates:
     groups:
       web:
         patterns: ["*"]
-    ignore:
-      # Next.js 16.4 builds but fails at runtime on Cloudflare Workers with
-      # OpenNext 1.20.11 ("Unexpected loadManifest(preview-props.json) call",
-      # opennextjs/opennextjs-cloudflare#1448). Stay on 16.3.x, which still gets
-      # patch releases, until that is fixed.
-      - dependency-name: next
-        versions: [">=16.4.0"]
-      - dependency-name: eslint-config-next
-        versions: [">=16.4.0"]
     commit-message:
       prefix: "Web"

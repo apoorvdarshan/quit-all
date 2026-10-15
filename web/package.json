@@ -1,39 +1,29 @@
 {
   "name": "quit-all-web",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "type": "module",
+  "description": "quit-all.com: static pages built from TypeScript templates, plus a Cloudflare Worker for the app's API routes.",
   "scripts": {
-    "dev": "next dev",
-    "build": "opennextjs-cloudflare build",
-    "build:next": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy -- --keep-vars",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload -- --keep-vars",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test \"src/**/*.test.ts\""
+    "build": "node src/site/build.ts",
+    "dev": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy --keep-vars",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "check": "npm run lint -- --max-warnings=0 && npm run typecheck && npm test && npm run build"
   },
-  "dependencies": {
-    "@opennextjs/cloudflare": "^1.20.11",
-    "framer-motion": "^12.38.0",
-    "next": "~16.3.8",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+  "engines": {
+    "node": ">=24"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "~16.3.8",
+    "@eslint/js": "^9.39.5",
+    "@types/node": "^24.19.2",
+    "eslint": "^9.39.5",
     "fast-check": "^4.10.2",
-    "typescript": "^5",
+    "globals": "^16.5.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.2",
     "wrangler": "^4.151.0"
-  },
-  "overrides": {
-    "@node-minify/core": {
-      "glob": "^10.5.0"
-    }
   }
 }

@@ -17,7 +17,7 @@
 
 - [ ] New or changed behavior has automated tests (or the limitation is explained below)
 - [ ] `bash scripts/test-ios.sh` passes when iOS code changed
-- [ ] `npm run lint`, `npm test` and `npm run build` pass in `web/` when the website changed
+- [ ] `npm run check` passes in `web/` when the website changed
 - [ ] Manual check of the touched flows on a device or simulator
 - [ ] New user-facing strings are localized, or noted as English-only for now
 
