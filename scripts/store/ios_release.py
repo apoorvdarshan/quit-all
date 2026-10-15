@@ -101,6 +101,36 @@ def single_project_value(setting: str, pbxproj: Path = PBXPROJ) -> str:
     return values.pop().strip().strip('"')
 
 
+ENCRYPTION_KEY = "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption"
+COMPLIANCE_CODE_KEY = "INFOPLIST_KEY_ITSEncryptionExportComplianceCode"
+
+
+def check_export_compliance(pbxproj: Path = PBXPROJ) -> str:
+    """The app's export compliance answer, read from the project before anything is built.
+
+    Without ITSAppUsesNonExemptEncryption, App Store Connect asks about every
+    build by hand and review submission fails until someone answers. NO means
+    only exempt encryption (HTTPS, Keychain, Apple's system crypto); YES also
+    needs the export compliance code Apple issues for the app's documentation.
+    """
+    values = {value.strip().strip('"') for value in project_values(ENCRYPTION_KEY, pbxproj)}
+    if not values:
+        raise ReleaseError(
+            f"the app does not declare export compliance: set {ENCRYPTION_KEY} = NO (only HTTPS, "
+            "Keychain or Apple's system crypto) or YES with "
+            f"{COMPLIANCE_CODE_KEY} in the app target's build settings"
+        )
+    if len(values) != 1 or not values <= {"NO", "YES"}:
+        raise ReleaseError(f"{ENCRYPTION_KEY} must be NO or YES in every app configuration; found {sorted(values)}")
+    answer = values.pop()
+    if answer == "YES" and not project_values(COMPLIANCE_CODE_KEY, pbxproj):
+        raise ReleaseError(
+            f"{ENCRYPTION_KEY} = YES needs {COMPLIANCE_CODE_KEY} (the code App Store Connect issues "
+            "for the app's encryption documentation)"
+        )
+    return answer
+
+
 VERSION_PATTERN = re.compile(r"[0-9]+(\.[0-9]+){0,2}")
 
 
@@ -400,6 +430,8 @@ def cmd_gates(_: argparse.Namespace) -> None:
         validation_version=os.environ.get("VALIDATION_MARKETING_VERSION", ""),
     )
     notes = resolved.pop("notes")
+    if resolved["build"]:
+        notes.append(f"export compliance: ITSAppUsesNonExemptEncryption = {check_export_compliance()}")
     print("iOS release switches:")
     for note in notes:
         print(f"  note: {note}")
