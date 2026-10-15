@@ -23,6 +23,11 @@ review with this run's build sends a late product in a product-only draft.) A
 first-time subscription must go out with the version or App Review rejects the
 build.
 
+`--create-version` (IOS_CREATE_VERSION) runs first on a release run: it adds the
+App Store version for the tag when App Store Connect does not have it yet, and
+leaves an existing one alone. It refuses when another version is still on its
+way to the store or the tag's version is not newer than every existing one.
+
 `--preflight` runs before anything is built: read-only checks (GET requests
 only) that the App Store version exists, is in a state the enabled switches can
 use, and has every repository locale, so a release fails before it uploads."""
@@ -76,6 +81,15 @@ TEXT_EDITABLE_VERSION_STATES = EDITABLE_VERSION_STATES | {"READY_FOR_REVIEW"}
 # A rerun may find the version here after its earlier attempt started or
 # completed the submission. Metadata switches pass only when nothing would change.
 UNCHANGED_METADATA_STATES = {"READY_FOR_REVIEW", "WAITING_FOR_REVIEW"}
+# Versions in these states are finished. Any other state means the version is
+# still on its way to the store, and App Store Connect allows only one such
+# version per platform, so no new version is created next to it.
+FINISHED_VERSION_STATES = {
+    "READY_FOR_SALE",
+    "REPLACED_WITH_NEW_VERSION",
+    "REMOVED_FROM_SALE",
+    "DEVELOPER_REMOVED_FROM_SALE",
+}
 
 
 def fail(msg: str) -> None:
@@ -240,30 +254,36 @@ def find_app(client: AscClient, bundle_id: str) -> str:
     return matches[0]["id"]
 
 
-def get_ios_app_store_version(
-    client: AscClient, app_id: str, version_string: str
-) -> dict[str, Any]:
+def list_ios_app_store_versions(client: AscClient, app_id: str) -> list[dict[str, Any]]:
     # Prefer the app relationship listing — some ASC API keys cannot
     # GET_COLLECTION on /appStoreVersions with filter[app]=… (403).
-    matches: list[dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     path: str | None = (
         f"/apps/{app_id}/appStoreVersions?"
         + urllib.parse.urlencode({"limit": "50", "filter[platform]": "IOS"})
     )
     while path:
         payload = client.get(path)
-        for row in payload.get("data") or []:
-            attrs = row.get("attributes") or {}
-            if attrs.get("versionString") == version_string:
-                matches.append(row)
+        rows.extend(payload.get("data") or [])
         next_url = (payload.get("links") or {}).get("next")
         if not next_url:
             break
         path = next_url
+    return rows
+
+
+def get_ios_app_store_version(
+    client: AscClient, app_id: str, version_string: str
+) -> dict[str, Any]:
+    matches = [
+        row
+        for row in list_ios_app_store_versions(client, app_id)
+        if (row.get("attributes") or {}).get("versionString") == version_string
+    ]
     if not matches:
         fail(
             f"no IOS App Store version {version_string!r} for app {app_id} "
-            "(create the version in App Store Connect first)"
+            "(turn on IOS_CREATE_VERSION, or create the version in App Store Connect first)"
         )
     if len(matches) > 1:
         fail(
@@ -1345,6 +1365,73 @@ def validate_local_inputs(
     return sets
 
 
+def version_key(version_string: str) -> tuple[int, ...] | None:
+    """1.2.2 -> (1, 2, 2), padded to three parts; None when it is not numeric."""
+    if not re.fullmatch(r"[0-9]+(\.[0-9]+){0,2}", version_string or ""):
+        return None
+    parts = [int(part) for part in version_string.split(".")]
+    return tuple(parts + [0] * (3 - len(parts)))
+
+
+def ensure_ios_app_store_version(
+    client: AscClient, *, bundle_id: str, expected_app_id: str, version_string: str
+) -> None:
+    """Create the App Store version for this release when it does not exist yet.
+
+    An existing version with this number is left as it is (the preflight then
+    checks its state). Nothing is created when another version is still on its
+    way to the store, or when this number is not newer than every existing
+    version; the created version is read back before the run continues.
+    """
+    wanted = version_key(version_string)
+    if wanted is None:
+        fail(f"version {version_string!r} must look like 1.3 or 1.2.2")
+    app_id = find_app(client, bundle_id)
+    if app_id != expected_app_id:
+        fail(f"{bundle_id} resolved to App Store Connect app {app_id}, expected {expected_app_id}")
+    versions = list_ios_app_store_versions(client, app_id)
+    existing = [
+        row for row in versions if (row.get("attributes") or {}).get("versionString") == version_string
+    ]
+    if len(existing) > 1:
+        fail(f"ambiguous App Store versions for {version_string!r} on IOS — got {len(existing)} records")
+    if existing:
+        state = (existing[0].get("attributes") or {}).get("appStoreState") or ""
+        print(f"App Store version {version_string} already exists ({state}); nothing to create")
+        return
+    problems: list[str] = []
+    for row in versions:
+        attrs = row.get("attributes") or {}
+        other = attrs.get("versionString") or ""
+        state = attrs.get("appStoreState") or ""
+        if state not in FINISHED_VERSION_STATES:
+            problems.append(
+                f"version {other!r} is still {state or 'in an unknown state'}; release or remove it "
+                f"in App Store Connect before {version_string} can be created"
+            )
+        other_key = version_key(other)
+        if other_key is not None and other_key >= wanted:
+            problems.append(f"version {version_string} is not newer than the existing version {other}")
+    if problems:
+        fail(
+            f"not creating App Store version {version_string} (nothing was changed):\n  "
+            + "\n  ".join(problems)
+        )
+    client.post(
+        "/appStoreVersions",
+        {
+            "data": {
+                "type": "appStoreVersions",
+                "attributes": {"platform": "IOS", "versionString": version_string},
+                "relationships": {"app": {"data": {"type": "apps", "id": app_id}}},
+            }
+        },
+    )
+    created = get_ios_app_store_version(client, app_id, version_string)
+    state = (created.get("attributes") or {}).get("appStoreState") or ""
+    print(f"created App Store version {version_string} ({state or 'state not reported yet'})")
+
+
 def version_state_problems(state: str, version: str, *, edits_metadata: bool, submit: bool) -> list[str]:
     """Version states the enabled switches cannot use at all, checked before anything else."""
     problems: list[str] = []
@@ -1377,8 +1464,8 @@ def preflight(
 ) -> None:
     """Read-only App Store Connect checks before anything is built or uploaded.
 
-    GET requests only: the App Store version must exist (the automation never
-    creates one), be in a state the enabled switches can use and have every
+    GET requests only: the App Store version must exist (IOS_CREATE_VERSION's
+    step, which runs before this, creates a missing one), be in a state the enabled switches can use and have every
     repository locale, and its metadata must be changeable where it differs.
     The live step repeats every check, because App Store Connect can change
     while the build is processed.
@@ -1454,7 +1541,29 @@ def main(argv: list[str] | None = None) -> None:
         action="store_true",
         help="Read-only App Store Connect checks before the build is uploaded (GET requests only)",
     )
+    parser.add_argument(
+        "--create-version",
+        action="store_true",
+        help="Create the App Store version for --version when it is missing (CREATE_IOS_VERSION)",
+    )
     args = parser.parse_args(argv)
+
+    if args.create_version:
+        if not truthy("CREATE_IOS_VERSION"):
+            print("App Store version creation skipped — CREATE_IOS_VERSION is off")
+            return
+        if not args.version:
+            fail("--create-version needs --version (the marketing version from the tag)")
+        if args.dry_run:
+            print(f"ASC dry-run — would create App Store version {args.version} if it is missing")
+            return
+        ensure_ios_app_store_version(
+            client_from_environment(),
+            bundle_id=args.bundle_id,
+            expected_app_id=args.app_id,
+            version_string=args.version,
+        )
+        return
 
     do_listing = truthy("UPLOAD_LISTING")
     do_whats_new = truthy("UPLOAD_WHATS_NEW")
