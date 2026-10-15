@@ -216,8 +216,9 @@ app ever adds its own encryption, set it to `YES` and add
 `INFOPLIST_KEY_ITSEncryptionExportComplianceCode` with the code App Store
 Connect issues for the app's encryption documentation.
 
-Release and validation runs check it twice: `ios_release.py gates` reads the
-project before anything is built, and `verify_ios_bundles.sh` reads the
+Release and validation runs check it twice: `ios_release.py gates` reads each
+configuration (Debug and Release) of the app target before anything is built,
+and `verify_ios_bundles.sh` reads the
 archived app's `Info.plist`. A missing key, or `YES` without the code, fails
 the run.
 

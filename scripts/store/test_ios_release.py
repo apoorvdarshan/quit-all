@@ -230,35 +230,67 @@ class GateTests(unittest.TestCase):
 class ExportComplianceTests(unittest.TestCase):
     """ITSAppUsesNonExemptEncryption must be declared, or App Store Connect asks about every build."""
 
-    def check(self, settings: str) -> str:
+    @staticmethod
+    def configuration(name: str, bundle_id: str, extra: str = "") -> str:
+        return (
+            f"\t\tAAA{name}{bundle_id[-4:]} /* {name} */ = {{\n"
+            "\t\t\tisa = XCBuildConfiguration;\n"
+            "\t\t\tbuildSettings = {\n"
+            f"\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = \"{bundle_id}\";\n"
+            f"{extra}"
+            "\t\t\t};\n"
+            f"\t\t\tname = {name};\n"
+            "\t\t};\n"
+        )
+
+    def check(self, debug: str, release: str, others: str = "") -> str:
+        app = ios_release.BUNDLE_ID
+        text = "/* project */\n" + self.configuration("Debug", app, debug) + self.configuration("Release", app, release) + others
         with tempfile.NamedTemporaryFile("w", suffix=".pbxproj", delete=False) as handle:
-            handle.write("/* project */\n" + settings)
+            handle.write(text)
         self.addCleanup(os.unlink, handle.name)
         return ios_release.check_export_compliance(Path(handle.name))
 
+    NO = "\t\t\t\tINFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;\n"
+    YES = "\t\t\t\tINFOPLIST_KEY_ITSAppUsesNonExemptEncryption = YES;\n"
+    CODE = "\t\t\t\tINFOPLIST_KEY_ITSEncryptionExportComplianceCode = ABC123;\n"
+
     def test_the_app_declares_no_non_exempt_encryption(self) -> None:
         self.assertEqual(ios_release.check_export_compliance(), "NO")
+        configurations = ios_release.app_build_configurations()
+        self.assertEqual(sorted(configurations), ["Debug", "Release"])
 
     def test_no_in_every_configuration_passes(self) -> None:
-        line = "\t\t\t\tINFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;\n"
-        self.assertEqual(self.check(line * 2), "NO")
+        self.assertEqual(self.check(self.NO, self.NO), "NO")
 
-    def test_missing_declaration_fails_before_the_build(self) -> None:
+    def test_a_configuration_without_the_key_fails_before_the_build(self) -> None:
+        with self.assertRaisesRegex(ReleaseError, "Release configuration does not declare export compliance"):
+            self.check(self.NO, "")
+        with self.assertRaisesRegex(ReleaseError, "Debug configuration does not declare export compliance"):
+            self.check("", self.NO)
+
+    def test_a_value_on_another_target_does_not_count_for_the_app(self) -> None:
+        widget = self.configuration("Release", ios_release.BUNDLE_ID + ".Widget", self.NO)
         with self.assertRaisesRegex(ReleaseError, "does not declare export compliance"):
-            self.check("\t\t\t\tINFOPLIST_KEY_CFBundleDisplayName = App;\n")
+            self.check("", "", widget)
 
     def test_yes_needs_the_compliance_code(self) -> None:
-        yes = "\t\t\t\tINFOPLIST_KEY_ITSAppUsesNonExemptEncryption = YES;\n"
         with self.assertRaisesRegex(ReleaseError, "needs INFOPLIST_KEY_ITSEncryptionExportComplianceCode"):
-            self.check(yes)
-        code = "\t\t\t\tINFOPLIST_KEY_ITSEncryptionExportComplianceCode = ABC123;\n"
-        self.assertEqual(self.check(yes + code), "YES")
+            self.check(self.YES + self.CODE, self.YES)
+        self.assertEqual(self.check(self.YES + self.CODE, self.YES + self.CODE), "YES")
 
     def test_mixed_or_unknown_values_fail(self) -> None:
-        for settings in ("INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;\nINFOPLIST_KEY_ITSAppUsesNonExemptEncryption = YES;\n",
-                         "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = maybe;\n"):
-            with self.subTest(settings=settings), self.assertRaisesRegex(ReleaseError, "must be NO or YES"):
-                self.check(settings)
+        with self.assertRaisesRegex(ReleaseError, "in every app configuration alike"):
+            self.check(self.NO, self.YES + self.CODE)
+        with self.assertRaisesRegex(ReleaseError, "must be NO or YES"):
+            self.check(self.NO, "\t\t\t\tINFOPLIST_KEY_ITSAppUsesNonExemptEncryption = maybe;\n")
+
+    def test_missing_app_configurations_fail(self) -> None:
+        with tempfile.NamedTemporaryFile("w", suffix=".pbxproj", delete=False) as handle:
+            handle.write("/* project */\n" + self.configuration("Release", "com.example.Other", self.NO))
+        self.addCleanup(os.unlink, handle.name)
+        with self.assertRaisesRegex(ReleaseError, "could not find the Debug and Release configurations"):
+            ios_release.check_export_compliance(Path(handle.name))
 
     def test_gates_check_it_only_when_this_run_builds(self) -> None:
         missing = mock.patch.object(ios_release, "check_export_compliance",
