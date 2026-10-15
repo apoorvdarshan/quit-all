@@ -227,6 +227,56 @@ class GateTests(unittest.TestCase):
         self.assertIn("IOS_UPLOAD_BUILD", err.getvalue())
 
 
+class ExportComplianceTests(unittest.TestCase):
+    """ITSAppUsesNonExemptEncryption must be declared, or App Store Connect asks about every build."""
+
+    def check(self, settings: str) -> str:
+        with tempfile.NamedTemporaryFile("w", suffix=".pbxproj", delete=False) as handle:
+            handle.write("/* project */\n" + settings)
+        self.addCleanup(os.unlink, handle.name)
+        return ios_release.check_export_compliance(Path(handle.name))
+
+    def test_the_app_declares_no_non_exempt_encryption(self) -> None:
+        self.assertEqual(ios_release.check_export_compliance(), "NO")
+
+    def test_no_in_every_configuration_passes(self) -> None:
+        line = "\t\t\t\tINFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;\n"
+        self.assertEqual(self.check(line * 2), "NO")
+
+    def test_missing_declaration_fails_before_the_build(self) -> None:
+        with self.assertRaisesRegex(ReleaseError, "does not declare export compliance"):
+            self.check("\t\t\t\tINFOPLIST_KEY_CFBundleDisplayName = App;\n")
+
+    def test_yes_needs_the_compliance_code(self) -> None:
+        yes = "\t\t\t\tINFOPLIST_KEY_ITSAppUsesNonExemptEncryption = YES;\n"
+        with self.assertRaisesRegex(ReleaseError, "needs INFOPLIST_KEY_ITSEncryptionExportComplianceCode"):
+            self.check(yes)
+        code = "\t\t\t\tINFOPLIST_KEY_ITSEncryptionExportComplianceCode = ABC123;\n"
+        self.assertEqual(self.check(yes + code), "YES")
+
+    def test_mixed_or_unknown_values_fail(self) -> None:
+        for settings in ("INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;\nINFOPLIST_KEY_ITSAppUsesNonExemptEncryption = YES;\n",
+                         "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = maybe;\n"):
+            with self.subTest(settings=settings), self.assertRaisesRegex(ReleaseError, "must be NO or YES"):
+                self.check(settings)
+
+    def test_gates_check_it_only_when_this_run_builds(self) -> None:
+        missing = mock.patch.object(ios_release, "check_export_compliance",
+                                    side_effect=ReleaseError("does not declare export compliance"))
+        for env, fails in (({"GITHUB_EVENT_NAME": "workflow_dispatch", "GITHUB_REF_NAME": "main"}, True),
+                           ({"GITHUB_EVENT_NAME": "push", "GITHUB_REF_NAME": TAG}, False)):
+            with self.subTest(env=env), missing, mock.patch.object(ios_release, "single_project_value",
+                                                                   return_value=VERSION), \
+                    mock.patch.dict(os.environ, env, clear=True), redirect_stdout(io.StringIO()), \
+                    redirect_stderr(io.StringIO()) as err:
+                if fails:
+                    with self.assertRaises(SystemExit):
+                        ios_release.main(["gates"])
+                    self.assertIn("export compliance", err.getvalue())
+                else:
+                    ios_release.main(["gates"])
+
+
 class BuildNumberTests(unittest.TestCase):
     def test_next_build_number(self) -> None:
         # Quit All's App Store Connect history restarts build numbers per version.

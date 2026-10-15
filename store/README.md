@@ -202,6 +202,25 @@ with a clear message, and so does turning the switch on without any
    `1.2.2` (validation only; nothing is uploaded).
 6. Merge, then push the `v1.2.2` tag only when you intend that release.
 
+## Export compliance
+
+The app declares its export compliance answer in its build settings
+(`INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO`, so every build's
+`Info.plist` carries `ITSAppUsesNonExemptEncryption = false`). Without it, App
+Store Connect asks about each build by hand, and review submission fails with
+`usesNonExemptEncryption` missing (version 1.2.2's first run did).
+
+`NO` is right while the app only uses exempt encryption: HTTPS (Apple's
+networking and the RevenueCat SDK), Keychain and Apple's system crypto. If the
+app ever adds its own encryption, set it to `YES` and add
+`INFOPLIST_KEY_ITSEncryptionExportComplianceCode` with the code App Store
+Connect issues for the app's encryption documentation.
+
+Release and validation runs check it twice: `ios_release.py gates` reads the
+project before anything is built, and `verify_ios_bundles.sh` reads the
+archived app's `Info.plist`. A missing key, or `YES` without the code, fails
+the run.
+
 ## In-app purchases
 
 [`catalog/products.json`](catalog/products.json) lists the products App Store

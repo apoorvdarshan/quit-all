@@ -5,7 +5,9 @@
 #
 # Both: exactly the app and its one widget extension, each with the expected
 # bundle id, MARKETING_VERSION and BUILD_NUMBER, signed for TEAM_ID with the
-# shared app group (the widget reads the app's progress through it).
+# shared app group (the widget reads the app's progress through it). The app
+# must declare export compliance (ITSAppUsesNonExemptEncryption; YES also needs
+# ITSEncryptionExportComplianceCode).
 # distribution (App Store export): also a strict signature check, an Apple
 # Distribution signature, an App Store provisioning profile (no device list)
 # and no get-task-allow entitlement.
@@ -72,4 +74,16 @@ check_bundle() {
 
 check_bundle "$main" "$BUNDLE_ID"
 check_bundle "$widget" "$WIDGET_BUNDLE_ID"
+
+# Export compliance. Without ITSAppUsesNonExemptEncryption, App Store Connect
+# asks about every build by hand and review submission fails until it is answered.
+encryption="$(plist_value "$main/Info.plist" ITSAppUsesNonExemptEncryption)"
+case "$encryption" in
+  false) echo "  export compliance: no non-exempt encryption (ITSAppUsesNonExemptEncryption = NO)" ;;
+  true)
+    [ -n "$(plist_value "$main/Info.plist" ITSEncryptionExportComplianceCode)" ] \
+      || fail "Quit All.app declares non-exempt encryption without ITSEncryptionExportComplianceCode"
+    echo "  export compliance: non-exempt encryption with an export compliance code" ;;
+  *) fail "Quit All.app does not declare ITSAppUsesNonExemptEncryption (export compliance)" ;;
+esac
 echo "verified the $kind app and widget for $MARKETING_VERSION ($BUILD_NUMBER)"
