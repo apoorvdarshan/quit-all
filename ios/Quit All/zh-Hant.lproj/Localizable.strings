@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "終身購買";
 "one-time" = "一度";
 "One-time purchase. No renewal." = "一次性購買。沒有續訂。";
+
+/* About: open source */
+"OPEN SOURCE" = "開放原始碼";
+"Star on GitHub" = "在 GitHub 上加星號";
+"Report a Bug" = "回報問題";
+"Request a Feature" = "建議新功能";

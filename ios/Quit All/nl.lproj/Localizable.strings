@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "KOOP LEVENSLANGE";
 "one-time" = "eenmalig";
 "One-time purchase. No renewal." = "Eenmalige aankoop. Geen verlenging.";
+
+/* About: open source */
+"OPEN SOURCE" = "OPEN SOURCE";
+"Star on GitHub" = "Geef een ster op GitHub";
+"Report a Bug" = "Meld een bug";
+"Request a Feature" = "Vraag een functie aan";

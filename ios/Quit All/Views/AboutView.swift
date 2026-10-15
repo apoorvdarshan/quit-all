@@ -123,6 +123,56 @@ struct AboutView: View {
                 .listRowBackground(Color(hex: "111111"))
 
                 Section {
+                    Link(destination: URL(string: "https://github.com/apoorvdarshan/quit-all")!) {
+                        HStack {
+                            Image(systemName: "chevron.left.forwardslash.chevron.right")
+                                .foregroundColor(gold)
+                            Text("Star on GitHub")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+
+                    Link(destination: URL(string: "https://github.com/apoorvdarshan/quit-all/issues/new?template=bug_report.yml")!) {
+                        HStack {
+                            Image(systemName: "ladybug.fill")
+                                .foregroundColor(gold)
+                            Text("Report a Bug")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+
+                    Link(destination: URL(string: "https://github.com/apoorvdarshan/quit-all/issues/new?template=feature_request.yml")!) {
+                        HStack {
+                            Image(systemName: "lightbulb.fill")
+                                .foregroundColor(gold)
+                            Text("Request a Feature")
+                                .font(.system(size: 15, weight: .medium, design: .serif))
+                                .foregroundColor(.white)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.caption)
+                                .foregroundColor(gold.opacity(0.4))
+                        }
+                    }
+                } header: {
+                    Text("OPEN SOURCE")
+                        .font(.system(size: 11, weight: .semibold, design: .serif))
+                        .foregroundColor(gold.opacity(0.6))
+                        .tracking(1.5)
+                }
+                .listRowBackground(Color(hex: "111111"))
+
+                Section {
                     Link(destination: URL(string: "https://www.producthunt.com/products/quit-all-break-every-habit")!) {
                         HStack {
                             Image(systemName: "hand.thumbsup.fill")

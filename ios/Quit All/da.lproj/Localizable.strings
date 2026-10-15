@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "KØB LIVSTID";
 "one-time" = "én gang";
 "One-time purchase. No renewal." = "Engangskøb. Ingen fornyelse.";
+
+/* About: open source */
+"OPEN SOURCE" = "OPEN SOURCE";
+"Star on GitHub" = "Giv en stjerne på GitHub";
+"Report a Bug" = "Rapportér en fejl";
+"Request a Feature" = "Foreslå en funktion";

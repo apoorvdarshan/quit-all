@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "BELI SEUMUR HIDUP";
 "one-time" = "satu kali";
 "One-time purchase. No renewal." = "Pembelian satu kali. Tidak ada pembaruan.";
+
+/* About: open source */
+"OPEN SOURCE" = "SUMBER TERBUKA";
+"Star on GitHub" = "Beri bintang di GitHub";
+"Report a Bug" = "Laporkan Bug";
+"Request a Feature" = "Minta Fitur";

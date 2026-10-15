@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "ÖMÜR BOYU SATIN ALIN";
 "one-time" = "bir kerelik";
 "One-time purchase. No renewal." = "Bir kerelik satın alma. Yenileme yok.";
+
+/* About: open source */
+"OPEN SOURCE" = "AÇIK KAYNAK";
+"Star on GitHub" = "GitHub'da yıldız ver";
+"Report a Bug" = "Hata bildir";
+"Request a Feature" = "Özellik iste";
