@@ -60,5 +60,9 @@ updates:
     groups:
       web:
         patterns: ["*"]
+    ignore:
+      # Keep the Node types on the major version CI and the engines field use (24).
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: "Web"
