@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "生涯購入";
 "one-time" = "一度";
 "One-time purchase. No renewal." = "1回限りの購入。更新はありません。";
+
+/* About: open source */
+"OPEN SOURCE" = "オープンソース";
+"Star on GitHub" = "GitHubでスターを付ける";
+"Report a Bug" = "バグを報告";
+"Request a Feature" = "機能をリクエスト";

@@ -21,11 +21,35 @@ final class SettingsUITests: QuitAllUITestCase {
         openTab("About", in: app)
         waitFor(app.navigationBars["About"])
         XCTAssertTrue(app.staticTexts["Version"].exists)
-        XCTAssertTrue(control(app.buttons, containing: "Privacy Policy").exists
-                      || control(app.links, containing: "Privacy Policy").exists)
+        XCTAssertTrue(scrollToAboutRow("Privacy Policy", in: app).exists)
 
         openTab("Home", in: app)
         waitFor(app.buttons["home.sos"])
+    }
+
+    func testAboutLinksToTheSourceCodeAndIssueForms() {
+        let app = launchSeededHome()
+        openTab("About", in: app)
+        waitFor(app.navigationBars["About"])
+
+        for label in ["Star on GitHub", "Report a Bug", "Request a Feature"] {
+            XCTAssertTrue(scrollToAboutRow(label, in: app).exists, "About shows \(label)")
+        }
+    }
+
+    // The About list creates rows as they scroll into view, so swipe until the
+    // row exists (or give up after a few swipes).
+    private func scrollToAboutRow(_ label: String, in app: XCUIApplication) -> XCUIElement {
+        func row() -> XCUIElement {
+            let button = control(app.buttons, containing: label)
+            return button.exists ? button : control(app.links, containing: label)
+        }
+        var swipes = 0
+        while !row().exists && swipes < 8 {
+            app.swipeUp()
+            swipes += 1
+        }
+        return row()
     }
 
     func testResetAllDataReturnsToOnboardingForGood() {
