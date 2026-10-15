@@ -4,29 +4,17 @@
 # Xcode 27 (Swift 6.4) used by the tests. It builds an unsigned Debug app for a
 # generic iOS device, without any build cache, and never archives or uploads.
 #
-# Runs for pull requests and pushes that change the app, weekly, and on demand.
+# The macOS build is too slow for every pull request, so it runs weekly, for each
+# release tag, and on demand; codeql.yml still analyzes the website, release
+# tooling and workflows on every pull request.
 
 name: CodeQL (Swift)
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - 'ios/**'
-      - '!ios/**/*.md'
-      - '!ios/screenshots/**'
-      - '!ios/logo.png'
-      - '!ios/Quit All.xcodeproj/xcuserdata/**'
-      - '.github/workflows/codeql-swift.yml'
+  # Release tags (the same v* tags ios-release.yml ships), so every release is analyzed.
   push:
-    branches: [main]
-    paths:
-      - 'ios/**'
-      - '!ios/**/*.md'
-      - '!ios/screenshots/**'
-      - '!ios/logo.png'
-      - '!ios/Quit All.xcodeproj/xcuserdata/**'
-      - '.github/workflows/codeql-swift.yml'
+    tags:
+      - "v*"
   schedule:
     # Weekly on Mondays.
     - cron: '41 4 * * 1'
@@ -34,10 +22,6 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: codeql-swift-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   analyze:

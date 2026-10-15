@@ -61,7 +61,7 @@ GitHub Actions runs these checks automatically:
 - **iOS tests** — unit and UI tests for pull requests and pushes that change the app
 - **Web** — lint, type check, tests, build and a smoke test for changes under `web/`, plus a weekly longer fuzzing run
 - **Store automation (offline)** — release-tooling tests for changes to the store tooling or listing
-- **CodeQL** and **Dependency review** — static analysis and vulnerable-dependency checks on every pull request
+- **CodeQL** and **Dependency review** — static analysis and vulnerable-dependency checks on every pull request; CodeQL analyzes the Swift app weekly and for each release tag
 - **OpenSSF Scorecard** — weekly supply-chain security review
 
 ## Pull Requests
