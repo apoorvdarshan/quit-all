@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { buildSite, resolveSitePath, verifySite } from "./build.ts";
 import { guides } from "./content/guides.ts";
 import { cravingLines } from "./content/home.ts";
+import { APP_STORE_URL, LINKS } from "./content/site.ts";
 import { escapeHtml, html } from "./html.ts";
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
@@ -45,12 +46,12 @@ test("the 404 page is not indexed and robots.txt points at the sitemap", () => {
   assert.equal(read("robots.txt"), "User-agent: *\nAllow: /\nSitemap: https://www.quit-all.com/sitemap.xml\n");
 });
 
-test("pages link the app, the legal pages and the current social accounts", () => {
-  const home = read("index.html");
-  assert.ok(home.includes("https://apps.apple.com/us/app/quit-all-break-every-habit/id6760978934"));
-  assert.ok(home.includes("https://www.instagram.com/apoorvcodes/"));
-  assert.ok(!home.includes("quitall_com"));
-  assert.ok(home.includes('href="/privacy"') && home.includes('href="/terms"'));
+test("pages link the app, the legal pages, the source and the current social accounts", () => {
+  const links = new Set([...read("index.html").matchAll(/\shref="([^"]+)"/g)].map((match) => match[1]));
+  for (const expected of [APP_STORE_URL, LINKS.instagram, LINKS.x, LINKS.github, "/privacy", "/terms"]) {
+    assert.ok(links.has(expected), `home page links ${expected}`);
+  }
+  assert.ok(![...links].some((link) => link?.includes("quitall_com")), "no link to the old Instagram account");
 });
 
 test("the craving lines are real lines from the app's meme library", () => {
