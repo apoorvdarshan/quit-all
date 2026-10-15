@@ -21,8 +21,7 @@ final class SettingsUITests: QuitAllUITestCase {
         openTab("About", in: app)
         waitFor(app.navigationBars["About"])
         XCTAssertTrue(app.staticTexts["Version"].exists)
-        XCTAssertTrue(control(app.buttons, containing: "Privacy Policy").exists
-                      || control(app.links, containing: "Privacy Policy").exists)
+        XCTAssertTrue(scrollToAboutRow("Privacy Policy", in: app).exists)
 
         openTab("Home", in: app)
         waitFor(app.buttons["home.sos"])
@@ -34,20 +33,23 @@ final class SettingsUITests: QuitAllUITestCase {
         waitFor(app.navigationBars["About"])
 
         for label in ["Star on GitHub", "Report a Bug", "Request a Feature"] {
-            var row = aboutRow(label, in: app)
-            var swipes = 0
-            while !row.exists && swipes < 6 {
-                app.swipeUp()
-                swipes += 1
-                row = aboutRow(label, in: app)
-            }
-            XCTAssertTrue(row.exists, "About shows \(label)")
+            XCTAssertTrue(scrollToAboutRow(label, in: app).exists, "About shows \(label)")
         }
     }
 
-    private func aboutRow(_ label: String, in app: XCUIApplication) -> XCUIElement {
-        let button = control(app.buttons, containing: label)
-        return button.exists ? button : control(app.links, containing: label)
+    // The About list creates rows as they scroll into view, so swipe until the
+    // row exists (or give up after a few swipes).
+    private func scrollToAboutRow(_ label: String, in app: XCUIApplication) -> XCUIElement {
+        func row() -> XCUIElement {
+            let button = control(app.buttons, containing: label)
+            return button.exists ? button : control(app.links, containing: label)
+        }
+        var swipes = 0
+        while !row().exists && swipes < 8 {
+            app.swipeUp()
+            swipes += 1
+        }
+        return row()
     }
 
     func testResetAllDataReturnsToOnboardingForGood() {
