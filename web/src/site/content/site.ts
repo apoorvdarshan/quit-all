@@ -7,7 +7,7 @@ export const CONTACT_EMAIL = "ad13dtu@gmail.com";
 
 export const LINKS = {
   github: "https://github.com/apoorvdarshan/quit-all",
-  productHunt: "https://www.producthunt.com/products/quit-all-break-every-habit",
+  productHunt: "https://www.producthunt.com/products/quit-all-break-every-habit-2",
   trustMrr: "https://trustmrr.com/startup/quit-all-break-every-habit",
   kofi: "https://ko-fi.com/apoorvdarshan",
   x: "https://x.com/apoorvdarshan",
