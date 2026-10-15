@@ -178,3 +178,9 @@
 "BUY LIFETIME" = "CUMPĂRI PE VIAȚĂ";
 "one-time" = "o dată";
 "One-time purchase. No renewal." = "Achiziție unică. Fără reînnoire.";
+
+/* About: open source */
+"OPEN SOURCE" = "OPEN SOURCE";
+"Star on GitHub" = "Dă o stea pe GitHub";
+"Report a Bug" = "Raportează o eroare";
+"Request a Feature" = "Propune o funcție";
