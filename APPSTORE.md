@@ -25,7 +25,7 @@ The listing that release automation uploads lives in [`store/metadata/ios/`](sto
 
     Quit All helps you break multiple habits from one private iPhone app.
 
-    Track smoking, vaping, alcohol, porn, social media, weed, gambling, overspending, caffeine, or any combination of them. Build streaks, log cravings, see patterns, track money saved, and use SOS mode when an urge hits.
+    Track smoking, vaping, alcohol, social media, weed, gambling, overspending, caffeine, or any combination of them. Build streaks, log cravings, see patterns, track money saved, and use SOS mode when an urge hits.
 
     WHAT YOU GET
     - Track multiple habits at once
