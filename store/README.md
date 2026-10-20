@@ -246,9 +246,9 @@ changed image a new file name. Apple reviews each new image on its own (the
 app already has an approved version), and a later run places it on every
 listing locale once it is approved; a rejected image stops the run with
 Apple's reason, and an upload an earlier run left unfinished is uploaded again.
-Images never take an empty leftover draft (the version may have chosen it); an
-unfinished draft holding only these images is finished instead of starting
-another. Sizes, formats and alpha are checked with the other local inputs,
+Images never take the draft the version and its products chose. An unfinished
+draft holding only these images is finished first, else an empty one, instead
+of starting another, so a rerun leaves no extra drafts. Sizes, formats and alpha are checked with the other local inputs,
 before the build, so a wrong file stops the run early. An image approved while the version
 waits for review is not a mismatch: the rerun passes and the image is placed
 once the version can be edited. Apple's rules for these images: no prices,
