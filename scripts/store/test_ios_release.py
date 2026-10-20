@@ -1631,6 +1631,20 @@ class LiveSubmitFlowTests(unittest.TestCase):
                 self.assertIn("no draft review submission holds it", output)
                 self.assertEqual(fake.writes(), [])
 
+    def test_a_stopped_submit_leaves_the_listing_text_alone_too(self) -> None:
+        # Text stays editable in READY_FOR_REVIEW, so the draft check must come
+        # before the listing update, not just before the build selection.
+        with tempfile.TemporaryDirectory() as tmp:
+            write_metadata(Path(tmp), description="New description", whatsNew="New text")
+            for drafts, items in (([], {}), (["D1"], {"D1": []})):
+                fake = FakeAsc(state="READY_FOR_REVIEW", drafts=drafts, draft_items=items)
+                env = {**SUBMIT, "UPLOAD_LISTING": "true", "UPLOAD_WHATS_NEW": "true"}
+                with self.subTest(drafts=drafts):
+                    code, output = run_asc_main(fake, env, *SUBMIT_ARGS, "--metadata-dir", tmp)
+                    self.assertEqual(code, 1, output)
+                    self.assertIn("no draft review submission holds it", output)
+                    self.assertEqual(fake.writes(), [])
+
     def test_a_draft_that_lost_this_version_is_never_submitted(self) -> None:
         # The version leaves the draft between the start of the run and the submit.
         fake = FakeAsc(state="READY_FOR_REVIEW", drafts=["D1"], draft_items={"D1": [version_item()]})
@@ -1708,7 +1722,8 @@ class MetadataRerunTests(unittest.TestCase):
     def test_ready_for_review_rerun_does_not_replace_screenshots(self) -> None:
         stale = self.checksums()
         stale["APP_IPHONE_65"] = ["0" * 32] * 3
-        fake = FakeAsc(state="READY_FOR_REVIEW", screenshot_sets=stale)
+        fake = FakeAsc(state="READY_FOR_REVIEW", screenshot_sets=stale, drafts=["D1"],
+                       draft_items={"D1": [version_item()]})
         code, output, products = self.run_live(
             fake, {**LISTING_ON, "UPLOAD_SCREENSHOTS": "true", "SUBMIT_IOS_REVIEW": "true"}, whatsNew="New text")
         self.assertEqual(code, 1)
