@@ -36,6 +36,12 @@ import redact_logs  # noqa: E402
 from ios_release import ReleaseError, resolve_gates  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
+# The store-automation job installs requirements-store.txt and sets
+# STORE_TESTS_NEED_PILLOW, so the Pillow tests can't skip there.
+try:
+    from PIL import Image as PILLOW  # type: ignore[import-untyped]
+except ImportError:
+    PILLOW = None
 RELEASE_RUN = os.environ.get("CHECK_ONLY_ENABLED_STORE_INPUTS", "").strip().lower() == "true"
 skip_unused_inputs_on_release_runs = unittest.skipIf(
     RELEASE_RUN, "release run: the inputs of the enabled switches are checked in their own step"
@@ -642,6 +648,8 @@ class FakeAsc:
         self.library = list(library or [])
         self.placements = list(placements or [])
         self.uploaded: list[tuple[str, list[str]]] = []
+        # Display type -> the bytes of every file the last upload sent, in order.
+        self.uploaded_files: dict[str, list[bytes]] = {}
         self.submitted: list[str] = []
         self.read_only_modes: list[bool] = []
         self.calls: list[tuple[str, ...]] = []
@@ -713,6 +721,7 @@ class FakeAsc:
             files = sorted(Path(flag(args, "--path")).glob("*.png"))
             display = "APP_" + flag(args, "--device-type")
             self.uploaded.append((display, [p.name for p in files]))
+            self.uploaded_files[display] = [p.read_bytes() for p in files]
             self.screenshot_sets[display] = [hashlib.md5(p.read_bytes()).hexdigest() for p in files]
             return {}
         if head == ("asset-library", "view"):
@@ -1908,7 +1917,7 @@ class MetadataPlanTests(unittest.TestCase):
 
 
 class AlphaChannelTests(unittest.TestCase):
-    """asc refuses PNGs with an alpha channel, so a set that must be replaced needs RGB files."""
+    """asc refuses PNGs with an alpha channel, so a set that must be replaced is uploaded as RGB copies."""
 
     def setUp(self) -> None:
         tmp = tempfile.TemporaryDirectory()
@@ -1940,13 +1949,14 @@ class AlphaChannelTests(unittest.TestCase):
         return run_asc_main(fake, {"UPLOAD_SCREENSHOTS": "true"}, *extra, "--metadata-dir", str(self.tmp),
                             "--version", VERSION, root=self.tmp)
 
-    def test_a_set_that_must_be_replaced_with_alpha_files_stops_before_any_write(self) -> None:
+    def test_without_pillow_a_set_with_alpha_files_stops_before_any_write(self) -> None:
         for extra in ((), ("--preflight",)):
             fake = FakeAsc()
-            with self.subTest(extra=extra):
+            with self.subTest(extra=extra), mock.patch.object(asc_release, "try_import_pillow", return_value=None):
                 code, output = self.run_screenshots(fake, *extra)
                 self.assertEqual(code, 1)
                 self.assertIn("alpha channel", output)
+                self.assertIn("requirements-store.txt", output)
                 self.assertEqual(fake.writes(), [])
 
     def test_alpha_files_already_in_app_store_connect_pass(self) -> None:
@@ -1956,6 +1966,89 @@ class AlphaChannelTests(unittest.TestCase):
         self.assertEqual(code, 0, output)
         self.assertIn("alpha channel", output, "the dry-run style note still names the limit")
         self.assertEqual(fake.writes(), [])
+
+
+@unittest.skipIf(PILLOW is None and not os.environ.get("STORE_TESTS_NEED_PILLOW"), "Pillow not installed")
+class PillowScreenshotTests(unittest.TestCase):
+    """Screenshots that store alpha are uploaded as RGB copies; the committed files never change."""
+
+    def setUp(self) -> None:
+        if PILLOW is None:
+            self.fail("Pillow is required here (STORE_TESTS_NEED_PILLOW is set)")
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name)
+
+    def image(self, rel: str, size: tuple[int, int], color=(255, 83, 142, 255), pixels: dict | None = None) -> Path:
+        path = self.root / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        img = PILLOW.new("RGBA", size, color)
+        for xy, value in (pixels or {}).items():
+            img.putpixel(xy, value)
+        img.save(path)
+        return path
+
+    def uploaded(self, fake: FakeAsc, display_type: str) -> list[Path]:
+        paths = []
+        for number, raw in enumerate(fake.uploaded_files[display_type]):
+            path = self.root / "uploaded" / display_type / f"{number}.png"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(raw)
+            paths.append(path)
+        return paths
+
+    def test_an_rgba_source_uploads_as_rgb_with_the_same_pixels(self) -> None:
+        source = self.image("shots/1.png", (1260, 2736), pixels={(0, 0): (10, 20, 30, 255), (1259, 2735): (200, 100, 50, 255)})
+        before = source.read_bytes()
+        self.assertTrue(asc_cli.image_has_alpha(source))
+        fake = FakeAsc()
+        quiet(asc_release.replace_screenshot_set, fake, "LOC", "APP_IPHONE_67", [source])
+        self.assertEqual(source.read_bytes(), before, "the committed file is never changed")
+        [uploaded] = self.uploaded(fake, "APP_IPHONE_67")
+        self.assertFalse(asc_cli.image_has_alpha(uploaded))
+        with PILLOW.open(uploaded) as up, PILLOW.open(source) as src:
+            self.assertEqual(up.mode, "RGB")
+            self.assertEqual(up.size, src.size)
+            self.assertEqual(up.tobytes(), src.convert("RGB").tobytes())
+
+    def test_translucent_pixels_are_laid_over_black(self) -> None:
+        source = self.image("shots/glass.png", (1260, 2736), color=(255, 255, 255, 128))
+        fake = FakeAsc()
+        quiet(asc_release.replace_screenshot_set, fake, "LOC", "APP_IPHONE_67", [source])
+        [uploaded] = self.uploaded(fake, "APP_IPHONE_67")
+        with PILLOW.open(uploaded) as up:
+            red, green, blue = up.getpixel((630, 1368))
+        self.assertTrue(126 <= red <= 130 and red == green == blue, (red, green, blue))
+
+    def test_a_run_uploads_rgb_copies_and_the_next_run_writes_nothing(self) -> None:
+        manifest = {
+            "APP_IPHONE_67": [
+                str(self.image("shots/67/1.png", (1260, 2736), (255, 0, 0, 255)).relative_to(self.root)),
+                str(self.image("shots/67/2.png", (1260, 2736), (0, 255, 0, 255)).relative_to(self.root)),
+            ],
+            "APP_IPHONE_65": [str(self.image("shots/65/1.png", (1242, 2688), (0, 0, 255, 255)).relative_to(self.root))],
+        }
+        loc = self.root / "ios" / "en-US"
+        loc.mkdir(parents=True)
+        (loc / "screenshots.json").write_text(json.dumps(manifest))
+        committed = {p: p.read_bytes() for p in (self.root / "shots").rglob("*.png")}
+        fake = FakeAsc()
+        argv = ("--metadata-dir", str(self.root), "--version", VERSION)
+        code, output = run_asc_main(fake, {"UPLOAD_SCREENSHOTS": "true"}, *argv, root=self.root)
+        self.assertEqual(code, 0, output)
+        self.assertEqual(sorted(display for display, _ in fake.uploaded), ["APP_IPHONE_65", "APP_IPHONE_67"])
+        for display_type in manifest:
+            for uploaded in self.uploaded(fake, display_type):
+                self.assertFalse(asc_cli.image_has_alpha(uploaded), display_type)
+        self.assertEqual({p: p.read_bytes() for p in committed}, committed, "the committed files are never changed")
+        # App Store Connect now holds the RGB copies: a rerun and the preflight change nothing.
+        writes = len(fake.writes())
+        code, output = run_asc_main(fake, {"UPLOAD_SCREENSHOTS": "true"}, *argv, root=self.root)
+        self.assertEqual(code, 0, output)
+        self.assertEqual(len(fake.writes()), writes)
+        code, output = run_asc_main(fake, {"UPLOAD_SCREENSHOTS": "true"}, "--preflight", *argv, root=self.root)
+        self.assertEqual(code, 0, output)
+        self.assertIn("already up to date", output)
 
 
 class PreflightTests(unittest.TestCase):

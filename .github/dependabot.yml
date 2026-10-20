@@ -3,6 +3,9 @@
 # settings.
 #
 #   github-actions  the commit-SHA-pinned actions in .github/workflows
+#   pip             the hash-locked store tooling (requirements-store.in compiled
+#                   to requirements-store.txt): Pillow, which uploads RGB copies
+#                   of App Store screenshots in the release jobs
 #   npm /web        the website build and test tooling (wrangler, TypeScript, ESLint)
 #   swift           the RevenueCat SDK (purchases-ios-spm), pinned in the Xcode
 #                   project's Package.resolved under ios/Quit All.xcodeproj.
@@ -29,6 +32,16 @@ updates:
         patterns: ["*"]
     commit-message:
       prefix: "CI"
+
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      store-tooling:
+        patterns: ["*"]
+    commit-message:
+      prefix: "Store tooling"
 
   - package-ecosystem: swift
     directory: /ios
