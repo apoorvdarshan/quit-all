@@ -24,7 +24,8 @@ own; once Apple approves it, a later run places it on every listing locale of
 the version, or swaps it in for the image placed there.
 
 Submitting for review covers both the App Store version and any Ready-to-Submit
-in-app purchases or subscriptions listed in store/catalog/products.json. They
+in-app purchases or subscriptions listed in store/catalog/products.json for
+`ios` (including ones asc_products.py created earlier in the run). They
 are attached to the same draft review submission as the version (through their
 current `subscriptionVersions` / `inAppPurchaseVersions`), so everything goes
 to App Review with one submit, after the final build recheck, and only while
@@ -308,9 +309,14 @@ def normalized_text(value: Any) -> str:
     return value.replace("\r\n", "\n").strip()
 
 
-def file_md5(path: Path) -> str:
+def file_checksum(raw: bytes) -> str:
     """The MD5 App Store Connect keeps as a screenshot's sourceFileChecksum."""
-    return hashlib.md5(path.read_bytes(), usedforsecurity=False).hexdigest()
+    return hashlib.md5(raw, usedforsecurity=False).hexdigest()
+
+
+def file_md5(path: Path) -> str:
+    """file_checksum of a file on disk."""
+    return file_checksum(path.read_bytes())
 
 
 class LocalePlan:
@@ -892,17 +898,18 @@ def submit_creative_review(
     return submission_id
 
 
-PRODUCT_GROUPS = ("subscriptions", "non_consumables", "consumables", "tips")
+# The catalog's product groups (asc_products.PRODUCT_GROUPS maps each to its App Store type).
+CATALOG_PRODUCT_GROUPS = ("subscriptions", "consumables", "non_consumables", "tips")
 
 
 def intended_product_ids(catalog_path: Path = CATALOG) -> set[str]:
-    """Product IDs the release is allowed to submit, from the canonical catalog."""
+    """Product IDs the release is allowed to submit: the canonical catalog's iOS products."""
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     ids: set[str] = set()
-    for group in PRODUCT_GROUPS:
+    for group in CATALOG_PRODUCT_GROUPS:
         for item in catalog.get(group) or []:
             pid = item.get("id")
-            if isinstance(pid, str) and pid:
+            if isinstance(pid, str) and pid and "ios" in (item.get("platforms") or []):
                 ids.add(pid)
     return ids
 
@@ -1062,6 +1069,10 @@ def newest_version_id(versions: list[dict[str, Any]]) -> str | None:
     if not candidates:
         return versions[0]["id"] if versions else None
     return max(candidates, key=lambda v: v["attributes"]["version"])["id"]
+
+
+# The name asc_products.py (shared unchanged with Fud AI) uses for it.
+current_version_id = newest_version_id
 
 
 def submit_in_app_purchases(
