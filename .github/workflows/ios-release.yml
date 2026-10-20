@@ -21,7 +21,12 @@
 #   IOS_UPLOAD_BUILD         build + upload the binary to App Store Connect
 #   IOS_UPLOAD_LISTING       description, keywords, promo text, URLs
 #   IOS_UPLOAD_WHATS_NEW     What's New text
-#   IOS_UPLOAD_SCREENSHOTS   iPhone 6.7"/6.9" and 6.5" screenshots
+#   IOS_UPLOAD_SCREENSHOTS   iPhone 6.7"/6.9" and 6.5" (and any iPhone Duo or Apple
+#                            Watch) screenshots, uploaded as RGB copies (no alpha)
+#   IOS_UPLOAD_CREATIVE_ASSETS  product page header and search results images
+#                            (store/creative/ios): uploaded to the Asset Library
+#                            once, reviewed in a submission of their own, placed
+#                            on the version once Apple approves them
 #   IOS_SUBMIT_REVIEW        select THIS run's processed build, submit for review
 #                            (needs IOS_UPLOAD_BUILD; never uses an older build)
 #   IOS_PUBLIC_RELEASE       release automatically after approval (else manual)
@@ -31,12 +36,16 @@
 #
 # Release jobs (tag run)
 #   prepare → tests → build (archive, export, upload) → wait-for-build →
-#   app-store-connect (listing, What's New, screenshots, review) → github-release.
-#   prepare runs the store-script unit tests and offline input checks, creates
-#   the tag's App Store version when IOS_CREATE_VERSION is on and it is missing,
-#   and, when a listing/What's New/screenshot/review switch is on, a read-only
-#   App Store Connect preflight (the version exists in a usable state, every locale is
-#   there, needed metadata changes are possible), all before anything is built.
+#   app-store-connect (listing, What's New, screenshots, creative assets, review) →
+#   github-release.
+#   prepare runs the store-script unit tests and offline input checks (with the
+#   header and search results images' sizes, formats and alpha), creates the
+#   tag's App Store version when IOS_CREATE_VERSION is on and it is missing,
+#   and, when a listing/What's New/screenshot/creative/review switch is on, a
+#   read-only App Store Connect preflight (the version exists in a usable state,
+#   every locale is there, needed metadata changes are possible; with review
+#   submission a READY_FOR_REVIEW version's draft, with creative assets their
+#   Asset Library state), all before anything is built.
 #   wait-for-build is its own job and outputs the processed build's id, so
 #   "Re-run failed jobs" after a store-step failure reuses that result instead of
 #   waiting again against the original upload deadline (which would time out).
@@ -102,6 +111,7 @@ jobs:
       listing: ${{ steps.gates.outputs.listing }}
       whats_new: ${{ steps.gates.outputs.whats_new }}
       screenshots: ${{ steps.gates.outputs.screenshots }}
+      creative: ${{ steps.gates.outputs.creative }}
       submit: ${{ steps.gates.outputs.submit }}
       public_release: ${{ steps.gates.outputs.public_release }}
       asc: ${{ steps.gates.outputs.asc }}
@@ -131,6 +141,7 @@ jobs:
         with:
           python-version: "3.13"
 
+      # PyJWT for the App Store Connect key; Pillow for the RGB screenshot copies.
       - name: Install store tooling (hash-pinned)
         run: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-store.txt
 
@@ -139,9 +150,11 @@ jobs:
       - name: Check release notes and store automation (release runs)
         if: github.event_name == 'push'
         env:
-          # The listing, What's New and screenshot files are checked below, only for
-          # the switches that are on, so unused files never block a release.
+          # The listing, What's New, screenshot and creative files are checked below,
+          # only for the switches that are on, so unused files never block a release.
           CHECK_ONLY_ENABLED_STORE_INPUTS: "true"
+          # Pillow is installed above, so the RGB copy tests can't skip here.
+          STORE_TESTS_NEED_PILLOW: "1"
         run: |
           python3 scripts/release_notes.py "$GITHUB_REF_NAME" > /dev/null
           python3 -m unittest scripts/store/test_ios_release.py
@@ -155,6 +168,7 @@ jobs:
           IOS_UPLOAD_LISTING: ${{ vars.IOS_UPLOAD_LISTING }}
           IOS_UPLOAD_WHATS_NEW: ${{ vars.IOS_UPLOAD_WHATS_NEW }}
           IOS_UPLOAD_SCREENSHOTS: ${{ vars.IOS_UPLOAD_SCREENSHOTS }}
+          IOS_UPLOAD_CREATIVE_ASSETS: ${{ vars.IOS_UPLOAD_CREATIVE_ASSETS }}
           IOS_SUBMIT_REVIEW: ${{ vars.IOS_SUBMIT_REVIEW }}
           IOS_PUBLIC_RELEASE: ${{ vars.IOS_PUBLIC_RELEASE }}
           IOS_BUILD_POLL_SECONDS: ${{ vars.IOS_BUILD_POLL_SECONDS }}
@@ -168,12 +182,16 @@ jobs:
           UPLOAD_LISTING: ${{ steps.gates.outputs.listing }}
           UPLOAD_WHATS_NEW: ${{ steps.gates.outputs.whats_new }}
           UPLOAD_SCREENSHOTS: ${{ steps.gates.outputs.screenshots }}
+          UPLOAD_CREATIVE_ASSETS: ${{ steps.gates.outputs.creative }}
           SUBMIT_IOS_REVIEW: ${{ steps.gates.outputs.submit }}
           PUBLIC_RELEASE: ${{ steps.gates.outputs.public_release }}
           MARKETING_VERSION: ${{ steps.gates.outputs.marketing_version }}
         run: |
           # Offline: fails now (before tests or a build) on stale What's New text,
-          # missing screenshots or over-long listing fields.
+          # missing screenshots, a screenshot whose RGB copy cannot be made,
+          # over-long listing fields, or a header / search results image that is
+          # not a 3840x1646 PNG / 3:2 PNG or JPEG from 1920 to 3840 wide, stores
+          # alpha, or is truncated or corrupt.
           python3 -u scripts/store/asc_release.py --dry-run --version "$MARKETING_VERSION" \
             --build-id CHECK --build-number 0
 
@@ -197,7 +215,10 @@ jobs:
       # versions App Store Connect does not have yet, so they never run it. Fails
       # before the build when the App Store version is missing (turn on
       # IOS_CREATE_VERSION or create it in App Store Connect first), locked, lacks a locale, or cannot take a needed
-      # metadata change. The store step repeats every check before writing.
+      # metadata change, when a READY_FOR_REVIEW version has no usable draft
+      # (IOS_SUBMIT_REVIEW), or when the header / search results images cannot go
+      # on the version now (IOS_UPLOAD_CREATIVE_ASSETS). The store step repeats
+      # every check before writing.
       - name: Check App Store Connect before building (read-only)
         if: steps.gates.outputs.mode == 'release' && steps.gates.outputs.asc == 'true'
         env:
@@ -207,6 +228,7 @@ jobs:
           UPLOAD_LISTING: ${{ steps.gates.outputs.listing }}
           UPLOAD_WHATS_NEW: ${{ steps.gates.outputs.whats_new }}
           UPLOAD_SCREENSHOTS: ${{ steps.gates.outputs.screenshots }}
+          UPLOAD_CREATIVE_ASSETS: ${{ steps.gates.outputs.creative }}
           SUBMIT_IOS_REVIEW: ${{ steps.gates.outputs.submit }}
           PUBLIC_RELEASE: ${{ steps.gates.outputs.public_release }}
           MARKETING_VERSION: ${{ steps.gates.outputs.marketing_version }}
@@ -514,7 +536,7 @@ jobs:
        (needs.prepare.outputs.upload_build != 'true' &&
         needs.build.result == 'skipped' && needs.wait-for-build.result == 'skipped'))
     runs-on: ubuntu-latest
-    # Listing, What's New, screenshots and submission; the build wait is in wait-for-build.
+    # Listing, What's New, screenshots, creative assets and submission; the build wait is in wait-for-build.
     timeout-minutes: 60
     env:
       MARKETING_VERSION: ${{ needs.prepare.outputs.marketing_version }}
@@ -527,6 +549,8 @@ jobs:
           persist-credentials: false
           filter: blob:none
           sparse-checkout-cone-mode: false
+          # Store scripts, catalog and listing (with the screenshots) and the
+          # header / search results images in store/creative/.
           sparse-checkout: |
             /scripts/store/
             /store/
@@ -537,16 +561,18 @@ jobs:
         with:
           python-version: "3.13"
 
+      # PyJWT for the App Store Connect key; Pillow for the RGB screenshot copies.
       - name: Install store tooling (hash-pinned)
         run: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-store.txt
 
       # Writes only what differs from App Store Connect, after reading it all; a
       # rerun after a started or completed review submission is safe.
-      - name: Listing / What's New / screenshots / review (gated)
+      - name: Listing / What's New / screenshots / creative assets / review (gated)
         env:
           UPLOAD_LISTING: ${{ needs.prepare.outputs.listing }}
           UPLOAD_WHATS_NEW: ${{ needs.prepare.outputs.whats_new }}
           UPLOAD_SCREENSHOTS: ${{ needs.prepare.outputs.screenshots }}
+          UPLOAD_CREATIVE_ASSETS: ${{ needs.prepare.outputs.creative }}
           SUBMIT_IOS_REVIEW: ${{ needs.prepare.outputs.submit }}
           PUBLIC_RELEASE: ${{ needs.prepare.outputs.public_release }}
           BUILD_ID: ${{ needs.wait-for-build.outputs.build_id }}
@@ -592,6 +618,7 @@ jobs:
           IOS_UPLOAD_LISTING: ${{ vars.IOS_UPLOAD_LISTING }}
           IOS_UPLOAD_WHATS_NEW: ${{ vars.IOS_UPLOAD_WHATS_NEW }}
           IOS_UPLOAD_SCREENSHOTS: ${{ vars.IOS_UPLOAD_SCREENSHOTS }}
+          IOS_UPLOAD_CREATIVE_ASSETS: ${{ vars.IOS_UPLOAD_CREATIVE_ASSETS }}
           IOS_SUBMIT_REVIEW: ${{ vars.IOS_SUBMIT_REVIEW }}
           IOS_PUBLIC_RELEASE: ${{ vars.IOS_PUBLIC_RELEASE }}
           IOS_BUILD_POLL_SECONDS: ${{ vars.IOS_BUILD_POLL_SECONDS }}

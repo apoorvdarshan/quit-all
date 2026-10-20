@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""App Store Connect listing, What's New, screenshots and submit-for-review (gated in CI).
+"""App Store Connect listing, What's New, screenshots, creative assets and submit-for-review (gated in CI).
 
 The listing lives in the repo (store/metadata/ios/<locale>/): every locale
 directory there is uploaded, and App Store Connect must already have that
@@ -12,6 +12,17 @@ submission was started (READY_FOR_REVIEW still takes text changes, not
 screenshots) or completed (WAITING_FOR_REVIEW takes no changes): it passes when
 the metadata is already in place and fails, before any write, when a change
 would be needed.
+
+Screenshots are uploaded from RGB copies made in a temporary folder: App Store
+Connect refuses a PNG that stores an alpha channel, even when every pixel is
+opaque. A file that stores alpha is laid over black (colour profile kept); the
+committed files are only read.
+
+Product page header and search results images (UPLOAD_CREATIVE_ASSETS) live in
+the app's Asset Library. A new image is uploaded once, sent to App Review in a
+review submission of its own (never the version's draft), and placed on the
+version's en-US localization once Apple approves it. Without images in
+store/creative/ios/ there is nothing to do.
 
 Submitting for review covers both the App Store version and any Ready-to-Submit
 in-app purchases or subscriptions listed in store/catalog/products.json. They
@@ -35,14 +46,17 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import os
 import re
 import sys
+import tempfile
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
+import zlib
 from pathlib import Path
 from typing import Any
 
@@ -58,12 +72,76 @@ CATALOG = ROOT / "store" / "catalog" / "products.json"
 # App Store Connect allows 10 screenshots per display type. Portrait sizes it
 # accepts for each display type this app uses.
 SCREENSHOT_SET_MAX = 10
+# Apple Watch screenshots: each size belongs to one Watch display type (Apple's
+# screenshot specifications), so a Watch frame is listed in screenshots.json
+# under the display type its size picks. Without Watch frames there, the live
+# Watch sets are left alone.
+WATCH_DISPLAY_TYPES = {
+    (416, 496): "APP_WATCH_SERIES_10",  # Series 10 and 11
+    (422, 514): "APP_WATCH_ULTRA",  # Ultra 3
+    (410, 502): "APP_WATCH_ULTRA",  # Ultra and Ultra 2
+    (396, 484): "APP_WATCH_SERIES_7",  # Series 7 to 9
+    (368, 448): "APP_WATCH_SERIES_4",  # Series 4 to 6 and SE
+    (312, 390): "APP_WATCH_SERIES_3",
+}
+WATCH_LABELS = {
+    "APP_WATCH_SERIES_10": "Apple Watch Series 10",
+    "APP_WATCH_ULTRA": "Apple Watch Ultra",
+    "APP_WATCH_SERIES_7": "Apple Watch Series 7",
+    "APP_WATCH_SERIES_4": "Apple Watch Series 4",
+    "APP_WATCH_SERIES_3": "Apple Watch Series 3",
+}
 SCREENSHOT_SIZES = {
     "APP_IPHONE_67": {(1260, 2736), (1284, 2778), (1290, 2796), (1320, 2868)},
     "APP_IPHONE_65": {(1242, 2688), (1284, 2778)},
+    # One set takes both screens: outer 1398x2034 and inner 2007x2853.
+    # APP_IPHONE_DUO is not in Apple's OpenAPI spec yet, but App Store Connect accepts it.
+    "APP_IPHONE_DUO": {(1398, 2034), (2007, 2853)},
+    **{
+        display_type: {size for size, kind in WATCH_DISPLAY_TYPES.items() if kind == display_type}
+        for display_type in WATCH_LABELS
+    },
 }
 SCREENSHOT_MANIFEST = "screenshots.json"
 WHATS_NEW_VERSION_FILE = "whats_new_version.txt"
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+# PNG chunks that describe colour, copied from a screenshot to its RGB copy
+# (Pillow writes an ICC profile, iCCP, itself).
+PNG_COLOUR_CHUNKS = (b"sRGB", b"gAMA", b"cHRM", b"cICP")
+
+# Product page creative assets: the folder under --creative-dir, the placement
+# type, a label for logs, and the formats Apple takes. Each folder holds at most
+# one image; a slot without an image is left alone.
+HEADER_PLACEMENT = "PRODUCT_PAGE_HEADER_ASSET"
+SEARCH_PLACEMENT = "APP_STORE_SEARCH_RESULTS_ASSET"
+CREATIVE_SLOTS = (
+    ("header", HEADER_PLACEMENT, "product page header", ("png",)),
+    ("search-results", SEARCH_PLACEMENT, "search results", ("png", "jpeg")),
+)
+CREATIVE_EXTENSIONS = {".png": "png", ".jpg": "jpeg", ".jpeg": "jpeg"}
+# Apple's image specs: the header is a 3840x1646 PNG; search results images are
+# 3:2 PNG or JPEG from 1920x1280 to 3840x2560.
+HEADER_SIZE = (3840, 1646)
+SEARCH_RESULTS_WIDTHS = (1920, 3840)
+CREATIVE_PLACEMENT_GROUP = "DEFAULT_PROFILE"
+DEFAULT_CREATIVE_DIR = ROOT / "store" / "creative" / "ios"
+# The version localization the images are placed on.
+CREATIVE_LOCALE = "en-US"
+# Asset Library image states (AppAssetLibraryAssetState). AWAITING_UPLOAD is the
+# reservation an interrupted upload leaves behind: like a failed or archived
+# image it is ignored, and the image is uploaded again.
+CREATIVE_DEAD_STATES = {"AWAITING_UPLOAD", "FAILED", "ARCHIVED", "REJECTED"}
+# Uploaded and still being processed; App Review takes it once it is ready.
+CREATIVE_PROCESSING_STATES = {"UPLOAD_COMPLETE", "COMPLETE"}
+# Processed, not yet submitted (READY_FOR_REVIEW: in a draft review submission).
+CREATIVE_READY_STATES = {"PREPARE_FOR_SUBMISSION", "READY_FOR_REVIEW"}
+CREATIVE_PENDING_STATES = {"WAITING_FOR_REVIEW", "IN_REVIEW", "ACCEPTED"}
+# Processing a freshly uploaded image usually takes seconds.
+CREATIVE_PROCESSING_TIMEOUT_SECONDS = 600
+CREATIVE_POLL_SECONDS = 5
+# A review submission item's relationships, requested explicitly (App Store
+# Connect leaves them out otherwise).
+DRAFT_ITEM_INCLUDE = "subscriptionVersion,appStoreVersion,inAppPurchaseVersion,appAssetLibraryImage"
 
 # Every metadata field, screenshots included, can be written in these states.
 EDITABLE_VERSION_STATES = {
@@ -114,6 +192,153 @@ def read_text(path: Path) -> str | None:
         return None
     text = path.read_text(encoding="utf-8").strip()
     return text or None
+
+
+def attrs(row: dict[str, Any] | None) -> dict[str, Any]:
+    return (row or {}).get("attributes") or {}
+
+
+def related_id(row: dict[str, Any], name: str) -> str | None:
+    """The id a JSON:API row's `name` relationship points at, if it was included."""
+    related = (((row.get("relationships") or {}).get(name) or {}).get("data")) or {}
+    return related.get("id") if isinstance(related, dict) else None
+
+
+def png_chunks(raw: bytes, *, strict: bool = True) -> list[tuple[bytes, bytes]]:
+    """(type, data) of every chunk of a PNG, up to IEND.
+
+    Raises ValueError when the bytes are not a PNG with an IHDR header. Strict
+    (the default) also requires a well-formed file: every chunk complete with a
+    matching CRC, image data that decompresses to the rows the header describes,
+    and a final IEND, so a truncated or corrupt file fails before anything is
+    uploaded. Lenient reading (the manifest's size check, and staging without
+    Pillow, which only need the header) stops at the first chunk that runs past
+    the end of the file.
+    """
+    if not raw.startswith(PNG_SIGNATURE):
+        raise ValueError("not a PNG")
+    chunks: list[tuple[bytes, bytes]] = []
+    offset = len(PNG_SIGNATURE)
+    while offset + 8 <= len(raw):
+        length = int.from_bytes(raw[offset : offset + 4], "big")
+        kind = raw[offset + 4 : offset + 8]
+        start = offset + 8
+        end = start + length
+        if end + (4 if strict else 0) > len(raw):
+            if strict or not chunks:
+                raise ValueError(f"truncated {kind.decode('latin-1')!r} chunk")
+            break
+        data = raw[start:end]
+        if strict and zlib.crc32(kind + data) != int.from_bytes(raw[end : end + 4], "big"):
+            raise ValueError(f"the {kind.decode('latin-1')!r} chunk fails its CRC check")
+        chunks.append((kind, data))
+        offset = end + 4  # data, then the CRC
+        if kind == b"IEND":
+            break
+    if not chunks or chunks[0][0] != b"IHDR" or len(chunks[0][1]) < 13:
+        raise ValueError("no IHDR header")
+    if strict:
+        if chunks[-1][0] != b"IEND":
+            raise ValueError("no IEND chunk (the file is truncated)")
+        check_png_image_data(chunks)
+    return chunks
+
+
+# Samples per pixel for each PNG colour type.
+PNG_CHANNELS = {0: 1, 2: 3, 3: 1, 4: 2, 6: 4}
+
+
+def check_png_image_data(chunks: list[tuple[bytes, bytes]]) -> None:
+    """Raises ValueError unless the IDAT data is one complete zlib stream of the header's size.
+
+    Decompresses in bounded steps; the size is checked for non-interlaced images
+    (Pillow writes those), an interlaced image only needs a complete stream.
+    """
+    header = chunks[0][1]
+    width, height = png_size(chunks)
+    bit_depth, colour_type, interlace = header[8], header[9], header[12]
+    if colour_type not in PNG_CHANNELS:
+        raise ValueError(f"unknown PNG colour type {colour_type}")
+    idat = [data for kind, data in chunks if kind == b"IDAT"]
+    if not idat:
+        raise ValueError("no image data (IDAT)")
+    inflater = zlib.decompressobj()
+    size = 0
+    try:
+        for data in idat:
+            pending = data
+            while pending:
+                size += len(inflater.decompress(pending, 1 << 20))
+                pending = inflater.unconsumed_tail
+        size += len(inflater.flush())
+    except zlib.error as exc:
+        raise ValueError(f"the image data does not decompress ({exc})") from None
+    if not inflater.eof:
+        raise ValueError("the image data ends early (the file is truncated)")
+    if interlace == 0:
+        expected = height * (1 + (width * PNG_CHANNELS[colour_type] * bit_depth + 7) // 8)
+        if size != expected:
+            raise ValueError(
+                f"the image data holds {size} bytes, not the {expected} a {width}x{height} image needs"
+            )
+
+
+def png_size(chunks: list[tuple[bytes, bytes]]) -> tuple[int, int]:
+    header = chunks[0][1]
+    return int.from_bytes(header[0:4], "big"), int.from_bytes(header[4:8], "big")
+
+
+def png_stores_alpha(chunks: list[tuple[bytes, bytes]]) -> bool:
+    """True when a PNG stores alpha: grey or RGB with alpha (colour type 4 or 6), or a tRNS chunk.
+
+    App Store Connect refuses such files even when every pixel is opaque.
+    """
+    colour_type = chunks[0][1][9]
+    return colour_type in (4, 6) or any(kind == b"tRNS" for kind, _ in chunks)
+
+
+def jpeg_size(raw: bytes) -> tuple[int, int] | None:
+    """(width, height) from a JPEG's start-of-frame segment, or None when there is none."""
+    if raw[:3] != b"\xff\xd8\xff":
+        return None
+    offset = 2
+    while offset + 9 < len(raw):
+        if raw[offset] != 0xFF:
+            offset += 1
+            continue
+        marker = raw[offset + 1]
+        if marker == 0xFF:
+            offset += 1
+            continue
+        if marker in (0x01, 0xD8) or 0xD0 <= marker <= 0xD7:
+            offset += 2
+            continue
+        # SOF0-SOF15, except DHT (C4), JPG (C8) and DAC (CC).
+        if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+            height = int.from_bytes(raw[offset + 5 : offset + 7], "big")
+            width = int.from_bytes(raw[offset + 7 : offset + 9], "big")
+            return width, height
+        offset += 2 + int.from_bytes(raw[offset + 2 : offset + 4], "big")
+    return None
+
+
+def staged_png(path: Path, label: str) -> tuple[int, int]:
+    """The size of a staged screenshot; fails unless it is a PNG without alpha.
+
+    The last guard before upload: staging (stage_screenshots) writes RGB copies,
+    so a file that still stores alpha was not staged by it.
+    """
+    try:
+        chunks = png_chunks(path.read_bytes())
+    except ValueError as exc:
+        fail(f"the {label} screenshot {path.name} is not a readable PNG ({exc})")
+    if png_stores_alpha(chunks):
+        fail(
+            f"the {label} screenshot {path.name} stores an alpha channel (PNG colour type 4 or 6, "
+            "or a tRNS chunk), which App Store Connect refuses; upload the RGB copy stage_screenshots "
+            "makes instead"
+        )
+    return png_size(chunks)
 
 
 class AscClient:
@@ -386,7 +611,8 @@ class LocalePlan:
         # Version-localization fields the switches upload, and the ones that differ.
         self.text_fields: list[str] = []
         self.text_changes: dict[str, str] = {}
-        # Screenshot display types the switch uploads, and the ones that differ.
+        # Screenshot display types the switch uploads, with the files that are
+        # sent (the RGB copies stage_screenshots made), and the ones that differ.
         self.screenshots: dict[str, list[Path]] = {}
         self.stale_screenshots: list[str] = []
 
@@ -400,10 +626,14 @@ def plan_metadata(
     include_listing: bool,
     include_whats_new: bool,
     screenshot_sets: dict[str, dict[str, list[Path]]],
+    copies: dict[Path, Path] | None = None,
 ) -> list[LocalePlan]:
     """Compare the repository metadata with App Store Connect without changing anything.
 
-    Fails if App Store Connect lacks a repository locale on the version.
+    copies maps each committed screenshot to the RGB copy that is uploaded in
+    its place (stage_screenshots); a live set holding either the copies or the
+    committed files is up to date. Fails if App Store Connect lacks a repository
+    locale on the version.
     """
     plans: list[LocalePlan] = []
     for locale in locales:
@@ -426,11 +656,16 @@ def plan_metadata(
             for field, value in wanted.items()
             if normalized_text(live.get(field)) != normalized_text(value)
         }
-        plan.screenshots = dict(sets)
+        plan.screenshots = {
+            display_type: [copies[path] for path in pngs] if copies is not None else list(pngs)
+            for display_type, pngs in sets.items()
+        }
         plan.stale_screenshots = [
             display_type
             for display_type, pngs in sets.items()
-            if not screenshots_up_to_date(client, loc["id"], display_type, pngs)
+            if not screenshots_up_to_date(
+                client, loc["id"], display_type, plan.screenshots[display_type], committed=pngs
+            )
         ]
         plans.append(plan)
     return plans
@@ -455,6 +690,12 @@ def metadata_problems(plans: list[LocalePlan], *, version: str, state: str) -> l
 
 def apply_metadata(client: AscClient, plans: list[LocalePlan]) -> None:
     """Write only what differs: changed text fields and stale screenshot sets."""
+    # The last guard, before the first write: every screenshot that is about to
+    # be uploaded must be a complete PNG without alpha (an RGB copy).
+    for plan in plans:
+        for display_type in plan.stale_screenshots:
+            for path in plan.screenshots[display_type]:
+                staged_png(path, f"{plan.locale} {display_type}")
     for plan in plans:
         if plan.text_changes:
             client.patch(
@@ -476,15 +717,6 @@ def apply_metadata(client: AscClient, plans: list[LocalePlan]) -> None:
                 replace_screenshot_set(client, plan.localization_id, display_type, pngs)
             else:
                 print(f"  {plan.locale} {display_type}: already up to date ({len(pngs)} screenshot(s))")
-
-
-def png_size(path: Path) -> tuple[int, int] | None:
-    """Width and height from a PNG header, or None if the file is not a PNG."""
-    with path.open("rb") as handle:
-        header = handle.read(24)
-    if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n" or header[12:16] != b"IHDR":
-        return None
-    return int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
 
 
 def load_screenshot_sets(metadata_dir: Path, locale: str, root: Path | None = None) -> dict[str, list[Path]]:
@@ -524,17 +756,122 @@ def load_screenshot_sets(metadata_dir: Path, locale: str, root: Path | None = No
             path = root / entry
             if not path.is_file():
                 fail(f"{manifest_path}: screenshot {entry} does not exist")
-            size = png_size(path)
-            if size is None:
+            try:
+                # The header is enough here; each upload copy is checked in full.
+                size = png_size(png_chunks(path.read_bytes(), strict=False))
+            except ValueError:
                 fail(f"{manifest_path}: {entry} is not a PNG")
             if size not in accepted:
                 allowed = ", ".join(f"{w}x{h}" for w, h in sorted(accepted))
-                fail(f"{manifest_path}: {entry} is {size[0]}x{size[1]}; {display_type} accepts {allowed}")
+                # The size picks the display type: name the one this frame belongs to.
+                others = [kind for kind, sizes in SCREENSHOT_SIZES.items() if size in sizes]
+                hint = f" ({size[0]}x{size[1]} is an {' or '.join(others)} size)" if others else ""
+                fail(
+                    f"{manifest_path}: {entry} is {size[0]}x{size[1]}; {display_type} accepts "
+                    f"{allowed}{hint}"
+                )
             paths.append(path)
         if len(set(paths)) != len(paths):
             fail(f"{manifest_path}: {display_type} lists a screenshot twice")
         sets[display_type] = paths
     return sets
+
+
+def try_import_pillow():
+    try:
+        from PIL import Image  # type: ignore[import-untyped]
+
+        return Image
+    except ImportError:
+        return None
+
+
+def opaque_rgb(Image, img):
+    """The image as RGB, with transparent pixels laid over black."""
+    rgba = img.convert("RGBA")
+    canvas = Image.new("RGB", rgba.size, (0, 0, 0))
+    canvas.paste(rgba, mask=rgba.getchannel("A"))
+    return canvas
+
+
+def colour_chunks(raw: bytes) -> list[tuple[bytes, bytes]]:
+    """The source PNG's colour chunks other than its ICC profile (Pillow keeps that one)."""
+    try:
+        chunks = png_chunks(raw, strict=False)
+    except ValueError:
+        return []
+    return [(kind, data) for kind, data in chunks if kind in PNG_COLOUR_CHUNKS]
+
+
+def prepare_asc_png(Image, raw: bytes) -> bytes:
+    """An RGB PNG of the screenshot at its own size, without alpha, colour profile kept."""
+    from PIL import PngImagePlugin  # type: ignore[import-untyped]
+
+    with Image.open(io.BytesIO(raw)) as img:
+        icc_profile = img.info.get("icc_profile")
+        # Flattened once, so translucent pixels are blended over black a single time.
+        out_img = opaque_rgb(Image, img)
+    info = PngImagePlugin.PngInfo()
+    for kind, data in colour_chunks(raw):
+        info.add(kind, data)
+    out = io.BytesIO()
+    options = {"icc_profile": icc_profile} if icc_profile else {}
+    out_img.save(out, format="PNG", pnginfo=info, **options)
+    return out.getvalue()
+
+
+def stage_screenshots(
+    screenshot_sets: dict[str, dict[str, list[Path]]], staging_dir: Path
+) -> dict[Path, Path]:
+    """Make the copy of every listed screenshot that is uploaded; returns committed file -> copy.
+
+    App Store Connect refuses a PNG that stores an alpha channel, even when every
+    pixel is opaque, so a file that stores alpha is copied as RGB with Pillow
+    (transparent pixels laid over black, colour profile kept); any other file is
+    copied as it is. The copies go to staging_dir, a temporary folder, under
+    their own file names; the committed files are only read. Without Pillow, a
+    file that stores alpha stops the run. Each copy then passes the last guard
+    (staged_png), so nothing that stores alpha or is not a complete PNG reaches
+    an upload; all of this happens before any App Store Connect call.
+    """
+    copies: dict[Path, Path] = {}
+    flattened = 0
+    for locale, sets in screenshot_sets.items():
+        for display_type, pngs in sets.items():
+            label = f"{locale} {display_type}"
+            for path in pngs:
+                if path in copies:
+                    continue
+                raw = path.read_bytes()
+                try:
+                    stores_alpha = png_stores_alpha(png_chunks(raw, strict=False))
+                except ValueError:
+                    fail(f"the {label} screenshot {path.name} is not a PNG")
+                if stores_alpha:
+                    Image = try_import_pillow()
+                    if Image is None:
+                        fail(
+                            f"the {label} screenshot {path.name} stores an alpha channel, which App Store "
+                            "Connect refuses; install Pillow (requirements-store.txt) so the upload can use "
+                            "an RGB copy, or re-export it as RGB"
+                        )
+                    try:
+                        raw = prepare_asc_png(Image, raw)
+                    except Exception as exc:  # noqa: BLE001 - Pillow raises several kinds for a bad file
+                        fail(f"the {label} screenshot {path.name} is not a readable PNG ({exc})")
+                    flattened += 1
+                copy = staging_dir / f"{len(copies) + 1:03d}" / path.name
+                copy.parent.mkdir(parents=True, exist_ok=True)
+                copy.write_bytes(raw)
+                copies[path] = copy
+            for path in pngs:
+                staged_png(copies[path], label)
+    if copies:
+        print(
+            f"  staged {len(copies)} screenshot(s) for upload: {flattened} RGB copies of files that store "
+            "an alpha channel (transparent pixels over black), the rest as committed"
+        )
+    return copies
 
 
 def screenshot_sets_for_localization(
@@ -556,11 +893,17 @@ def find_screenshot_set(
 
 
 def screenshots_up_to_date(
-    client: AscClient, version_loc_id: str, display_type: str, pngs: list[Path]
+    client: AscClient,
+    version_loc_id: str,
+    display_type: str,
+    pngs: list[Path],
+    committed: list[Path] | None = None,
 ) -> bool:
     """True when the live set already holds exactly these files, in this order (read-only).
 
-    Compares App Store Connect's sourceFileChecksum (MD5) with the files; a
+    Compares App Store Connect's sourceFileChecksum (MD5) with the files (the
+    RGB copies that would be uploaded) or, when given, with the committed files
+    they were made from, which a set uploaded before the copies existed holds; a
     screenshot whose processing failed never counts as up to date.
     """
     shot_set = find_screenshot_set(client, version_loc_id, display_type)
@@ -573,7 +916,9 @@ def screenshots_up_to_date(
         if (attrs.get("assetDeliveryState") or {}).get("state") == "FAILED":
             return False
         live.append(str(attrs.get("sourceFileChecksum") or "").lower())
-    return live == [file_md5(path) for path in pngs]
+    if live == [file_md5(path) for path in pngs]:
+        return True
+    return committed is not None and live == [file_md5(path) for path in committed]
 
 
 def ensure_screenshot_set(
@@ -612,6 +957,22 @@ def delete_screenshots(client: AscClient, screenshot_ids: list[str]) -> None:
         client.request("DELETE", f"/appScreenshots/{shot_id}")
 
 
+def send_upload_operations(
+    client: AscClient, reserved: dict[str, Any], raw: bytes, name: str
+) -> None:
+    """Send a file's bytes the way the reservation's uploadOperations ask for."""
+    upload_ops = attrs(reserved).get("uploadOperations") or []
+    if not upload_ops:
+        fail(f"ASC returned no uploadOperations for {name}")
+    for op in upload_ops:
+        offset = int(op.get("offset", 0))
+        length = int(op["length"])
+        chunk = raw[offset : offset + length]
+        headers = {h["name"]: h["value"] for h in op.get("requestHeaders") or []}
+        method = (op.get("method") or "PUT").upper()
+        client.upload_bytes(op["url"], chunk, headers, method=method)
+
+
 def upload_screenshot_file(
     client: AscClient, screenshot_set_id: str, image_path: Path
 ) -> None:
@@ -636,16 +997,7 @@ def upload_screenshot_file(
     )
     shot = reserved["data"]
     shot_id = shot["id"]
-    upload_ops = (shot.get("attributes") or {}).get("uploadOperations") or []
-    if not upload_ops:
-        fail(f"ASC returned no uploadOperations for {image_path.name}")
-    for op in upload_ops:
-        offset = int(op.get("offset", 0))
-        length = int(op["length"])
-        chunk = raw[offset : offset + length]
-        headers = {h["name"]: h["value"] for h in op.get("requestHeaders") or []}
-        method = (op.get("method") or "PUT").upper()
-        client.upload_bytes(op["url"], chunk, headers, method=method)
+    send_upload_operations(client, shot, raw, image_path.name)
     # The checksum lets a rerun recognise a set that is already up to date.
     client.patch(
         f"/appScreenshots/{shot_id}",
@@ -703,6 +1055,403 @@ def iter_collection(client: AscClient, path: str) -> list[dict[str, Any]]:
     return rows
 
 
+def creative_problem(placement_type: str, path: Path, formats: tuple[str, ...]) -> str | None:
+    """Why App Store Connect would refuse this image for the slot, or None when it fits."""
+    raw = path.read_bytes()
+    kind = "png" if raw.startswith(PNG_SIGNATURE) else "jpeg" if raw[:3] == b"\xff\xd8\xff" else None
+    if kind is None:
+        return "is not a PNG or JPEG file"
+    if CREATIVE_EXTENSIONS[path.suffix.lower()] != kind:
+        return f"holds {kind.upper()} data but is named {path.suffix}"
+    if kind not in formats:
+        return f"is a {kind.upper()}; this slot takes {' or '.join(f.upper() for f in formats)}"
+    if kind == "png":
+        try:
+            chunks = png_chunks(raw)
+        except ValueError as exc:
+            return f"is not a readable PNG ({exc})"
+        if png_stores_alpha(chunks):
+            return (
+                "stores an alpha channel (PNG colour type 4 or 6, or a tRNS chunk), which App Store "
+                "Connect refuses; re-export it as RGB"
+            )
+        width, height = png_size(chunks)
+    else:
+        size = jpeg_size(raw)
+        if size is None:
+            return "is not a readable JPEG"
+        width, height = size
+    if placement_type == HEADER_PLACEMENT:
+        if (width, height) != HEADER_SIZE:
+            return f"is {width}x{height}; the header must be exactly {HEADER_SIZE[0]}x{HEADER_SIZE[1]}"
+        return None
+    low, high = SEARCH_RESULTS_WIDTHS
+    if not (low <= width <= high and width * 2 == height * 3):
+        return (
+            f"is {width}x{height}; search results images are 3:2, from {low}x{low * 2 // 3} "
+            f"to {high}x{high * 2 // 3}"
+        )
+    return None
+
+
+def creative_sources(creative_dir: Path) -> list[tuple[str, str, Path]]:
+    """(placement type, label, image) for every creative slot that has an image.
+
+    Checks each image's format, size and alpha first, so a file App Store
+    Connect would refuse stops the run before any call. Without any image
+    there is nothing to do.
+    """
+    found = []
+    for folder, placement_type, label, formats in CREATIVE_SLOTS:
+        slot_dir = creative_dir / folder
+        images = sorted(
+            p
+            for p in (slot_dir.iterdir() if slot_dir.is_dir() else [])
+            if p.is_file() and p.suffix.lower() in CREATIVE_EXTENSIONS
+        )
+        if len(images) > 1:
+            fail(f"the {label} slot takes one image; {slot_dir} has {len(images)}")
+        if not images:
+            print(f"  no {label} image in {slot_dir}; that slot is left alone")
+            continue
+        problem = creative_problem(placement_type, images[0], formats)
+        if problem:
+            fail(f"the {label} image {images[0].name} {problem}")
+        found.append((placement_type, label, images[0]))
+    if not found:
+        print(f"  {creative_dir} has no header or search results image; nothing to do")
+    return found
+
+
+def asset_library_id(client: AscClient, app_id: str) -> str:
+    library_id = (client.get(f"/apps/{app_id}/assetLibrary").get("data") or {}).get("id")
+    if not library_id:
+        fail(f"App Store Connect returned no Asset Library for app {app_id}")
+    return library_id
+
+
+def library_images(client: AscClient, library_id: str) -> list[dict[str, Any]]:
+    query = urllib.parse.urlencode({"filter[category]": "CREATIVE_ASSETS", "limit": "200"})
+    return iter_collection(client, f"/appAssetLibraries/{library_id}/images?{query}")
+
+
+def library_image_for(images: list[dict[str, Any]], path: Path) -> dict[str, Any] | None:
+    """The newest usable library image uploaded from this file (same name and size).
+
+    Reservations an interrupted upload left (AWAITING_UPLOAD), failed and
+    archived images do not count, so the file is uploaded again. A file whose
+    only upload App Review rejected stops the run.
+    """
+    size = path.stat().st_size
+    same = [
+        image
+        for image in images
+        if attrs(image).get("fileName") == path.name and attrs(image).get("fileSize") == size
+    ]
+    usable = [image for image in same if attrs(image).get("state") not in CREATIVE_DEAD_STATES]
+    rejected = [image for image in same if attrs(image).get("state") == "REJECTED"]
+    if not usable and rejected:
+        fail(
+            f"App Review rejected {path.name}; replace the image (with a new file name) and re-run. "
+            f"Details: {json.dumps(attrs(rejected[0]).get('stateDetails'))}"
+        )
+    return max(usable, key=lambda image: attrs(image).get("createdDate") or "") if usable else None
+
+
+def wait_for_library_image(client: AscClient, image_id: str, name: str) -> dict[str, Any]:
+    """Poll an uploaded image until Apple has processed it; fails on FAILED or timeout."""
+    deadline = time.monotonic() + CREATIVE_PROCESSING_TIMEOUT_SECONDS
+    while True:
+        image = client.get(f"/appAssetLibraryImages/{image_id}").get("data") or {}
+        state = attrs(image).get("state") or ""
+        asset = attrs(image).get("imageAsset") or {}
+        if state == "FAILED":
+            fail(
+                f"Apple could not process {name} ({image_id}): "
+                f"{json.dumps(attrs(image).get('stateDetails'))}"
+            )
+        if state in CREATIVE_READY_STATES and asset.get("width") and asset.get("height"):
+            return image
+        if state in CREATIVE_PENDING_STATES or state == "APPROVED":
+            return image
+        if time.monotonic() >= deadline:
+            fail(f"Apple did not finish processing {name} ({image_id}) in time; it is {state or 'in an unknown state'}")
+        print(f"  waiting for Apple to process {name} ({state or 'unknown state'})")
+        time.sleep(CREATIVE_POLL_SECONDS)
+
+
+def upload_library_image(client: AscClient, library_id: str, path: Path) -> dict[str, Any]:
+    """Reserve, upload and commit one creative image, then wait until Apple has processed it."""
+    raw = path.read_bytes()
+    reserved = client.post(
+        "/appAssetLibraryImages",
+        {
+            "data": {
+                "type": "appAssetLibraryImages",
+                "attributes": {
+                    "fileName": path.name,
+                    "fileSize": len(raw),
+                    "category": "CREATIVE_ASSETS",
+                },
+                "relationships": {
+                    "assetLibrary": {"data": {"type": "appAssetLibraries", "id": library_id}}
+                },
+            }
+        },
+    )["data"]
+    image_id = reserved["id"]
+    send_upload_operations(client, reserved, raw, path.name)
+    client.patch(
+        f"/appAssetLibraryImages/{image_id}",
+        {
+            "data": {
+                "type": "appAssetLibraryImages",
+                "id": image_id,
+                "attributes": {"uploaded": True},
+            }
+        },
+    )
+    print(f"  uploaded {path.name} to the Asset Library ({image_id})")
+    return wait_for_library_image(client, image_id, path.name)
+
+
+class CreativeStep:
+    """What one creative slot needs, decided before anything is written.
+
+    action: upload (then review), review, pending (in App Review), place,
+    placed, or locked (approved, but the version cannot be edited).
+    """
+
+    def __init__(
+        self,
+        placement_type: str,
+        label: str,
+        path: Path,
+        image: dict[str, Any] | None,
+        action: str,
+        swap_out: dict[str, Any] | None = None,
+    ) -> None:
+        self.placement_type = placement_type
+        self.label = label
+        self.path = path
+        self.image = image
+        self.action = action
+        # The localization's placement in this slot that holds another image.
+        self.swap_out = swap_out
+
+
+class CreativePlan:
+    """The steps plan_creative_assets decided; no steps (and no ids) when there are no images."""
+
+    def __init__(self, library_id: str | None, localization_id: str | None, steps: list[CreativeStep]) -> None:
+        self.library_id = library_id
+        self.localization_id = localization_id
+        self.steps = steps
+
+
+def image_placement_ids(client: AscClient, image_id: str) -> set[str]:
+    return {
+        row["id"]
+        for row in iter_collection(client, f"/appAssetLibraryImages/{image_id}/relationships/placements?limit=50")
+    }
+
+
+def slot_placements(client: AscClient, localization_id: str, placement_type: str) -> list[dict[str, Any]]:
+    query = urllib.parse.urlencode({"filter[placementType]": placement_type, "limit": "50"})
+    rows = iter_collection(client, f"/appStoreVersionLocalizations/{localization_id}/placements?{query}")
+    return [row for row in rows if attrs(row).get("placementType", placement_type) == placement_type]
+
+
+def plan_creative_assets(
+    client: AscClient,
+    *,
+    app_id: str,
+    version_id: str,
+    locale: str,
+    creative_dir: Path,
+    editable: bool,
+) -> CreativePlan:
+    """Read-only: decide what each header / search results image needs.
+
+    Fails before anything is written when an image App Review rejected has not
+    been replaced, when a locked version (in a review submission) would need an
+    upload or a review submission, or when an image is in a state the release
+    cannot resolve. Without images it makes no call and plans nothing.
+    """
+    sources = creative_sources(creative_dir)
+    if not sources:
+        return CreativePlan(None, None, [])
+    library_id = asset_library_id(client, app_id)
+    images = library_images(client, library_id)
+    localization_id = localization_for_locale(
+        client, f"/appStoreVersions/{version_id}/appStoreVersionLocalizations", locale
+    )["id"]
+    steps: list[CreativeStep] = []
+    for placement_type, label, path in sources:
+        image = library_image_for(images, path)
+        state = attrs(image).get("state") or ""
+        if image is None or state in CREATIVE_PROCESSING_STATES | CREATIVE_READY_STATES:
+            if not editable:
+                fail(
+                    f"cannot send the {label} image {path.name} to App Review while the version is in "
+                    "a review submission; re-run once the version can be edited"
+                )
+            steps.append(CreativeStep(placement_type, label, path, image, "review" if image else "upload"))
+            continue
+        if state in CREATIVE_PENDING_STATES:
+            print(f"  {label}: {path.name} is {state}; it is placed once App Review approves it")
+            steps.append(CreativeStep(placement_type, label, path, image, "pending"))
+            continue
+        if state != "APPROVED":
+            fail(f"the {label} image {path.name} is {state or 'in an unknown state'}; resolve it in App Store Connect")
+        # Placed when one of the image's placements is this slot on this localization.
+        placed = image_placement_ids(client, image["id"])
+        slot = slot_placements(client, localization_id, placement_type)
+        if any(row["id"] in placed and attrs(row).get("state") != "FAILED" for row in slot):
+            print(f"  {label}: {path.name} is already on the {locale} product page")
+            steps.append(CreativeStep(placement_type, label, path, image, "placed"))
+            continue
+        if not editable:
+            # Approval can land between a submit and a re-run; the image is
+            # placed by a later run, once the version can be edited.
+            print(f"  {label}: {path.name} is approved; it is placed once the version can be edited")
+            steps.append(CreativeStep(placement_type, label, path, image, "locked"))
+            continue
+        if len(slot) > 1:
+            fail(
+                f"the {locale} {label} slot holds {len(slot)} placements "
+                f"({', '.join(row['id'] for row in slot)}); leave one in App Store Connect and re-run"
+            )
+        steps.append(CreativeStep(placement_type, label, path, image, "place", slot[0] if slot else None))
+    return CreativePlan(library_id, localization_id, steps)
+
+
+def place_creative_image(client: AscClient, localization_id: str, step: CreativeStep) -> None:
+    """Put an approved image in its slot; replaces the slot's other image in the same request."""
+    assert step.image is not None
+    group = attrs(step.swap_out).get("placementGroup") or CREATIVE_PLACEMENT_GROUP
+    relationships: dict[str, Any] = {
+        "image": {"data": {"type": "appAssetLibraryImages", "id": step.image["id"]}},
+        "appStoreVersionLocalization": {
+            "data": {"type": "appStoreVersionLocalizations", "id": localization_id}
+        },
+    }
+    if step.swap_out is not None:
+        relationships["placementToSwapOut"] = {
+            "data": {"type": "appAssetLibraryPlacements", "id": step.swap_out["id"]}
+        }
+    client.post(
+        "/appAssetLibraryPlacements",
+        {
+            "data": {
+                "type": "appAssetLibraryPlacements",
+                "attributes": {"placementType": step.placement_type, "placementGroup": group},
+                "relationships": relationships,
+            }
+        },
+    )
+    replaced = f", replacing placement {step.swap_out['id']}" if step.swap_out else ""
+    print(f"  {step.label}: placed {step.path.name} on the product page{replaced}")
+
+
+def apply_creative_plan(
+    client: AscClient, plan: CreativePlan, *, app_id: str, reserved_draft: str | None = None
+) -> dict[str, str]:
+    """Upload, review and place what plan_creative_assets decided. Returns placement type -> outcome."""
+    outcomes: dict[str, str] = {}
+    to_review: list[tuple[str, dict[str, Any]]] = []
+    for step in plan.steps:
+        if step.action == "upload":
+            assert plan.library_id is not None
+            step.image = upload_library_image(client, plan.library_id, step.path)
+        elif step.action == "review" and step.image is not None and (
+            attrs(step.image).get("state") in CREATIVE_PROCESSING_STATES
+        ):
+            # An earlier run uploaded it; Apple may still be processing it.
+            step.image = wait_for_library_image(client, step.image["id"], step.path.name)
+        if step.action in {"upload", "review"}:
+            assert step.image is not None
+            to_review.append((step.label, step.image))
+            outcomes[step.placement_type] = "submitted for review"
+    if to_review:
+        submit_creative_review(client, app_id, to_review, reserved_draft=reserved_draft)
+    for step in plan.steps:
+        if step.action == "place":
+            assert plan.localization_id is not None
+            place_creative_image(client, plan.localization_id, step)
+            outcomes[step.placement_type] = "placed"
+        elif step.action in {"pending", "placed", "locked"}:
+            outcomes[step.placement_type] = step.action
+    return outcomes
+
+
+def submit_creative_review(
+    client: AscClient,
+    app_id: str,
+    images: list[tuple[str, dict[str, Any]]],
+    *,
+    reserved_draft: str | None = None,
+) -> str:
+    """Send not-yet-reviewed creative images to App Review in a submission of their own.
+
+    A draft an earlier attempt left holding only some of these images is
+    finished first, else an empty draft, and a new one is created only when
+    neither exists, so re-runs never pile up drafts. The draft this run keeps
+    for the version and its products (reserved_draft) is never taken. Nothing is
+    submitted unless the draft then holds exactly these images.
+    """
+    wanted = {image["id"] for _, image in images}
+    partial = empty = None
+    for draft in draft_submission_ids(client, app_id):
+        if draft == reserved_draft:
+            continue
+        items = draft_item_relationships(client, draft)
+        # An item that is not an image adds None, which is never wanted.
+        held = {related_id(item, "appAssetLibraryImage") for item in items}
+        if not items:
+            empty = empty or draft
+        elif held <= wanted:
+            partial = draft
+            break
+    submission_id = partial or empty
+    if submission_id:
+        print(f"  finishing review submission {submission_id} from an earlier attempt")
+    else:
+        submission_id = create_draft_submission(client, app_id)
+    held = {related_id(item, "appAssetLibraryImage") for item in draft_item_relationships(client, submission_id)}
+    for label, image in images:
+        if image["id"] in held:
+            print(f"  {label}: {attrs(image).get('fileName')} is already in review submission {submission_id}")
+            continue
+        client.post(
+            "/reviewSubmissionItems",
+            {
+                "data": {
+                    "type": "reviewSubmissionItems",
+                    "relationships": {
+                        "reviewSubmission": {
+                            "data": {"type": "reviewSubmissions", "id": submission_id}
+                        },
+                        "appAssetLibraryImage": {
+                            "data": {"type": "appAssetLibraryImages", "id": image["id"]}
+                        },
+                    },
+                }
+            },
+        )
+        print(f"  {label}: {attrs(image).get('fileName')} added to review submission {submission_id}")
+    items = draft_item_relationships(client, submission_id)
+    held_ids = [related_id(item, "appAssetLibraryImage") for item in items]
+    if len(items) != len(wanted) or set(held_ids) != wanted:
+        unexpected = [item.get("id") for item in items if related_id(item, "appAssetLibraryImage") not in wanted]
+        fail(
+            f"review submission {submission_id} does not hold exactly the header and search results "
+            f"images (unexpected items: {unexpected or 'none'}); not submitting it"
+        )
+    submit_product_draft(client, submission_id, what="creative image")
+    return submission_id
+
+
 PRODUCT_GROUPS = ("subscriptions", "non_consumables", "consumables", "tips")
 
 
@@ -748,14 +1497,46 @@ SUBMITTABLE_PRODUCT_STATES = {
 }
 
 
-def get_or_create_draft_submission(client: AscClient, app_id: str) -> str:
-    """Return the app's READY_FOR_REVIEW draft review submission, creating one."""
-    existing = client.get(
-        f"/apps/{app_id}/reviewSubmissions?"
-        + urllib.parse.urlencode({"filter[state]": "READY_FOR_REVIEW", "limit": "5"})
-    )
-    for row in existing.get("data") or []:
-        return row["id"]
+def draft_submission_ids(client: AscClient, app_id: str) -> list[str]:
+    """The app's READY_FOR_REVIEW (draft, not yet submitted) review submissions."""
+    return [
+        row["id"]
+        for row in iter_collection(
+            client,
+            f"/apps/{app_id}/reviewSubmissions?"
+            + urllib.parse.urlencode({"filter[state]": "READY_FOR_REVIEW", "limit": "5"}),
+        )
+    ]
+
+
+def find_draft_submission(
+    client: AscClient, app_id: str, version_id: str | None = None
+) -> str | None:
+    """The draft to use for the App Store version and its products, if there is one.
+
+    The draft already holding version_id wins; otherwise the first draft holding
+    no app version, so another version's draft is never touched. A draft holding
+    header or search results images belongs to their own review and is skipped,
+    so those images never go out with the version.
+    """
+    drafts = []
+    for submission_id in draft_submission_ids(client, app_id):
+        items = draft_item_relationships(client, submission_id)
+        if any(related_id(item, "appAssetLibraryImage") for item in items):
+            continue
+        versions = {related_id(item, "appStoreVersion") for item in items} - {None, ""}
+        drafts.append((submission_id, versions))
+    if version_id:
+        for submission_id, versions in drafts:
+            if version_id in versions:
+                return submission_id
+    for submission_id, versions in drafts:
+        if not versions:
+            return submission_id
+    return None
+
+
+def create_draft_submission(client: AscClient, app_id: str) -> str:
     submission = client.post(
         "/reviewSubmissions",
         {
@@ -768,17 +1549,56 @@ def get_or_create_draft_submission(client: AscClient, app_id: str) -> str:
     return submission["data"]["id"]
 
 
+def get_or_create_draft_submission(client: AscClient, app_id: str) -> str:
+    """The app's draft review submission for versions and products (see find_draft_submission), creating one."""
+    return find_draft_submission(client, app_id) or create_draft_submission(client, app_id)
+
+
+def version_draft(
+    client: AscClient, app_id: str, version_id: str, version_state: str
+) -> str | None:
+    """Read-only: pick and check the draft the version and its products go out in.
+
+    None means there is none yet (one is created at submit). A READY_FOR_REVIEW
+    version already sits in a draft; when no usable draft holds it, this stops
+    the run instead of submitting another draft. The preflight runs it before
+    the build, and the store step again before its first write.
+    """
+    draft = find_draft_submission(client, app_id, version_id)
+    if version_state == "READY_FOR_REVIEW" and (
+        draft is None or version_id not in draft_item_version_ids(client, draft)
+    ):
+        fail(
+            f"App Store version {version_id} is READY_FOR_REVIEW, but no draft review submission "
+            "without header or search results images holds it; remove the version from its "
+            "submission in App Store Connect and re-run"
+        )
+    return draft
+
+
+def reserve_version_draft(
+    client: AscClient, app_id: str, version_id: str, version_state: str
+) -> str | None:
+    """Pick and check the version's draft before anything is written, and reserve it.
+
+    The draft is kept for the version and its products: creative images never take it.
+    """
+    draft = version_draft(client, app_id, version_id, version_state)
+    if draft:
+        print(f"  review submission {draft} is kept for the version and its products")
+    return draft
+
+
 def draft_item_relationships(client: AscClient, submission_id: str) -> list[dict[str, Any]]:
-    """Return the draft's items with their version relationships populated.
+    """Return the draft's items with their relationships populated.
 
     App Store Connect omits `relationships` from Review Submission Items unless
-    they are requested with `include`, so both relationship readers must ask for
-    the version relationships explicitly.
+    they are requested with `include`, so every relationship the readers look
+    at (versions, products and Asset Library images) is asked for explicitly.
     """
     return iter_collection(
         client,
-        f"/reviewSubmissions/{submission_id}/items"
-        "?limit=50&include=subscriptionVersion,appStoreVersion,inAppPurchaseVersion",
+        f"/reviewSubmissions/{submission_id}/items?limit=50&include={DRAFT_ITEM_INCLUDE}",
     )
 
 
@@ -806,7 +1626,7 @@ def draft_holds_app_version(client: AscClient, submission_id: str) -> bool:
     return False
 
 
-def submit_product_draft(client: AscClient, submission_id: str) -> None:
+def submit_product_draft(client: AscClient, submission_id: str, *, what: str = "product") -> None:
     """Submit a draft review submission.
 
     Used on the catch-up path when the app version is already under review and a
@@ -825,7 +1645,7 @@ def submit_product_draft(client: AscClient, submission_id: str) -> None:
             }
         },
     )
-    print(f"  submitted product review submission {submission_id}")
+    print(f"  submitted {what} review submission {submission_id}")
 
 
 def newest_version_id(versions: list[dict[str, Any]]) -> str | None:
@@ -1173,9 +1993,7 @@ class _RecordingClient:
         return {"data": {"id": "fake"}}
 
 
-ITEMS_PATH = (
-    "/reviewSubmissions/SUB1/items?limit=50&include=subscriptionVersion,appStoreVersion,inAppPurchaseVersion"
-)
+ITEMS_PATH = f"/reviewSubmissions/SUB1/items?limit=50&include={DRAFT_ITEM_INCLUDE}"
 
 
 def _attached_ids(posts: list[tuple[str, dict[str, Any]]], relationship: str) -> set[str]:
@@ -1321,10 +2139,13 @@ def validate_local_inputs(
     locales: list[str],
     version: str | None,
     root: Path | None = None,
+    upload_creative: bool = False,
+    creative_dir: Path | None = None,
 ) -> dict[str, dict[str, list[Path]]]:
     """Check every repo input before any App Store Connect call.
 
-    Returns the screenshot sets to upload per locale (empty unless screenshots are on).
+    Returns the committed screenshot sets per locale (empty unless screenshots
+    are on); stage_screenshots makes the copies that are uploaded.
     """
     if (upload_listing or upload_whats_new or upload_screenshots) and not locales:
         fail(f"no listing locales under {metadata_dir / 'ios'}")
@@ -1362,6 +2183,10 @@ def validate_local_inputs(
                 f"screenshot upload is on, but no locale under {metadata_dir / 'ios'} has a "
                 f"{SCREENSHOT_MANIFEST}; add App Store-sized PNGs and list them there"
             )
+        if not any(display_type in WATCH_LABELS for locale_sets in sets.values() for display_type in locale_sets):
+            print("  no Apple Watch screenshots listed; the Watch sets in App Store Connect are left alone")
+    if upload_creative:
+        creative_sources(creative_dir or DEFAULT_CREATIVE_DIR)
     return sets
 
 
@@ -1470,12 +2295,20 @@ def preflight(
     do_screenshots: bool,
     screenshot_sets: dict[str, dict[str, list[Path]]],
     do_submit: bool,
+    do_creative: bool = False,
+    creative_dir: Path | None = None,
+    copies: dict[Path, Path] | None = None,
 ) -> None:
     """Read-only App Store Connect checks before anything is built or uploaded.
 
     GET requests only: the App Store version must exist (IOS_CREATE_VERSION's
     step, which runs before this, creates a missing one), be in a state the enabled switches can use and have every
     repository locale, and its metadata must be changeable where it differs.
+    With review submission on, a READY_FOR_REVIEW version's draft is checked
+    too. With creative assets on, their Asset Library state is checked the way
+    the store step plans it, so an image the version cannot take now (rejected,
+    or needing upload or review while the version sits in a review submission)
+    stops the run before the build instead of after it.
     The live step repeats every check, because App Store Connect can change
     while the build is processed.
     """
@@ -1485,7 +2318,9 @@ def preflight(
     version = get_ios_app_store_version(client, app_id, version_string)
     state = (version.get("attributes") or {}).get("appStoreState") or ""
     edits_metadata = do_listing or do_whats_new or do_screenshots
-    problems = version_state_problems(state, version_string, edits_metadata=edits_metadata, submit=do_submit)
+    problems = version_state_problems(
+        state, version_string, edits_metadata=edits_metadata or do_creative, submit=do_submit
+    )
     if do_submit and state == "WAITING_FOR_REVIEW":
         problems.append(
             f"version {version_string!r} is already WAITING_FOR_REVIEW, so the build this run would "
@@ -1500,6 +2335,7 @@ def preflight(
             include_listing=do_listing,
             include_whats_new=do_whats_new,
             screenshot_sets=screenshot_sets,
+            copies=copies,
         )
         problems += metadata_problems(plans, version=version_string, state=state)
         for plan in plans:
@@ -1510,16 +2346,37 @@ def preflight(
             "App Store Connect is not ready for this release (nothing was built or changed):\n  "
             + "\n  ".join(problems)
         )
+    if do_submit and state == "READY_FOR_REVIEW":
+        # The store step submits the draft holding this version; finding out
+        # after the build and upload that there is none would be too late.
+        version_draft(client, app_id, version["id"], state)
+    if do_creative:
+        plan_creative_assets(
+            client,
+            app_id=app_id,
+            version_id=version["id"],
+            locale=CREATIVE_LOCALE,
+            creative_dir=creative_dir or DEFAULT_CREATIVE_DIR,
+            editable=state in EDITABLE_VERSION_STATES,
+        )
     print(f"ASC preflight passed: version {version_string} is {state}; nothing was changed")
 
 
-def main(argv: list[str] | None = None) -> None:
+def run(argv: list[str] | None, staging_dir: Path) -> None:
+    """One run of the step; staging_dir is the temporary folder the screenshot copies go to."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--metadata-dir",
         type=Path,
         default=METADATA_DIR,
         help="Listing tree: <dir>/ios/<locale>/*.txt and screenshots.json",
+    )
+    parser.add_argument(
+        "--creative-dir",
+        type=Path,
+        default=DEFAULT_CREATIVE_DIR,
+        help="Product page header and search results images, one folder per slot: "
+        + ", ".join(folder for folder, _, _, _ in CREATIVE_SLOTS),
     )
     parser.add_argument(
         "--locale",
@@ -1581,13 +2438,14 @@ def main(argv: list[str] | None = None) -> None:
     do_listing = truthy("UPLOAD_LISTING")
     do_whats_new = truthy("UPLOAD_WHATS_NEW")
     do_screenshots = truthy("UPLOAD_SCREENSHOTS")
+    do_creative = truthy("UPLOAD_CREATIVE_ASSETS")
     do_submit = truthy("SUBMIT_IOS_REVIEW")
     do_public = truthy("PUBLIC_RELEASE")
 
-    if not (do_listing or do_whats_new or do_screenshots or do_submit):
+    if not (do_listing or do_whats_new or do_screenshots or do_creative or do_submit):
         print(
-            "ASC release skipped — UPLOAD_LISTING / UPLOAD_WHATS_NEW / "
-            "UPLOAD_SCREENSHOTS / SUBMIT_IOS_REVIEW are off"
+            "ASC release skipped — UPLOAD_LISTING / UPLOAD_WHATS_NEW / UPLOAD_SCREENSHOTS / "
+            "UPLOAD_CREATIVE_ASSETS / SUBMIT_IOS_REVIEW are off"
         )
         return
     if do_public and not do_submit:
@@ -1606,14 +2464,18 @@ def main(argv: list[str] | None = None) -> None:
         metadata_dir=args.metadata_dir,
         locales=locales,
         version=args.version,
+        upload_creative=do_creative,
+        creative_dir=args.creative_dir,
     )
+    # The RGB copies that are uploaded, checked before any App Store Connect call.
+    copies = stage_screenshots(screenshot_sets, staging_dir)
 
     if args.dry_run:
         print("ASC dry-run — local inputs OK; no API calls")
         print(
             f"  bundle={args.bundle_id} locales={','.join(locales)} listing={do_listing} "
-            f"whats_new={do_whats_new} screenshots={do_screenshots} submit={do_submit} "
-            f"public_release={do_public}"
+            f"whats_new={do_whats_new} screenshots={do_screenshots} creative={do_creative} "
+            f"submit={do_submit} public_release={do_public}"
         )
         for locale, sets in screenshot_sets.items():
             for display_type, pngs in sets.items():
@@ -1640,6 +2502,9 @@ def main(argv: list[str] | None = None) -> None:
             do_screenshots=do_screenshots,
             screenshot_sets=screenshot_sets,
             do_submit=do_submit,
+            do_creative=do_creative,
+            creative_dir=args.creative_dir,
+            copies=copies,
         )
         return
 
@@ -1653,7 +2518,9 @@ def main(argv: list[str] | None = None) -> None:
         f"ASC app={app_id} version={args.version} id={version_id} state={state}"
     )
 
-    problems = version_state_problems(state, args.version, edits_metadata=edits_metadata, submit=do_submit)
+    problems = version_state_problems(
+        state, args.version, edits_metadata=edits_metadata or do_creative, submit=do_submit
+    )
     if problems:
         fail("; ".join(problems))
     in_review = state == "WAITING_FOR_REVIEW"
@@ -1661,7 +2528,14 @@ def main(argv: list[str] | None = None) -> None:
         # A rerun after a successful submit: only accept it if review holds
         # exactly this run's build.
         confirm_selected_build(client, version_id, args.build_id)
+    # Pick and check the version's draft before any write. It is reserved for
+    # the version and its products, so header and search results images never
+    # go out in it.
+    reserved_draft: str | None = None
+    if do_submit and not in_review:
+        reserved_draft = reserve_version_draft(client, app_id, version_id, state)
 
+    plans: list[LocalePlan] = []
     if edits_metadata:
         # Read everything first, so a change the version's state cannot take
         # fails before anything is written. Only what differs is written, which
@@ -1674,6 +2548,7 @@ def main(argv: list[str] | None = None) -> None:
             include_listing=do_listing,
             include_whats_new=do_whats_new,
             screenshot_sets=screenshot_sets,
+            copies=copies,
         )
         problems = metadata_problems(plans, version=args.version, state=state)
         if problems:
@@ -1682,8 +2557,24 @@ def main(argv: list[str] | None = None) -> None:
                 + "\n  ".join(problems)
                 + "\n  To change it, take the version out of review in App Store Connect, then rerun."
             )
+    # Header and search results images are planned read-only too, before the first write.
+    creative_plan: CreativePlan | None = None
+    if do_creative:
+        print("checking ASC product page header and search results images…")
+        creative_plan = plan_creative_assets(
+            client,
+            app_id=app_id,
+            version_id=version_id,
+            locale=CREATIVE_LOCALE,
+            creative_dir=args.creative_dir,
+            editable=state in EDITABLE_VERSION_STATES,
+        )
+    if edits_metadata:
         print("updating App Store metadata (only what differs)…")
         apply_metadata(client, plans)
+    if creative_plan is not None and creative_plan.steps:
+        print("syncing ASC product page header and search results images…")
+        apply_creative_plan(client, creative_plan, app_id=app_id, reserved_draft=reserved_draft)
 
     if in_review:
         if do_submit:
@@ -1717,7 +2608,7 @@ def main(argv: list[str] | None = None) -> None:
         select_build(client, version_id, args.build_id, args.version, args.build_number)
         set_release_type(client, version_id, public_release=do_public)
         print("attaching in-app purchases / subscriptions to the review submission…")
-        submission_id = get_or_create_draft_submission(client, app_id)
+        submission_id = reserved_draft or create_draft_submission(client, app_id)
         try:
             result = submit_in_app_purchases(
                 client, app_id, submission_id=submission_id
@@ -1739,6 +2630,13 @@ def main(argv: list[str] | None = None) -> None:
         print(f"  {result.submitted} product(s) went out with the version")
 
     print("ASC release step finished")
+
+
+def main(argv: list[str] | None = None) -> None:
+    # Screenshots are uploaded from RGB copies in this temporary folder, which is
+    # removed when the step ends; the committed files are never changed.
+    with tempfile.TemporaryDirectory(prefix="asc-screenshots-") as staging:
+        run(argv, Path(staging))
 
 
 if __name__ == "__main__":
