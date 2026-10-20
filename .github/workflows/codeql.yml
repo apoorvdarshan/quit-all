@@ -2,7 +2,8 @@
 # and weekly:
 #
 #   javascript-typescript  web/ (site build, page script and the KLIPY / app-config API Worker)
-#   python                 scripts/ (release notes and App Store release tooling)
+#   python                 none left: the release tooling moved to apoorvdarshan/store-release
+#                          (see the "Find source to analyze" step)
 #   actions                .github/workflows/*.yml
 #
 # Each job checks out only the directories its language lives in, so no job
@@ -59,13 +60,32 @@ jobs:
           sparse-checkout-cone-mode: false
           sparse-checkout: ${{ matrix.sparse-checkout }}
 
+      # The repository's Python (the store release tooling) moved to
+      # apoorvdarshan/store-release, but "Analyze (python)" is still a required check
+      # of the "Protect main" ruleset. While no Python file is tracked, the python job
+      # says so and analyzes nothing; once the check leaves the ruleset, drop the
+      # python entry above. Any tracked .py file turns the analysis back on.
+      - name: Find source to analyze
+        id: source
+        env:
+          LANGUAGE: ${{ matrix.language }}
+        run: |
+          if [ "$LANGUAGE" = python ] && [ -z "$(git ls-files -- '*.py' | head -n 1)" ]; then
+            echo "::notice title=CodeQL (python)::No Python source is tracked in this repository, so there is nothing to analyze."
+            echo "analyze=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "analyze=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Initialize CodeQL
+        if: steps.source.outputs.analyze == 'true'
         uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
         with:
           languages: ${{ matrix.language }}
           build-mode: none
 
       - name: Perform CodeQL analysis
+        if: steps.source.outputs.analyze == 'true'
         uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
         with:
           category: /language:${{ matrix.language }}

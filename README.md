@@ -32,7 +32,7 @@ Monorepo for the **Quit All** iOS app and its marketing website.
 .
 ├── ios/        # SwiftUI iOS app (Xcode project) + unit and UI tests → App Store
 ├── store/      # App Store listing, screenshot order and product catalog (source of truth)
-├── scripts/    # iOS test runner and App Store release automation
+├── scripts/    # iOS test runner
 └── web/        # Static marketing site + API Worker → quit-all.com
 ```
 
@@ -116,11 +116,11 @@ cd web && npm test         # website tests, including fuzz tests for the KLIPY p
 
 `ios/QuitAllTests` covers streaks, milestones, savings, habit and relapse storage, craving patterns, the widget snapshot and the premium entitlement rule; `ios/QuitAllUITests` walks through onboarding, the paywall, Home, SOS, relapse, habits, stats and settings. Tests run offline: in Debug simulator builds the app has a test mode that never contacts RevenueCat, the App Store or KLIPY, never asks for notification permission and can't buy anything. The **iOS tests** workflow runs both suites on every pull request and push to `main` that changes the app. Details: [`docs/ios-testing.md`](docs/ios-testing.md).
 
-The **Web** workflow lints, type-checks, tests and builds the site, then smoke-tests the built pages and API Worker. Its fast-check property tests check that the KLIPY proxy never leaks or loses its server-side key, never leaves the KLIPY origin and never forwards client credentials. They run 1,000 cases per property on each change and 50,000 weekly. **CodeQL** scans the Swift app, website, release tooling and workflows, **Dependency review** blocks pull requests that add vulnerable dependencies, and **OpenSSF Scorecard** reviews the repository's supply-chain security weekly.
+The **Web** workflow lints, type-checks, tests and builds the site, then smoke-tests the built pages and API Worker. Its fast-check property tests check that the KLIPY proxy never leaks or loses its server-side key, never leaves the KLIPY origin and never forwards client credentials. They run 1,000 cases per property on each change and 50,000 weekly. **CodeQL** scans the Swift app, website and workflows, **Dependency review** blocks pull requests that add vulnerable dependencies, and **OpenSSF Scorecard** reviews the repository's supply-chain security weekly.
 
 ### Releases
 
-GitHub Actions builds, signs and uploads the App Store binary — Xcode Cloud's workflow and product for this app were removed on 2026-10-14 and must not be re-created. Pushing a `vX.Y.Z` tag that equals `MARKETING_VERSION` runs [`ios-release.yml`](.github/workflows/ios-release.yml): it runs the tests, then only the store steps whose repository variables are switched on (`IOS_RELEASE_AUTOMATION`, `IOS_UPLOAD_BUILD`, `IOS_UPLOAD_LISTING`, `IOS_UPLOAD_WHATS_NEW`, `IOS_UPLOAD_SCREENSHOTS`, `IOS_UPLOAD_CREATIVE_ASSETS`, `IOS_SUBMIT_REVIEW`, `IOS_PUBLIC_RELEASE`; all off by default), and creates the GitHub Release with the matching [`RELEASE_NOTES.md`](RELEASE_NOTES.md) section. **Run workflow** on iOS Release only validates a signed build with App Store Connect and never uploads. The App Store listing, What's New and screenshot order live in [`store/metadata`](store/metadata). Details: [`store/README.md`](store/README.md).
+GitHub Actions builds, signs and uploads the App Store binary — Xcode Cloud's workflow and product for this app were removed on 2026-10-14 and must not be re-created. Pushing a `vX.Y.Z` tag that equals `MARKETING_VERSION` runs [`ios-release.yml`](.github/workflows/ios-release.yml), a thin caller of the shared [store-release](https://github.com/apoorvdarshan/store-release) workflows: it runs the tests, then only the store steps whose repository variables are switched on (`IOS_RELEASE_AUTOMATION`, `IOS_CREATE_VERSION`, `IOS_UPLOAD_BUILD`, `IOS_UPLOAD_LISTING`, `IOS_UPLOAD_WHATS_NEW`, `IOS_UPLOAD_SCREENSHOTS`, `IOS_UPLOAD_CREATIVE_ASSETS`, `IOS_SUBMIT_REVIEW`, `IOS_PUBLIC_RELEASE`; all off by default), and creates the GitHub Release with the matching [`RELEASE_NOTES.md`](RELEASE_NOTES.md) section. **Run workflow** on iOS Release only validates a signed build with App Store Connect and never uploads. The App Store listing, What's New and screenshot order live in [`store/metadata`](store/metadata). Details: [`store/README.md`](store/README.md).
 
 ## Links
 

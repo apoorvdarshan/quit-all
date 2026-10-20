@@ -50,8 +50,11 @@ cd web
 npm ci
 npm run check
 
-# Release tooling (offline; never contacts App Store Connect)
-python3 -m unittest -v scripts/store/test_ios_release.py
+# Store files and release config (offline; never contacts App Store Connect).
+# The release tooling lives in apoorvdarshan/store-release; use the version
+# pinned in .github/workflows/ios-release.yml (see store/README.md).
+git clone --branch v0.2.0 https://github.com/apoorvdarshan/store-release ../store-release
+python3 -I -u ../store-release/run.py --app-root . config check --files
 ```
 
 The website tests include fast-check property tests for the KLIPY proxy that run 1,000 generated cases per property. A failure prints a seed and a shrunk counterexample; rerun it with `FUZZ_SEED=<seed> npm test`, or raise `FUZZ_RUNS` for a longer run.
@@ -60,7 +63,7 @@ GitHub Actions runs these checks automatically:
 
 - **iOS tests** — unit and UI tests for pull requests and pushes that change the app
 - **Web** — lint, type check, tests, build and a smoke test for changes under `web/`, plus a weekly longer fuzzing run
-- **Store automation (offline)** — release-tooling tests for changes to the store tooling or listing
+- **Store checks** — store data, `store/store-release.toml` and the release callers checked against the pinned [store-release](https://github.com/apoorvdarshan/store-release) version, for changes to the store files or release workflows
 - **CodeQL** and **Dependency review** — static analysis and vulnerable-dependency checks on every pull request; CodeQL analyzes the Swift app weekly and for each release tag
 - **OpenSSF Scorecard** — weekly supply-chain security review
 
