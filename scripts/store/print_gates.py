@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Print store automation switch status. Never contacts a store.
+"""Print store automation switch status. Never contacts a store or runs asc.
 
-Quit All ships on iOS only, so only the IOS_* switches exist. ios_release.py
-`gates` is the authority that validates them; this is a readable summary that
-uses the same rules, so a value the gates would reject shows as INVALID rather
-than as off.
+Quit All ships on iOS only, so only the IOS_* switches exist (the list comes
+from ios_release.OPERATION_SWITCHES, IOS_UPLOAD_CREATIVE_ASSETS included).
+ios_release.py `gates` is the authority that validates them; this is a readable
+summary that uses the same rules, so a value the gates would reject shows as
+INVALID rather than as off.
 """
 from __future__ import annotations
 
@@ -80,7 +81,7 @@ def main(argv: list[str] | None = None, env: Mapping[str, str] | None = None) ->
     if any(state == "on" for state in states.values()):
         print("WARNING: one or more store switches are on")
     elif not invalid:
-        print("all switches off — no upload, listing change, review submission or release will run")
+        print("all switches off — no upload, listing or creative asset change, review submission or release will run")
 
 
 if __name__ == "__main__":
