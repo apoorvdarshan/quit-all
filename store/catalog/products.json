@@ -1,5 +1,5 @@
 {
-  "$comment": "In-app products the iOS release may submit with a version (IOS_SUBMIT_REVIEW). Only these product ids are ever attached to App Review; products already approved are left alone. Must match SubscriptionProduct in ios/Quit All/Core/PaywallManager.swift and ios/Quit All/Products.storekit (checked by scripts/store/test_ios_release.py). Exported from App Store Connect on 2026-10-14, when all three were APPROVED.",
+  "$comment": "In-app products the iOS release may submit with a version (IOS_SUBMIT_REVIEW). Only these product ids are ever attached to App Review; products already approved are left alone. Must match SubscriptionProduct in ios/Quit All/Core/PaywallManager.swift and ios/Quit All/Products.storekit (checked by Store checks, store-release's catalog check). Exported from App Store Connect on 2026-10-14, when all three were APPROVED.",
   "app": {
     "bundle_id": "com.apoorvdarshan.Quit-All",
     "asc_app_id": "6760978934"
