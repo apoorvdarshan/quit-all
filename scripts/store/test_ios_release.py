@@ -2345,6 +2345,11 @@ class CreativeAssetTests(unittest.TestCase):
         sleep = mock.patch.object(asc_release.time, "sleep")
         sleep.start()
         self.addCleanup(sleep.stop)
+        # With sleep patched, an image that never finishes processing fails in
+        # seconds instead of spinning until the real ten-minute deadline.
+        timeout = mock.patch.object(asc_release, "CREATIVE_PROCESSING_TIMEOUT_SECONDS", 5)
+        timeout.start()
+        self.addCleanup(timeout.stop)
         self.output = ""
 
     def image(self, image_id: str, path: Path, state: str, created: str = "2026-10-20") -> dict:
@@ -2477,6 +2482,7 @@ class CreativeAssetTests(unittest.TestCase):
     def test_processing_failure_or_timeout_stops_before_review(self) -> None:
         fake = CreativeFake(library=[self.image("H", self.header, "UPLOAD_COMPLETE")], processing={"H": ["FAILED"]})
         self.assertEqual(self.run_main(fake), 1)
+        self.assertIn("could not process header.png", self.output, "a failed image stops the run at once")
         self.assertEqual(fake.submitted, [])
         self.assertNotIn(("POST", "/reviewSubmissionItems"), fake.calls)
         fake = CreativeFake(library=[self.image("H", self.header, "UPLOAD_COMPLETE")],
