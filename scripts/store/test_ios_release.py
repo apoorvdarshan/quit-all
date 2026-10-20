@@ -1631,6 +1631,20 @@ class LiveSubmitFlowTests(unittest.TestCase):
                 self.assertIn("no draft review submission holds it", output)
                 self.assertEqual(fake.writes(), [])
 
+    def test_a_stopped_submit_leaves_the_listing_text_alone_too(self) -> None:
+        # Text stays editable in READY_FOR_REVIEW, so the draft check must come
+        # before the listing update, not just before the build selection.
+        with tempfile.TemporaryDirectory() as tmp:
+            write_metadata(Path(tmp), description="New description", whatsNew="New text")
+            for drafts, items in (([], {}), (["D1"], {"D1": []})):
+                fake = FakeAsc(state="READY_FOR_REVIEW", drafts=drafts, draft_items=items)
+                env = {**SUBMIT, "UPLOAD_LISTING": "true", "UPLOAD_WHATS_NEW": "true"}
+                with self.subTest(drafts=drafts):
+                    code, output = run_asc_main(fake, env, *SUBMIT_ARGS, "--metadata-dir", tmp)
+                    self.assertEqual(code, 1, output)
+                    self.assertIn("no draft review submission holds it", output)
+                    self.assertEqual(fake.writes(), [])
+
     def test_a_draft_that_lost_this_version_is_never_submitted(self) -> None:
         # The version leaves the draft between the start of the run and the submit.
         fake = FakeAsc(state="READY_FOR_REVIEW", drafts=["D1"], draft_items={"D1": [version_item()]})
@@ -1708,7 +1722,8 @@ class MetadataRerunTests(unittest.TestCase):
     def test_ready_for_review_rerun_does_not_replace_screenshots(self) -> None:
         stale = self.checksums()
         stale["APP_IPHONE_65"] = ["0" * 32] * 3
-        fake = FakeAsc(state="READY_FOR_REVIEW", screenshot_sets=stale)
+        fake = FakeAsc(state="READY_FOR_REVIEW", screenshot_sets=stale, drafts=["D1"],
+                       draft_items={"D1": [version_item()]})
         code, output, products = self.run_live(
             fake, {**LISTING_ON, "UPLOAD_SCREENSHOTS": "true", "SUBMIT_IOS_REVIEW": "true"}, whatsNew="New text")
         self.assertEqual(code, 1)
@@ -1957,6 +1972,27 @@ class PreflightTests(unittest.TestCase):
         self.assertFalse(fake.writes(), "the preflight must only read")
         self.assertEqual(fake.read_only_modes, [True], "the preflight runs asc read-only")
         return code, output
+
+    def test_versions_the_store_step_can_use_pass(self) -> None:
+        held = [version_item("V1")]
+        for state in sorted(asc_release.SUBMITTABLE_VERSION_STATES):
+            with self.subTest(state=state):
+                fake = FakeAsc(state=state, drafts=["D1"], draft_items={"D1": held})
+                code, output = self.preflight(fake, {**LISTING_ON, "SUBMIT_IOS_REVIEW": "true"})
+                self.assertEqual(code, 0, output)
+                self.assertIn(f"version {VERSION} is {state}", output)
+
+    def test_a_ready_for_review_version_needs_its_draft_before_the_build(self) -> None:
+        other = [{"id": "P", "relationships": {"subscriptionVersion": {"data": {"id": "S1v2"}}}}]
+        for drafts, items in (([], {}), (["D1"], {"D1": other})):
+            fake = FakeAsc(state="READY_FOR_REVIEW", drafts=drafts, draft_items=items)
+            with self.subTest(drafts=drafts):
+                code, output = self.preflight(fake, {"SUBMIT_IOS_REVIEW": "true"})
+                self.assertEqual(code, 1, output)
+                self.assertIn("no draft review submission holds it", output)
+        # Without review submission the draft does not matter.
+        code, output = self.preflight(FakeAsc(state="READY_FOR_REVIEW"), LISTING_ON)
+        self.assertEqual(code, 0, output)
 
     def test_passes_for_an_editable_version_without_a_build(self) -> None:
         flags = {**LISTING_ON, "UPLOAD_SCREENSHOTS": "true", "SUBMIT_IOS_REVIEW": "true", "PUBLIC_RELEASE": "true"}
@@ -2288,6 +2324,21 @@ class CreativeAssetTests(unittest.TestCase):
         fake = FakeAsc()
         self.assertEqual(self.run_creative(fake), 1)
         self.assertEqual(fake.calls, [])
+
+    def test_images_never_take_the_empty_draft_the_version_chose(self) -> None:
+        # The version's draft is picked first; an empty leftover draft goes to the
+        # version, and the images get a submission of their own.
+        fake = FakeAsc(drafts=["EMPTY"], draft_items={"EMPTY": []})
+        code, output = run_asc_main(fake, {**self.ENV, **SUBMIT}, *SUBMIT_ARGS, "--creative-dir", str(self.dir),
+                                    "--metadata-dir", str(self.meta))
+        self.assertEqual(code, 0, output)
+        submitted = submits(fake)
+        self.assertEqual(len(submitted), 2)
+        self.assertEqual(submitted[-1], "EMPTY")
+        image_items = {flag(c, "--submission") for c in fake.writes()
+                       if c[:2] == ("review", "items-add") and flag(c, "--item-type") == "appAssetLibraryImages"}
+        self.assertEqual(image_items, {submitted[0]})
+        self.assertNotIn("EMPTY", image_items)
 
     def test_an_interrupted_upload_is_uploaded_again(self) -> None:
         # asc never deletes the reservation a failed upload leaves behind.
