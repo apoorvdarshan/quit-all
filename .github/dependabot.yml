@@ -5,7 +5,9 @@
 #   github-actions  the commit-SHA-pinned actions in .github/workflows
 #   pip             the hash-locked store tooling (requirements-store.in compiled
 #                   to requirements-store.txt) that runs with the App Store
-#                   Connect key in the release jobs
+#                   Connect key in the release jobs: PyJWT and cryptography,
+#                   and Pillow, which makes the RGB copies of App Store
+#                   screenshots
 #   npm /web        the website build and test tooling (wrangler, TypeScript, ESLint)
 #   swift           the RevenueCat SDK (purchases-ios-spm), pinned in the Xcode
 #                   project's Package.resolved under ios/Quit All.xcodeproj.

@@ -1,5 +1,7 @@
-# Store tooling for the iOS release workflow (App Store Connect JWTs).
+# Store tooling for the iOS release workflow (App Store Connect JWTs, and Pillow
+# for the RGB copies of App Store screenshots that store an alpha channel).
 # Pinned to the versions Fud AI uses; compile with:
 #   uv pip compile requirements-store.in --universal --generate-hashes -o requirements-store.txt
 pyjwt[crypto]==2.15.1
 cryptography==50.0.2
+Pillow==12.3.0
