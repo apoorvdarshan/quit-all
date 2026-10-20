@@ -714,15 +714,22 @@ def creative_problems(plans: list[CreativePlan], *, version: str, state: str) ->
 
 
 def apply_creative(
-    asc: asc_cli.Asc, *, app_id: str, library_id: str, plans: list[CreativePlan], editable: bool = True
+    asc: asc_cli.Asc,
+    *,
+    app_id: str,
+    library_id: str,
+    plans: list[CreativePlan],
+    editable: bool = True,
+    reserved_draft: str | None = None,
 ) -> dict[str, str]:
     """Upload, send to review, or place each creative image as its plan says.
 
     Only approved images are placed, because a version that is already approved
     only takes approved assets; one that is still in review or not yet submitted
     is placed on a later run, and so is an approved one while the version cannot
-    be edited. Callers check creative_problems() first. Returns placement type ->
-    outcome.
+    be edited. Callers check creative_problems() first. reserved_draft is the
+    draft this run chose for the version and its products, which images never
+    take. Returns placement type -> outcome.
     """
     outcomes: dict[str, str] = {}
     to_review: list[tuple[str, dict[str, Any]]] = []
@@ -773,27 +780,36 @@ def apply_creative(
             print(f"  {locale} {plan.label}: placed {name} on the product page")
         outcomes[plan.placement_type] = "placed"
     if to_review:
-        submit_creative_review(asc, app_id, to_review)
+        submit_creative_review(asc, app_id, to_review, reserved_draft=reserved_draft)
     return outcomes
 
 
-def submit_creative_review(asc: asc_cli.Asc, app_id: str, images: list[tuple[str, dict[str, Any]]]) -> str:
+def submit_creative_review(
+    asc: asc_cli.Asc, app_id: str, images: list[tuple[str, dict[str, Any]]], *, reserved_draft: str | None = None
+) -> str:
     """Send not-yet-reviewed creative images to App Review in a submission of their own.
 
     A draft an earlier attempt left behind holding only some of these images is
-    finished instead of starting another one. An empty draft is never taken:
-    the version and its products may already have chosen it.
+    finished first, else an empty one, instead of starting another, so reruns
+    leave no extra drafts. The draft this run chose for the version and its
+    products (reserved_draft) is never taken.
     """
     wanted = {image["id"] for _, image in images}
-    submission_id = None
+    partial = empty = None
     for draft in draft_submission_ids(asc, app_id):
-        items = submission_items(asc, draft)
-        held = {related_id(item, "appAssetLibraryImage") for item in items}
-        if items and held <= wanted:
-            submission_id = draft
-            print(f"  finishing creative review submission {draft} from an earlier attempt")
+        if draft == reserved_draft:
+            continue
+        # A version or product item adds None, which is never wanted.
+        held = {related_id(item, "appAssetLibraryImage") for item in submission_items(asc, draft)}
+        if not held:
+            empty = empty or draft
+        elif held <= wanted:
+            partial = draft
             break
-    if submission_id is None:
+    submission_id = partial or empty
+    if submission_id:
+        print(f"  finishing creative review submission {submission_id} from an earlier attempt")
+    else:
         submission = data(call(asc, "review", "submissions-create", "--app", app_id, "--platform", PLATFORM)) or {}
         submission_id = submission.get("id")
     if not submission_id:
@@ -1748,7 +1764,7 @@ def main(argv: list[str] | None = None) -> None:
     if creative:
         print("syncing the product page header and search results images…")
         apply_creative(asc, app_id=app_id, library_id=library_id, plans=creative,
-                       editable=state in EDITABLE_VERSION_STATES)
+                       editable=state in EDITABLE_VERSION_STATES, reserved_draft=submission_id)
 
     if in_review:
         if do_submit:
