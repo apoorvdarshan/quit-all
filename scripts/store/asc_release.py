@@ -92,7 +92,9 @@ CREATIVE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 # finished without approval.
 CREATIVE_PENDING_STATES = {"WAITING_FOR_REVIEW", "IN_REVIEW", "ACCEPTED"}
 CREATIVE_UNSUBMITTED_STATES = {"PREPARE_FOR_SUBMISSION", "READY_FOR_REVIEW", "COMPLETE", "UPLOAD_COMPLETE"}
-CREATIVE_DEAD_STATES = {"REJECTED", "FAILED", "ARCHIVED"}
+# AWAITING_UPLOAD is a reservation an interrupted upload left behind (asc never
+# deletes it); it is ignored, so the next run uploads the file again.
+CREATIVE_DEAD_STATES = {"REJECTED", "FAILED", "ARCHIVED", "AWAITING_UPLOAD"}
 
 # Every metadata field, screenshots and creative assets included, can be written in these states.
 EDITABLE_VERSION_STATES = {
@@ -383,12 +385,14 @@ def metadata_problems(plans: list[LocalePlan], *, version: str, state: str) -> l
             )
             continue
         for display_type in plan.stale_screenshots:
-            with_alpha = [path.name for path in plan.screenshots.get(display_type, []) if png_has_alpha(path)]
+            # App Store Connect, and asc before it uploads, refuses a PNG that
+            # stores alpha even when every pixel is opaque.
+            with_alpha = [p.name for p in plan.screenshots.get(display_type, []) if asc_cli.image_has_alpha(p)]
             if with_alpha:
                 problems.append(
-                    f"{plan.locale}: the {display_type} screenshots differ from App Store Connect, but asc "
-                    f"uploads only images without an alpha channel and these have one: {', '.join(with_alpha)}; "
-                    "re-export them as RGB PNGs (no transparency), then rerun"
+                    f"{plan.locale}: the {display_type} screenshots differ from App Store Connect, but these have "
+                    f"an alpha channel, which App Store Connect refuses: {', '.join(with_alpha)}; re-export them "
+                    "as RGB PNGs (no transparency), then rerun"
                 )
     return problems
 
@@ -419,35 +423,6 @@ def png_size(path: Path) -> tuple[int, int] | None:
     if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n" or header[12:16] != b"IHDR":
         return None
     return int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big")
-
-
-def png_has_alpha(path: Path) -> bool:
-    """True when a PNG has an alpha channel or transparency, which asc refuses to upload.
-
-    The same rule as asc's own check: an RGBA or grey-with-alpha color type in
-    IHDR, or a tRNS chunk before the image data.
-    """
-    with path.open("rb") as handle:
-        if handle.read(8) != b"\x89PNG\r\n\x1a\n":
-            return False
-        while True:
-            header = handle.read(8)
-            if len(header) < 8:
-                return False
-            length = int.from_bytes(header[:4], "big")
-            kind = header[4:]
-            if kind == b"IHDR":
-                ihdr = handle.read(length)
-                # Byte 9 of IHDR is the color type: 4 = grey + alpha, 6 = RGBA.
-                if len(ihdr) >= 10 and ihdr[9] in (4, 6):
-                    return True
-                handle.seek(4, io.SEEK_CUR)
-                continue
-            if kind == b"tRNS":
-                return True
-            if kind in (b"IDAT", b"IEND"):
-                return False
-            handle.seek(length + 4, io.SEEK_CUR)
 
 
 def load_screenshot_sets(metadata_dir: Path, locale: str, root: Path | None = None) -> dict[str, list[Path]]:
@@ -567,6 +542,8 @@ def creative_sources(creative_dir: Path) -> list[tuple[str, str, Path]]:
         ) if slot_dir.is_dir() else []
         if len(images) > 1:
             fail(f"the {label} slot takes one image; {slot_dir} has {len(images)}")
+        if images and asc_cli.image_has_alpha(images[0]):
+            fail(f"the {label} image {images[0].name} has an alpha channel, which App Store Connect refuses; re-export it as RGB")
         if images:
             found.append((placement_type, label, images[0]))
     if not found:
@@ -852,18 +829,37 @@ def submission_items(asc: asc_cli.Asc, submission_id: str) -> list[dict[str, Any
     )
 
 
-def get_or_create_draft_submission(asc: asc_cli.Asc, app_id: str) -> str:
-    """Return the app's READY_FOR_REVIEW draft for the version and products, creating one.
+def find_draft_submission(asc: asc_cli.Asc, app_id: str, version_id: str | None = None) -> str | None:
+    """The app's READY_FOR_REVIEW draft to use for the version and products, if there is one.
 
-    A draft holding creative images belongs to their own review and is skipped.
+    The draft already holding version_id wins. Otherwise only a draft holding no
+    app version is reused, so another version's draft is never touched. A draft
+    holding creative images belongs to their own review and is skipped.
     """
+    drafts = []
     for submission_id in draft_submission_ids(asc, app_id):
-        if not any(related_id(item, "appAssetLibraryImage") for item in submission_items(asc, submission_id)):
+        items = submission_items(asc, submission_id)
+        if not any(related_id(item, "appAssetLibraryImage") for item in items):
+            drafts.append((submission_id, {related_id(item, "appStoreVersion") for item in items} - {None, ""}))
+    if version_id:
+        for submission_id, versions in drafts:
+            if version_id in versions:
+                return submission_id
+    for submission_id, versions in drafts:
+        if not versions:
             return submission_id
+    return None
+
+
+def create_draft_submission(asc: asc_cli.Asc, app_id: str) -> str:
     created = data(call(asc, "review", "submissions-create", "--app", app_id, "--platform", PLATFORM)) or {}
     if not created.get("id"):
         fail("asc did not report the new review submission's id")
     return created["id"]
+
+
+def get_or_create_draft_submission(asc: asc_cli.Asc, app_id: str, version_id: str | None = None) -> str:
+    return find_draft_submission(asc, app_id, version_id) or create_draft_submission(asc, app_id)
 
 
 def draft_item_version_ids(asc: asc_cli.Asc, submission_id: str) -> set[str]:
@@ -888,10 +884,14 @@ def check_draft_items(
     """Refuse to submit a draft holding anything but this version and catalog products.
 
     A reused draft can hold items added by hand or by another tool; they must
-    not ride along into App Review.
+    not ride along into App Review. With version_id, the draft must hold that
+    version.
     """
     unexpected = []
-    for item in submission_items(asc, submission_id):
+    items = submission_items(asc, submission_id)
+    if version_id and not any(related_id(item, "appStoreVersion") == version_id for item in items):
+        fail(f"review submission {submission_id} does not hold App Store version {version_id}; not submitting it")
+    for item in items:
         app_version = related_id(item, "appStoreVersion")
         product = related_id(item, "subscriptionVersion") or related_id(item, "inAppPurchaseVersion")
         if app_version and app_version == version_id:
@@ -951,6 +951,10 @@ def submit_in_app_purchases(
     unrelated Ready-to-Submit product is not dragged into this release. Products
     that are already approved are left alone, but their versions are listed so
     the draft check can tell catalog items from anything else.
+
+    With submission_id None, an existing draft holding no app version is reused,
+    and a new one is created only when a product has to be added, so a rerun
+    with nothing to send leaves no empty draft behind.
     """
     if intended_ids is None:
         intended_ids = intended_product_ids()
@@ -960,11 +964,11 @@ def submit_in_app_purchases(
         return ProductSubmitResult(submission_id or "", 0, False)
 
     if submission_id is None:
-        submission_id = get_or_create_draft_submission(asc, app_id)
+        submission_id = find_draft_submission(asc, app_id)
 
     # Idempotency: a retry reuses the same draft, so skip anything already
     # attached instead of adding a duplicate that App Store Connect rejects.
-    already_attached = draft_item_version_ids(asc, submission_id)
+    already_attached = draft_item_version_ids(asc, submission_id) if submission_id else set()
 
     submitted = 0
     added_items = False
@@ -1003,6 +1007,8 @@ def submit_in_app_purchases(
             has_products = True
             print(f"  {kind} {name}: already attached (idempotent)")
             continue
+        if submission_id is None:
+            submission_id = create_draft_submission(asc, app_id)
         try:
             asc.run(
                 "review", "items-add", "--submission", submission_id, "--item-type", item_type,
@@ -1023,7 +1029,7 @@ def submit_in_app_purchases(
             + "; ".join(failures)
             + ". Resolve them in App Store Connect and rerun the release."
         )
-    return ProductSubmitResult(submission_id, submitted, added_items, has_products, allowed)
+    return ProductSubmitResult(submission_id or "", submitted, added_items, has_products, allowed)
 
 
 def submit_for_review(
@@ -1043,7 +1049,7 @@ def submit_for_review(
     # Reuse a draft submission when one already exists (an earlier attempt can
     # leave a READY_FOR_REVIEW submission that was never submitted).
     if submission_id is None:
-        submission_id = get_or_create_draft_submission(asc, app_id)
+        submission_id = get_or_create_draft_submission(asc, app_id, version_id)
 
     # READY_FOR_REVIEW means the version is already held by a draft submission.
     already_added = version_state == "READY_FOR_REVIEW" or version_id in draft_item_version_ids(asc, submission_id)
@@ -1053,11 +1059,6 @@ def submit_for_review(
             "--item-id", version_id, "--if-exists", "skip",
         )
     check_draft_items(asc, submission_id, version_id=version_id, allowed_products=allowed_products or set())
-    if version_id not in draft_item_version_ids(asc, submission_id):
-        fail(
-            f"review submission {submission_id} does not hold App Store version {version_id}; not submitting it "
-            "(the version may sit in another draft: check App Store Connect, then rerun)"
-        )
     submit_draft(asc, submission_id)
     print(f"  submitted App Store version {version_id} for review (submission {submission_id})")
 
@@ -1327,10 +1328,10 @@ def validate_local_inputs(
                 f"{SCREENSHOT_MANIFEST}; add App Store-sized PNGs and list them there"
             )
         with_alpha = {path for locale_sets in sets.values() for pngs in locale_sets.values()
-                      for path in pngs if png_has_alpha(path)}
+                      for path in pngs if asc_cli.image_has_alpha(path)}
         if with_alpha:
             print(
-                f"  note: {len(with_alpha)} screenshot(s) have an alpha channel, which asc does not upload; "
+                f"  note: {len(with_alpha)} screenshot(s) have an alpha channel, which App Store Connect refuses; "
                 "a set that differs from App Store Connect stops the run until it is re-exported as RGB PNG"
             )
     if upload_creative:
@@ -1680,10 +1681,12 @@ def main(argv: list[str] | None = None) -> None:
             # version is already under review, the draft holding the late
             # products must be submitted on its own or they never reach review.
             # `has_products` also covers a retry where an earlier run attached
-            # the products but failed to submit their draft. Only submit a
-            # product-only draft of catalog products: refuse if it holds an app
-            # version (e.g. another release's) or anything else this release did
-            # not choose, so unrelated items never ship.
+            # the products but failed to submit their draft. No draft is created
+            # when there is nothing to send, and only a draft holding no app
+            # version is reused. Only submit a product-only draft of catalog
+            # products: refuse if it holds an app version (e.g. another
+            # release's) or anything else this release did not choose, so
+            # unrelated items never ship.
             if result.has_products and result.submission_id:
                 if draft_holds_app_version(asc, result.submission_id):
                     fail(
@@ -1696,11 +1699,24 @@ def main(argv: list[str] | None = None) -> None:
         return
 
     if do_submit:
+        # The draft that already holds this version wins; otherwise only a draft
+        # holding no app version is reused. A READY_FOR_REVIEW version that no
+        # draft holds stops here, before anything is written, so a rerun is not
+        # stuck on the wrong draft.
+        submission_id = find_draft_submission(asc, app_id, version_id)
+        if state == "READY_FOR_REVIEW" and (
+            submission_id is None
+            or not any(related_id(item, "appStoreVersion") == version_id for item in submission_items(asc, submission_id))
+        ):
+            fail(
+                f"version {args.version} is READY_FOR_REVIEW, but no draft review submission holds it; "
+                "remove the version from its submission in App Store Connect and rerun"
+            )
         print("selecting this run's build…")
         select_build(asc, version_id, args.build_id, args.version, args.build_number)
         set_release_type(asc, version_id, public_release=do_public)
         print("attaching in-app purchases / subscriptions to the review submission…")
-        submission_id = get_or_create_draft_submission(asc, app_id)
+        submission_id = submission_id or create_draft_submission(asc, app_id)
         try:
             result = submit_in_app_purchases(asc, app_id, submission_id=submission_id)
         except ProductSubmitError as exc:

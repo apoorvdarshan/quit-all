@@ -377,6 +377,17 @@ def asc_error(code: int) -> asc_cli.AscError:
     return asc_cli.AscError(("builds", "list"), code, "failed")
 
 
+def png_header(color_type: int, *, trns: bool = False) -> bytes:
+    """A PNG signature and IHDR (plus an optional tRNS chunk) with the given colour type."""
+    import zlib
+
+    def chunk(kind: bytes, body: bytes) -> bytes:
+        return len(body).to_bytes(4, "big") + kind + body + zlib.crc32(kind + body).to_bytes(4, "big")
+
+    ihdr = (16).to_bytes(4, "big") + (16).to_bytes(4, "big") + bytes([8, color_type, 0, 0, 0])
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr) + (chunk(b"tRNS", b"\x00\x00") if trns else b"") + chunk(b"IDAT", b"x")
+
+
 def flag(call: tuple[str, ...], name: str) -> str:
     return call[call.index(name) + 1]
 
@@ -582,6 +593,7 @@ class FakeAsc:
         other_versions: list[tuple[str, str]] | None = None,
         listed_after_create: bool = True,
         localization: dict | None = None,
+        other_locales: dict[str, dict] | None = None,
         screenshot_sets: dict[str, list[str]] | None = None,
         failed_delivery: set[str] | None = None,
         builds: list[dict] | None = None,
@@ -602,8 +614,10 @@ class FakeAsc:
         self.has_version = has_version
         self.other_versions = [("1.2.1", "READY_FOR_SALE")] if other_versions is None else other_versions
         self.listed_after_create = listed_after_create
-        # Live en-US version localization attributes; {} = no such localization.
+        # Live en-US version localization (id LOC) attributes; {} = no such localization.
         self.localization = dict(LIVE_TEXT) if localization is None else localization
+        # Other locales on the version (id LOC-<locale>) and their live attributes.
+        self.other_locales = {k: dict(v) for k, v in (other_locales or {}).items()}
         # Live screenshot checksums per display type, in order.
         self.screenshot_sets = {k: list(v) for k, v in (screenshot_sets or {}).items()}
         self.failed_delivery = failed_delivery or set()
@@ -666,9 +680,12 @@ class FakeAsc:
         if head == ("builds", "list"):
             return {"data": self.builds, "included": self.included}
         if head == ("localizations", "list"):
-            if self.localization == {}:
+            locale = flag(args, "--locale")
+            if locale in self.other_locales:
+                return {"data": [{"id": f"LOC-{locale}", "attributes": {**self.other_locales[locale], "locale": locale}}]}
+            if locale != "en-US" or self.localization == {}:
                 return {"data": []}
-            return {"data": [{"id": "LOC", "attributes": {"locale": flag(args, "--locale"), **self.localization}}]}
+            return {"data": [{"id": "LOC", "attributes": {"locale": locale, **self.localization}}]}
         if head == ("localizations", "update"):
             return {"data": {}}
         if head == ("screenshots", "list"):
@@ -698,12 +715,15 @@ class FakeAsc:
                                                                 "state": "PREPARE_FOR_SUBMISSION", "createdDate": "z"}})
             return {"imageId": image_id, "ready": True, "state": "PREPARE_FOR_SUBMISSION"}
         if head == ("localizations", "placements", "list"):
-            wanted = flag(args, "--placement-type")
-            return {"data": [p for p in self.placements if p["attributes"]["placementType"] == wanted]}
+            # A placement without "localization" belongs to the en-US localization LOC.
+            wanted, loc = flag(args, "--placement-type"), flag(args, "--localization-id")
+            return {"data": [p for p in self.placements
+                             if p["attributes"]["placementType"] == wanted and p.get("localization", "LOC") == loc]}
         if head in {("localizations", "placements", "create"), ("localizations", "placements", "swap")}:
-            kind = flag(args, "--placement-type")
-            self.placements = [p for p in self.placements if p["attributes"]["placementType"] != kind]
-            self.placements.append({"id": "PL-new", "attributes": {"placementType": kind},
+            kind, loc = flag(args, "--placement-type"), flag(args, "--localization-id")
+            self.placements = [p for p in self.placements
+                               if not (p["attributes"]["placementType"] == kind and p.get("localization", "LOC") == loc)]
+            self.placements.append({"id": f"PL-new-{loc}", "localization": loc, "attributes": {"placementType": kind},
                                     "relationships": {"image": {"data": {"id": flag(args, "--image-id")}}}})
             return {"data": {}}
         if head == ("review", "submissions-list"):
@@ -827,7 +847,7 @@ class AscRunnerTests(unittest.TestCase):
         for name in ("ASC_PROFILE", "ASC_CONFIG_PATH"):
             self.assertNotIn(name, env)
         for name, value in (("ASC_BYPASS_KEYCHAIN", "1"), ("ASC_TELEMETRY_DISABLED", "1"), ("DO_NOT_TRACK", "1"),
-                            ("ASC_SKILLS_AUTO_CHECK", "0"), ("ASC_STRICT_AUTH", "1")):
+                            ("ASC_SKILLS_AUTO_CHECK", "0"), ("ASC_STRICT_AUTH", "1"), ("ASC_MAX_RETRIES", "5")):
             self.assertEqual(env[name], value, name)
         self.assertNotIn("ASC_READ_ONLY", env)
 
@@ -890,6 +910,16 @@ class AscRunnerTests(unittest.TestCase):
         # No environment variable can point the release at another executable.
         with mock.patch.dict(os.environ, {"ASC_BIN": "/tmp/evil"}):
             self.assertEqual(asc_cli.Asc().binary, "asc")
+
+    def test_alpha_is_detected_the_way_asc_refuses_it(self) -> None:
+        cases = {"rgb": (png_header(2), False), "rgba": (png_header(6), True), "gray-alpha": (png_header(4), True),
+                 "rgb-trns": (png_header(2, trns=True), True), "jpeg": (b"\xff\xd8\xff\xe0rest", False)}
+        with tempfile.TemporaryDirectory() as tmp:
+            for name, (content, expected) in cases.items():
+                path = Path(tmp) / name
+                path.write_bytes(content)
+                with self.subTest(name=name):
+                    self.assertEqual(asc_cli.image_has_alpha(path), expected)
 
     def test_a_leading_at_sign_is_escaped(self) -> None:
         self.assertEqual(asc_release.asc_value("@apoorvcodes on Instagram"), "@@apoorvcodes on Instagram")
@@ -1272,6 +1302,20 @@ class TransientErrorTests(unittest.TestCase):
             with self.subTest(exc=repr(exc)):
                 self.assertFalse(ios_release.is_transient_error(exc))
 
+    def test_network_drops_reported_as_exit_1_are_retried(self) -> None:
+        for detail in ('Get "https://api.appstoreconnect.apple.com/v1/builds": read tcp: connection reset by peer',
+                       "dial tcp: lookup api.appstoreconnect.apple.com: no such host",
+                       "net/http: TLS handshake timeout", "unexpected EOF",
+                       'Get "https://api.appstoreconnect.apple.com/v1/builds": EOF'):
+            with self.subTest(detail=detail):
+                self.assertTrue(ios_release.is_transient_error(asc_cli.AscError(("builds", "list"), 1, detail)))
+        for detail in ("invalid character '<' looking for beginning of value", "build not found",
+                       "the GEOFENCE attribute is invalid"):
+            with self.subTest(detail=detail):
+                self.assertFalse(ios_release.is_transient_error(asc_cli.AscError(("builds", "list"), 1, detail)))
+        # The same message with another exit code keeps that code's rule.
+        self.assertFalse(ios_release.is_transient_error(asc_cli.AscError(("builds", "list"), 3, "connection reset")))
+
 
 class CmdWaitBuildTests(unittest.TestCase):
     def test_deadline_counts_from_upload_start_and_app_lookup_is_retried(self) -> None:
@@ -1522,14 +1566,53 @@ class LiveSubmitFlowTests(unittest.TestCase):
         self.assertEqual(len(submits(fake)), 1)
         self.assertNotEqual(submits(fake)[0], "CREATIVE")
 
-    def test_a_draft_without_this_version_is_never_submitted(self) -> None:
-        # READY_FOR_REVIEW means the version sits in a draft; if the draft found
-        # does not hold it, nothing is submitted.
-        fake = FakeAsc(state="READY_FOR_REVIEW", drafts=["D1"], draft_items={"D1": []})
+    def test_a_ready_for_review_version_with_no_draft_holding_it_stops_before_any_write(self) -> None:
+        # READY_FOR_REVIEW says a draft holds the version; the only draft here does not.
+        held = [{"id": "P", "relationships": {"subscriptionVersion": {"data": {"id": "S1v2"}}}}]
+        subs = [{"id": "S1", "attributes": {"name": "Weekly", "productId": WEEKLY, "state": "READY_TO_SUBMIT"}}]
+        for drafts, items in ((["D1"], {"D1": held}), ([], {})):
+            fake = FakeAsc(state="READY_FOR_REVIEW", subscriptions=subs, drafts=drafts, draft_items=items)
+            with self.subTest(drafts=drafts):
+                code, output = run_asc_main(fake, SUBMIT, *SUBMIT_ARGS)
+                self.assertEqual(code, 1, output)
+                self.assertIn("no draft review submission holds it", output)
+                self.assertEqual(fake.writes(), [])
+
+    def test_a_draft_that_lost_this_version_is_never_submitted(self) -> None:
+        # The version leaves the draft between the start of the run and the submit.
+        fake = FakeAsc(state="READY_FOR_REVIEW", drafts=["D1"], draft_items={"D1": [version_item()]})
+        fake_run = fake.run
+
+        def run(*args, **kwargs):
+            if args[:2] == ("versions", "update"):
+                fake.items["D1"] = []
+            return fake_run(*args, **kwargs)
+
+        fake.run = run  # type: ignore[method-assign]
         code, output = run_asc_main(fake, SUBMIT, *SUBMIT_ARGS)
         self.assertEqual(code, 1, output)
         self.assertIn("does not hold App Store version V1", output)
         self.assertEqual(submits(fake), [])
+
+    def test_the_draft_holding_this_version_is_chosen_over_others(self) -> None:
+        other = [{"id": "P", "relationships": {"subscriptionVersion": {"data": {"id": "S1v2"}}}}]
+        subs = [{"id": "S1", "attributes": {"name": "Weekly", "productId": WEEKLY, "state": "READY_TO_SUBMIT"}}]
+        fake = FakeAsc(state="READY_FOR_REVIEW", subscriptions=subs, drafts=["OTHER", "MINE"],
+                       draft_items={"OTHER": other, "MINE": [version_item()]})
+        code, output = run_asc_main(fake, SUBMIT, *SUBMIT_ARGS)
+        self.assertEqual(code, 0, output)
+        self.assertEqual({flag(c, "--submission") for c in fake.writes() if c[:2] == ("review", "items-add")}, {"MINE"})
+        self.assertEqual(submits(fake), ["MINE"])
+
+    def test_another_versions_draft_is_never_reused(self) -> None:
+        theirs = [version_item("V0")]
+        fake = FakeAsc(drafts=["THEIRS"], draft_items={"THEIRS": theirs})
+        code, output = run_asc_main(fake, SUBMIT, *SUBMIT_ARGS)
+        self.assertEqual(code, 0, output)
+        self.assertIn(("review", "submissions-create"), [c[:2] for c in fake.writes()])
+        self.assertNotIn("THEIRS", [flag(c, "--submission") for c in fake.writes() if c[:2] == ("review", "items-add")])
+        self.assertEqual(len(submits(fake)), 1)
+        self.assertNotEqual(submits(fake)[0], "THEIRS")
 
 
 LISTING_ON = {"UPLOAD_LISTING": "true", "UPLOAD_WHATS_NEW": "true"}
@@ -1646,6 +1729,59 @@ class MetadataRerunTests(unittest.TestCase):
         self.assertEqual(flag(update, "--promotional-text"), "@@quitall is here")
 
 
+class MultiLocaleTests(unittest.TestCase):
+    """Every listing locale is compared and written on its own localization."""
+
+    def setUp(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.meta = write_metadata(Path(tmp.name) / "meta")
+        german = dict(LIVE_TEXT, description="Hör mit allem auf.", keywords="aufhören,gewohnheiten")
+        loc = self.meta / "ios" / "de-DE"
+        loc.mkdir(parents=True)
+        for field, filename in LISTING_FILES.items():
+            (loc / filename).write_text(german[field] + "\n")
+        self.creative = Path(tmp.name) / "creative"
+        (self.creative / "header").mkdir(parents=True)
+        (self.creative / "header" / "header.png").write_bytes(b"header-image")
+
+    def run_locales(self, fake: FakeAsc, flags: dict[str, str]) -> tuple[int, str]:
+        return run_asc_main(fake, flags, "--version", VERSION, "--metadata-dir", str(self.meta),
+                            "--creative-dir", str(self.creative))
+
+    def test_text_goes_to_the_localization_of_its_own_locale(self) -> None:
+        fake = FakeAsc(other_locales={"de-DE": dict(LIVE_TEXT)})
+        code, output = self.run_locales(fake, {"UPLOAD_LISTING": "true"})
+        self.assertEqual(code, 0, output)
+        updates = [c for c in fake.writes() if c[:2] == ("localizations", "update")]
+        self.assertEqual([flag(c, "--id") for c in updates], ["LOC-de-DE"], "en-US already matches")
+        self.assertEqual((flag(updates[0], "--description"), flag(updates[0], "--keywords")),
+                         ("Hör mit allem auf.", "aufhören,gewohnheiten"))
+
+    def test_a_locale_missing_on_the_version_stops_every_write(self) -> None:
+        fake = FakeAsc(localization=dict(LIVE_TEXT, description="Old"))
+        code, output = self.run_locales(fake, {"UPLOAD_LISTING": "true"})
+        self.assertEqual(code, 1)
+        self.assertIn("no de-DE localization", output)
+        self.assertEqual(fake.writes(), [])
+
+    def test_an_approved_image_is_placed_on_every_locale(self) -> None:
+        size = (self.creative / "header" / "header.png").stat().st_size
+        library = [{"id": "H", "attributes": {"fileName": "header.png", "fileSize": size, "state": "APPROVED",
+                                              "createdDate": "2026-10-20"}}]
+        old = {"id": "PL-old", "attributes": {"placementType": "PRODUCT_PAGE_HEADER_ASSET"},
+               "relationships": {"image": {"data": {"id": "OLDIMG"}}}}
+        fake = FakeAsc(other_locales={"de-DE": dict(LIVE_TEXT)}, library=library, placements=[old])
+        code, output = self.run_locales(fake, {"UPLOAD_CREATIVE_ASSETS": "true"})
+        self.assertEqual(code, 0, output)
+        placed = {(c[2], flag(c, "--localization-id")) for c in fake.writes() if c[:2] == ("localizations", "placements")}
+        self.assertEqual(placed, {("swap", "LOC"), ("create", "LOC-de-DE")})
+        # A second run finds the image on both and writes nothing.
+        writes = len(fake.writes())
+        self.assertEqual(self.run_locales(fake, {"UPLOAD_CREATIVE_ASSETS": "true"})[0], 0)
+        self.assertEqual(len(fake.writes()), writes)
+
+
 class MetadataPlanTests(unittest.TestCase):
     def plan(self, client, tmp: Path, sets: dict | None = None) -> list:
         return asc_release.plan_metadata(
@@ -1719,17 +1855,17 @@ class AlphaChannelTests(unittest.TestCase):
             path = self.tmp / f"{color_type}.png"
             png(path, 1260, 2736, color_type)
             with self.subTest(color_type=color_type):
-                self.assertIs(asc_release.png_has_alpha(path), alpha)
+                self.assertIs(asc_cli.image_has_alpha(path), alpha)
         palette = self.tmp / "palette.png"
         header = (1260).to_bytes(4, "big") + (2736).to_bytes(4, "big") + bytes([8, 3, 0, 0, 0])
         palette.write_bytes(b"\x89PNG\r\n\x1a\n" + self.chunk(b"IHDR", header) + self.chunk(b"PLTE", b"\x00" * 3)
                             + self.chunk(b"tRNS", b"\x00") + self.chunk(b"IDAT", b"\x00") + self.chunk(b"IEND", b""))
-        self.assertTrue(asc_release.png_has_alpha(palette), "a tRNS chunk is transparency")
+        self.assertTrue(asc_cli.image_has_alpha(palette), "a tRNS chunk is transparency")
         opaque = self.tmp / "opaque.png"
         opaque.write_bytes(palette.read_bytes().replace(self.chunk(b"tRNS", b"\x00"), b""))
-        self.assertFalse(asc_release.png_has_alpha(opaque))
+        self.assertFalse(asc_cli.image_has_alpha(opaque))
         (self.tmp / "gif.png").write_bytes(b"GIF89a")
-        self.assertFalse(asc_release.png_has_alpha(self.tmp / "gif.png"))
+        self.assertFalse(asc_cli.image_has_alpha(self.tmp / "gif.png"))
 
     def run_screenshots(self, fake: FakeAsc, *extra: str) -> tuple[int, str]:
         write_metadata(self.tmp, screenshots=True, color_type=6)
@@ -1976,15 +2112,37 @@ class ProductSubmissionTests(unittest.TestCase):
         items = [(flag(c, "--item-type"), flag(c, "--item-id")) for c in fake.writes() if c[:2] == ("review", "items-add")]
         self.assertEqual(items, [("inAppPurchaseVersions", "IAP1v2")])
         self.assertEqual(fake.writes()[-1][:2], ("review", "submissions-submit"))
-        # A draft that also holds an app version, or anything else this release did
-        # not choose, is never submitted from here.
-        for held in ([version_item("V0")],
-                     [{"id": "X", "relationships": {"subscriptionVersion": {"data": {"id": "OTHER-SUBv1"}}}}]):
-            fake = FakeAsc(state="WAITING_FOR_REVIEW", attached="B9", iaps=LIFETIME_READY, drafts=["D1"],
-                           draft_items={"D1": held})
-            with self.subTest(held=held):
-                self.assertEqual(run_asc_main(fake, SUBMIT, *SUBMIT_ARGS)[0], 1)
-                self.assertEqual(submits(fake), [])
+        # A draft that holds an app version is never touched from here: the
+        # products go out in a new product-only draft instead.
+        fake = FakeAsc(state="WAITING_FOR_REVIEW", attached="B9", iaps=LIFETIME_READY, drafts=["D1"],
+                       draft_items={"D1": [version_item("V0")]})
+        self.assertEqual(run_asc_main(fake, SUBMIT, *SUBMIT_ARGS)[0], 0)
+        self.assertNotIn("D1", [flag(c, "--submission") for c in fake.writes() if c[:2] == ("review", "items-add")])
+        self.assertEqual(len(submits(fake)), 1)
+        self.assertNotEqual(submits(fake)[0], "D1")
+        # A product-only draft holding anything else this release did not choose
+        # is never submitted.
+        stray = [{"id": "X", "relationships": {"subscriptionVersion": {"data": {"id": "OTHER-SUBv1"}}}}]
+        fake = FakeAsc(state="WAITING_FOR_REVIEW", attached="B9", iaps=LIFETIME_READY, drafts=["D1"],
+                       draft_items={"D1": stray})
+        self.assertEqual(run_asc_main(fake, SUBMIT, *SUBMIT_ARGS)[0], 1)
+        self.assertEqual(submits(fake), [])
+
+    def test_a_rerun_with_nothing_to_send_leaves_no_empty_draft(self) -> None:
+        # Every catalog product approved, the version already in review: nothing is written.
+        approved = [{"id": "IAP1", "attributes": {"name": "Lifetime", "productId": LIFETIME, "state": "APPROVED"}}]
+        fake = FakeAsc(state="WAITING_FOR_REVIEW", attached="B9", iaps=approved)
+        code, output = run_asc_main(fake, SUBMIT, *SUBMIT_ARGS)
+        self.assertEqual(code, 0, output)
+        self.assertEqual(fake.writes(), [])
+        # An earlier attempt's product draft is still finished.
+        held = [{"id": "I1", "relationships": {"inAppPurchaseVersion": {"data": {"id": "IAP1v2"}}}}]
+        fake = FakeAsc(state="WAITING_FOR_REVIEW", attached="B9", iaps=LIFETIME_READY, drafts=["D1"],
+                       draft_items={"D1": held})
+        code, output = run_asc_main(fake, SUBMIT, *SUBMIT_ARGS)
+        self.assertEqual(code, 0, output)
+        self.assertEqual([c[:2] for c in fake.writes()], [("review", "submissions-submit")])
+        self.assertEqual(submits(fake), ["D1"])
 
     def test_a_reused_draft_skips_what_it_already_holds(self) -> None:
         held = [{"id": "I1", "relationships": {"inAppPurchaseVersion": {"data": {"id": "IAP1v2"}}}}, version_item()]
@@ -2071,6 +2229,21 @@ class CreativeAssetTests(unittest.TestCase):
         writes = len(fake.writes())
         self.assertEqual(self.run_creative(fake), 0)
         self.assertEqual(len(fake.writes()), writes)
+
+    def test_an_image_with_alpha_fails_before_any_call(self) -> None:
+        (self.dir / "header" / "header.png").write_bytes(png_header(6))
+        fake = FakeAsc()
+        self.assertEqual(self.run_creative(fake), 1)
+        self.assertEqual(fake.calls, [])
+
+    def test_an_interrupted_upload_is_uploaded_again(self) -> None:
+        # asc never deletes the reservation a failed upload leaves behind.
+        fake = FakeAsc(library=[self.image("H0", "header", "AWAITING_UPLOAD"),
+                                self.image("S", "search-results", "WAITING_FOR_REVIEW")])
+        self.assertEqual(self.run_creative(fake), 0)
+        uploads = [Path(flag(c, "--file")).name for c in fake.writes() if c[:3] == ("asset-library", "images", "upload")]
+        self.assertEqual(uploads, ["header.png"])
+        self.assertEqual(len(submits(fake)), 1)
 
     def test_a_rejected_image_stops_the_run(self) -> None:
         fake = FakeAsc(library=[self.image("H", "header", "REJECTED")])

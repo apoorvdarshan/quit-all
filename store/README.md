@@ -84,9 +84,10 @@ that runs it:
   preflight, build numbering, the build wait, and the whole `prepare` job on
   validation runs. asc refuses a write in that mode before sending it (exit 6).
 - On failure the error keeps asc's exit code and drops the key and issuer IDs.
-  asc retries dropped connections and server errors itself; the build wait also
-  retries asc's server-side exit codes (HTTP 5xx, 408, 429 and timeouts), while
-  auth, usage and not-found errors stop at once.
+  asc retries a failed read itself (`ASC_MAX_RETRIES=5`). The build wait then
+  also retries asc's server-side exit codes (HTTP 5xx, 408, 429 and timeouts)
+  and network drops, which asc reports as a generic exit 1 with a connection
+  error; auth, usage and not-found errors stop at once.
 
 The binary itself is still exported and uploaded by `xcodebuild`. To move to a
 newer asc, change `ASC_VERSION` and both `ASC_SHA256` values from that release's
@@ -226,11 +227,13 @@ display type, a wrong size, a missing file or more than 10 files fails the run
 with a clear message, and so does turning the switch on without any
 `screenshots.json`.
 
-asc uploads only images without an alpha channel. The committed screenshots
-are RGBA PNGs, byte-identical to the live listing, so they pass while App Store
+App Store Connect, and `asc` before it uploads, refuses a PNG that stores an
+alpha channel, even when every pixel is opaque. The committed screenshots are
+RGBA PNGs, byte-identical to the live listing, so they pass while App Store
 Connect already holds them; replacing a set needs RGB PNG exports (no
 transparency). A set that would have to be replaced with files that have an
-alpha channel stops the release in the preflight, before anything is built.
+alpha channel stops the release in the preflight, before anything is built;
+the committed images are never changed by the release.
 
 **Creative assets** (the product page header and search results images) have
 no images yet, so `IOS_UPLOAD_CREATIVE_ASSETS` stays off; turning it on without
@@ -240,8 +243,10 @@ An image is matched in the Asset Library by file name and size, so give a
 changed image a new file name. Apple reviews each new image on its own (the
 app already has an approved version), and a later run places it on every
 listing locale once it is approved; a rejected image stops the run with
-Apple's reason. Apple's rules for these images: no prices, website addresses,
-other platforms or Apple badges, and no transparency.
+Apple's reason, and an upload an earlier run left unfinished is uploaded again.
+Apple's rules for these images: no prices, website addresses, other platforms
+or Apple badges, and no transparency; an image with an alpha channel stops the
+run before any App Store Connect call.
 
 ## Release procedure
 
@@ -303,8 +308,12 @@ draft of its own.) A purchase is never sent to App Review on its own and
 immediately. If a required product cannot be attached, the version is not
 submitted. A reused draft is submitted only when it holds this version and
 nothing but versions of catalog products besides it; anything else stops the
-run. Drafts holding creative images belong to those images' own review and are
-never used for the version. The offline tests check that the catalog,
+run. The draft that already holds this version is reused; otherwise only a
+draft holding no app version is, so another version's draft is never touched,
+and a `READY_FOR_REVIEW` version that no draft holds stops the run before
+anything is written. Drafts holding creative images belong to those images' own
+review and are never used for the version. A rerun with nothing left to send
+creates no draft. The offline tests check that the catalog,
 `SubscriptionProduct` in `PaywallManager.swift` and `Products.storekit` list
 the same product ids.
 
