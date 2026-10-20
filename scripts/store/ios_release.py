@@ -543,6 +543,14 @@ def main(argv: list[str] | None = None) -> None:
     except ReleaseError as exc:
         print(f"error: {exc}", file=sys.stderr)
         raise SystemExit(1) from None
+    except Exception as exc:
+        # asc_cli is imported only by the commands that run asc: the
+        # github-release job checks out this file without it (print_gates.py).
+        asc_cli = sys.modules.get("asc_cli")
+        if asc_cli is None or not isinstance(exc, asc_cli.AscError):
+            raise
+        print(f"error: {exc}", file=sys.stderr)
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":

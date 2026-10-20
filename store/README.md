@@ -113,7 +113,8 @@ was started or completed:
 
 Creative assets follow the screenshots column: in `READY_FOR_REVIEW` and
 `WAITING_FOR_REVIEW` nothing is uploaded, sent to review or placed, so the
-step passes only when each image is already placed or still in App Review.
+step passes only when each image is already placed, still in App Review, or
+approved and waiting to be placed once the version can be edited.
 When a change is needed that the state cannot take, the step fails before
 writing anything; take the version out of review in App Store Connect, then
 rerun. Any other state (in review, approved, live) fails with a metadata,
@@ -204,7 +205,8 @@ store/metadata/ios/
     privacy_url.txt        reference only (App Information; not uploaded)
 store/creative/ios/        App Store creative assets (IOS_UPLOAD_CREATIVE_ASSETS); none yet
   header/                  one product page header image, 3840×1646 PNG
-  search-results/          one search results image, 3:2, 1920×1280 to 3840×2560
+  search-results/          one search results image, 3:2 PNG or JPEG, 1920×1280 to 3840×2560
+                           (a 5244×2950 PNG is a universal image that fits either slot)
 ```
 
 Every locale directory is uploaded; App Store Connect must already have that
@@ -244,9 +246,11 @@ changed image a new file name. Apple reviews each new image on its own (the
 app already has an approved version), and a later run places it on every
 listing locale once it is approved; a rejected image stops the run with
 Apple's reason, and an upload an earlier run left unfinished is uploaded again.
-Apple's rules for these images: no prices, website addresses, other platforms
-or Apple badges, and no transparency; an image with an alpha channel stops the
-run before any App Store Connect call.
+Sizes, formats and alpha are checked with the other local inputs, before the
+build, so a wrong file stops the run early. An image approved while the version
+waits for review is not a mismatch: the rerun passes and the image is placed
+once the version can be edited. Apple's rules for these images: no prices,
+website addresses, other platforms or Apple badges, and no transparency.
 
 ## Release procedure
 

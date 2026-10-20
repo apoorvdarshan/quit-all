@@ -87,6 +87,10 @@ CREATIVE_SLOTS = (
     ("header", "PRODUCT_PAGE_HEADER_ASSET", "product page header"),
     ("search-results", "APP_STORE_SEARCH_RESULTS_ASSET", "search results"),
 )
+# Apple's image specs per slot (asc asset-library specs): the header is a 21:9
+# 3840x1646 PNG; search results are 3:2 PNG or JPEG from 1920x1280 to 3840x2560.
+# A 5244x2950 16:9 PNG is a universal image that fits either.
+UNIVERSAL_CREATIVE_SIZE = (5244, 2950)
 CREATIVE_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 # Library image states: still being reviewed, not sent to review yet, or
 # finished without approval.
@@ -532,8 +536,49 @@ def replace_screenshot_set(asc: asc_cli.Asc, version_loc_id: str, display_type: 
     print(f"  uploaded {len(pngs)} {display_type} screenshot(s)")
 
 
+def image_dimensions(path: Path) -> tuple[str | None, int, int]:
+    """(format, width, height) of a PNG or JPEG, read from its headers."""
+    raw = Path(path).read_bytes()
+    if raw.startswith(asc_cli.PNG_SIGNATURE) and len(raw) >= 24:
+        return "png", int.from_bytes(raw[16:20], "big"), int.from_bytes(raw[20:24], "big")
+    if raw[:2] == b"\xff\xd8":
+        i = 2
+        while i + 9 < len(raw):
+            if raw[i] != 0xFF:
+                i += 1
+                continue
+            marker = raw[i + 1]
+            if marker == 0xFF or marker in (0x01, 0xD8) or 0xD0 <= marker <= 0xD7:
+                i += 1 if marker == 0xFF else 2
+                continue
+            if 0xC0 <= marker <= 0xCF and marker not in (0xC4, 0xC8, 0xCC):
+                return "jpeg", int.from_bytes(raw[i + 7:i + 9], "big"), int.from_bytes(raw[i + 5:i + 7], "big")
+            i += 2 + int.from_bytes(raw[i + 2:i + 4], "big")
+    return None, 0, 0
+
+
+def creative_size_problem(placement_type: str, path: Path) -> str | None:
+    """Why Apple would refuse this image for the slot, or None when it fits."""
+    kind, width, height = image_dimensions(path)
+    if kind is None:
+        return "is not a PNG or JPEG"
+    if kind == "png" and (width, height) == UNIVERSAL_CREATIVE_SIZE:
+        return None
+    if placement_type == "PRODUCT_PAGE_HEADER_ASSET":
+        if kind != "png" or (width, height) != (3840, 1646):
+            return f"is a {width}x{height} {kind.upper()}; the header must be a 3840x1646 PNG"
+        return None
+    if not (1920 <= width <= 3840 and width * 2 == height * 3):
+        return f"is {width}x{height}; search results images are 3:2, from 1920x1280 to 3840x2560"
+    return None
+
+
 def creative_sources(creative_dir: Path) -> list[tuple[str, str, Path]]:
-    """(placement type, label, image) for every creative slot that has an image."""
+    """(placement type, label, image) for every creative slot that has an image.
+
+    Checked before anything is built: one image per slot, no alpha channel, and
+    a size and format Apple takes for that slot.
+    """
     found = []
     for folder, placement_type, label in CREATIVE_SLOTS:
         slot_dir = creative_dir / folder
@@ -544,6 +589,9 @@ def creative_sources(creative_dir: Path) -> list[tuple[str, str, Path]]:
             fail(f"the {label} slot takes one image; {slot_dir} has {len(images)}")
         if images and asc_cli.image_has_alpha(images[0]):
             fail(f"the {label} image {images[0].name} has an alpha channel, which App Store Connect refuses; re-export it as RGB")
+        problem = creative_size_problem(placement_type, images[0]) if images else None
+        if problem:
+            fail(f"the {label} image {images[0].name} {problem}")
         if images:
             found.append((placement_type, label, images[0]))
     if not found:
@@ -589,7 +637,7 @@ class CreativePlan:
     def state(self) -> str:
         return (attrs(self.image).get("state") or "") if self.image else ""
 
-    def describe(self) -> str:
+    def describe(self, *, editable: bool = True) -> str:
         name = self.path.name
         if self.image is None:
             return f"{self.label}: will upload {name} and send it to App Review"
@@ -599,6 +647,8 @@ class CreativePlan:
             return f"{self.label}: {name} is in App Review ({self.state}); placed on a later run"
         if self.state != "APPROVED":
             return f"{self.label}: {name} is {self.state}"
+        if self.unplaced and not editable:
+            return f"{self.label}: {name} is approved; placed once the version can be edited"
         if self.unplaced:
             return f"{self.label}: will place {name} on {', '.join(locale for locale, _, _ in self.unplaced)}"
         return f"{self.label}: {name} is already on the product page"
@@ -654,28 +704,25 @@ def creative_problems(plans: list[CreativePlan], *, version: str, state: str) ->
                     f"the {plan.label} image {name} has not been sent to App Review, and nothing is sent to "
                     f"review while version {version!r} is {state} (or submit it in App Store Connect)"
                 )
-        elif plan.state in CREATIVE_PENDING_STATES:
+        elif plan.state in CREATIVE_PENDING_STATES or plan.state == "APPROVED":
+            # An image approved while the version waits for review is not a
+            # mismatch: it is placed once the version can be edited.
             continue
-        elif plan.state == "APPROVED":
-            if plan.unplaced and not editable:
-                problems.append(
-                    f"{', '.join(locale for locale, _, _ in plan.unplaced)}: the approved {plan.label} image {name} "
-                    f"is not on the product page, and version {version!r} takes no new placements while {state}"
-                )
         else:
             problems.append(f"the {plan.label} image {name} is {plan.state}; resolve it in App Store Connect")
     return problems
 
 
 def apply_creative(
-    asc: asc_cli.Asc, *, app_id: str, library_id: str, plans: list[CreativePlan]
+    asc: asc_cli.Asc, *, app_id: str, library_id: str, plans: list[CreativePlan], editable: bool = True
 ) -> dict[str, str]:
     """Upload, send to review, or place each creative image as its plan says.
 
     Only approved images are placed, because a version that is already approved
     only takes approved assets; one that is still in review or not yet submitted
-    is placed on a later run. Callers check creative_problems() first. Returns
-    placement type -> outcome.
+    is placed on a later run, and so is an approved one while the version cannot
+    be edited. Callers check creative_problems() first. Returns placement type ->
+    outcome.
     """
     outcomes: dict[str, str] = {}
     to_review: list[tuple[str, dict[str, Any]]] = []
@@ -703,6 +750,12 @@ def apply_creative(
         if not plan.unplaced:
             outcomes[plan.placement_type] = "already placed"
             print(f"  {plan.label}: {name} is already on the product page")
+            continue
+        if not editable:
+            # Approval can land between a submit and a rerun; that is not a
+            # mismatch, so the rerun passes and placement waits for an editable version.
+            outcomes[plan.placement_type] = "approved; placed once the version can be edited"
+            print(f"  {plan.label}: {name} is approved; it is placed on a later run, once the version can be edited")
             continue
         for locale, localization_id, current in plan.unplaced:
             if current:
@@ -1469,7 +1522,7 @@ def preflight(
         )
         problems += creative_problems(creative, version=version_string, state=state)
         for plan in creative:
-            print(f"  creative {plan.describe()}")
+            print(f"  creative {plan.describe(editable=state in EDITABLE_VERSION_STATES)}")
     if problems:
         fail(
             "App Store Connect is not ready for this release (nothing was built or changed):\n  "
@@ -1665,7 +1718,8 @@ def main(argv: list[str] | None = None) -> None:
         apply_metadata(asc, plans)
     if creative:
         print("syncing the product page header and search results images…")
-        apply_creative(asc, app_id=app_id, library_id=library_id, plans=creative)
+        apply_creative(asc, app_id=app_id, library_id=library_id, plans=creative,
+                       editable=state in EDITABLE_VERSION_STATES)
 
     if in_review:
         if do_submit:
