@@ -4,4 +4,4 @@
 #   uv pip compile requirements-store.in --universal --generate-hashes -o requirements-store.txt
 pyjwt[crypto]==2.15.1
 cryptography==50.0.2
-Pillow==12.3.0
+Pillow==13.0.0
