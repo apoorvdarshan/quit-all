@@ -21,9 +21,6 @@ vX.Y.Z tag ─► store-script unit tests + release notes check (one non-empty s
            ─► resolve switches (tag must equal MARKETING_VERSION; bad values fail)
            ─► offline checks of the listing files the enabled switches upload
            ─► IOS_CREATE_VERSION: create the tag's App Store version if it is missing
-           ─► IOS_CREATE_PRODUCTS: read-only plan of every catalog product (fields,
-              review screenshot, price point, territories); then create the missing
-              ones, Ready to Submit (see Creating products)
            ─► read-only App Store Connect preflight (when a listing, What's New,
               screenshot, creative asset or review switch is on): the version exists
               in a usable state, every locale is there, needed changes are possible
@@ -43,8 +40,7 @@ vX.Y.Z tag ─► store-script unit tests + release notes check (one non-empty s
        IOS_UPLOAD_CREATIVE_ASSETS ─► header / search results images: upload and
                                      review new ones on their own, place approved ones
        IOS_SUBMIT_REVIEW ─► select this run's build, read it back, set release type
-                         ─► attach Ready-to-Submit catalog products (including ones
-                            IOS_CREATE_PRODUCTS created) to the draft submission
+                         ─► attach Ready-to-Submit products to the draft submission
                          ─► recheck build + selection, check the draft holds only
                             this version and catalog products
                          ─► one submit: version + products
@@ -85,9 +81,8 @@ that runs it:
 - Telemetry (`ASC_TELEMETRY_DISABLED`, `DO_NOT_TRACK`) and the skills update
   check are off.
 - Checks that must never write run asc read-only (`ASC_READ_ONLY`): the
-  preflight, the product plan, build numbering, the build wait, and the whole
-  `prepare` job on validation runs. asc refuses a write in that mode before
-  sending it (exit 6).
+  preflight, build numbering, the build wait, and the whole `prepare` job on
+  validation runs. asc refuses a write in that mode before sending it (exit 6).
 - On failure the error keeps asc's exit code and drops the key and issuer IDs.
   asc retries a failed read itself (`ASC_MAX_RETRIES=5`). The build wait then
   also retries asc's server-side exit codes (HTTP 5xx, 408, 429 and timeouts)
@@ -148,13 +143,12 @@ off, and also fails manual validation runs.
 |----------|-------------|
 | `IOS_RELEASE_AUTOMATION` | Master switch. When off, every iOS store operation below is skipped; the tag still runs the tests and creates the GitHub Release |
 | `IOS_CREATE_VERSION` | Create the tag's App Store version (Prepare for Submission) when App Store Connect does not have it, before the preflight. An existing version is left alone. Refuses, before anything is built, when another version is still on its way to the store (anything but Ready for Distribution, replaced or removed) or the tag is not newer than every existing version. Tag runs only |
-| `IOS_CREATE_PRODUCTS` | Create every iOS product in `store/catalog/products.json` that App Store Connect does not have yet (matched by product ID) and bring it to Ready to Submit, in `prepare`, before anything is built, so `IOS_SUBMIT_REVIEW` sends it to review in the same run. A read-only plan of every product runs first and must pass completely (fields, review screenshot, price point, territories), so a problem stops the run before any write. Existing products are never changed: their period, type, and price and family sharing when the catalog sets them, are compared and differences printed as warnings. One left in Missing Metadata by an interrupted run is finished, never created twice. Tag runs only; validation runs print the plan read-only (see [Creating products](#creating-products-ios_create_products)) |
 | `IOS_UPLOAD_BUILD` | Build, sign and upload the binary to App Store Connect, then wait for processing |
 | `IOS_UPLOAD_LISTING` | Description, keywords, promotional text, marketing and support URLs from `store/metadata/ios/<locale>/` |
 | `IOS_UPLOAD_WHATS_NEW` | What's New from `store/metadata/ios/<locale>/whats_new.txt`. `store/metadata/ios/whats_new_version.txt` must equal the tag's version, so last release's text can never ship again |
 | `IOS_UPLOAD_SCREENSHOTS` | Replaces the iPhone 6.7"/6.9" (`APP_IPHONE_67`) and 6.5" (`APP_IPHONE_65`) screenshots with the files listed in `store/metadata/ios/<locale>/screenshots.json`, in that order. A set whose live files already match (by checksum, in order) is left alone |
 | `IOS_UPLOAD_CREATIVE_ASSETS` | Product page header and search results images from `store/creative/ios` (see below). A new image is uploaded to the Asset Library and sent to App Review in a submission of its own; once Apple approves it, a later run places it on every listing locale of the version (or swaps it in for the image there). Never changes anything while the version waits for review |
-| `IOS_SUBMIT_REVIEW` | Select this run's build and submit the version **and** the Ready-to-Submit products in `store/catalog/products.json` whose `platforms` list `ios` (including ones `IOS_CREATE_PRODUCTS` created earlier in the run) for review. Requires `IOS_UPLOAD_BUILD` |
+| `IOS_SUBMIT_REVIEW` | Select this run's build and submit the version **and** the Ready-to-Submit products in `store/catalog/products.json` for review. Requires `IOS_UPLOAD_BUILD` |
 | `IOS_PUBLIC_RELEASE` | Release automatically after approval. Off = manual release. Requires `IOS_SUBMIT_REVIEW` |
 | `IOS_BUILD_POLL_SECONDS` | Poll interval, default 30 (10–600) |
 | `IOS_BUILD_WAIT_MINUTES` | Total wait from upload start, default 120 (10–300) |
@@ -281,14 +275,9 @@ website addresses, other platforms or Apple badges, and no transparency.
    `IOS_CREATE_VERSION` on, the tag run creates it; otherwise **create it in
    App Store Connect first** (it stays in Prepare for Submission). The
    preflight stops the run before the build if it is missing.
-5. New in-app purchase or subscription: add it to `store/catalog/products.json`
-   with its `ios` fields and review screenshot (and to `PaywallManager.swift`
-   and `Products.storekit`), turn on `IOS_CREATE_PRODUCTS` (and
-   `IOS_SUBMIT_REVIEW` to send it with the version), and add it to RevenueCat
-   by hand. A validation run (step 6) prints what the tag would create.
-6. Optionally run **iOS Release → Run workflow** with `marketing_version`
+5. Optionally run **iOS Release → Run workflow** with `marketing_version`
    `1.2.2` (validation only; nothing is uploaded).
-7. Merge, then push the `v1.2.2` tag only when you intend that release.
+6. Merge, then push the `v1.2.2` tag only when you intend that release.
 
 ## Export compliance
 
@@ -317,10 +306,9 @@ Connect has for Quit All: the Weekly and Yearly subscriptions (group
 `premium`) and the Lifetime Premium one-time purchase, with the RevenueCat
 entitlements that unlock them. All three were approved on 2026-10-14, so a
 submission today attaches nothing extra. With `IOS_SUBMIT_REVIEW` on, a
-listed product whose `platforms` list `ios` that is Ready to Submit (or a
-subscription left in Developer Rejected) goes to review with the version, as
-App Review requires for a first-time subscription; products not in the catalog
-are never submitted.
+listed product that is Ready to Submit (or a subscription left in Developer
+Rejected) goes to review with the version, as App Review requires for a
+first-time subscription; products not in the catalog are never submitted.
 Each product's current version is attached to the same draft review
 submission as the app version (`subscriptionVersions` items for subscriptions,
 `inAppPurchaseVersions` for the lifetime purchase, via `asc review items-add`),
@@ -342,116 +330,16 @@ creates no draft. The offline tests check that the catalog,
 `SubscriptionProduct` in `PaywallManager.swift` and `Products.storekit` list
 the same product ids.
 
-Product groups and their App Store type: `subscriptions` (auto-renewable),
-`non_consumables` (`NON_CONSUMABLE`, the lifetime purchase), and the optional
-`consumables` and `tips` (`CONSUMABLE`). Only items whose `platforms` list
-`ios` are App Store products; Quit All ships on iOS only, so every item does.
-The top-level `ios_subscription_groups` names the subscription groups by their
-App Store Connect reference name (`premium`, the group Weekly and Yearly belong
-to). The existing three products carry no `ios` block: they already exist, so
-nothing is invented for them.
-
-### Creating products (`IOS_CREATE_PRODUCTS`)
-
-[`asc_products.py`](../scripts/store/asc_products.py) (the same file as in Fud
-AI) matches every iOS product to App Store Connect by product ID:
-
-| In App Store Connect | What a tag run does |
-|---|---|
-| Missing | Creates it and brings it to Ready to Submit |
-| Missing Metadata, with the catalog's reference name, type (or period) and family sharing | Finishes it: an interrupted run left it there. Only missing parts are added; a part that is already set and differs from the catalog (localization, price, availability, review note, or a failed or different review screenshot) stops the run in the plan, before any write. A screenshot that matches the file is kept even while Apple is still processing it |
-| Anything else | Never changed. Period and type, and price (United States) and family sharing when the catalog sets them, are compared, and differences are printed as warnings |
-
-The existing products have no `suggested_price_usd` or `ios.family_sharing`,
-so their price and family sharing are not compared; their period and type are.
-
-What a created product gets, all from the catalog:
-
-| Part | Source |
-|---|---|
-| Reference name | `ios.reference_name` (up to 64 characters) |
-| Type | the catalog group (above) |
-| Subscription group and period | `ios.subscription_group` (a `reference_name` from the top-level `ios_subscription_groups`) and `period` (`P1W`, `P1M`, `P2M`, `P3M`, `P6M`, `P1Y`) |
-| Base price | `suggested_price_usd` in the United States (`USA`); App Store Connect derives the other territories' prices from it (Apple's equalized prices). The plan checks it is a price point by asking a live product of the same kind (Quit All has live subscriptions and a live non-consumable, so both kinds are checked that way) |
-| Availability | `ios.territories`: `"all"` (the default) is every current territory plus new ones automatically; a list of alpha-3 codes (`["USA", "CAN"]`) is exactly those |
-| en-US display name and description | `ios.display_name` (2–30 characters), `ios.description` (up to 45) |
-| App Review screenshot | `ios.review_screenshot`: a path under `store/` (keep them in `store/catalog/review/`), a PNG or JPEG named for its format, RGB without alpha, at an iPhone or iPad screenshot size (e.g. 1290×2796 or 2064×2752), and complete (a PNG is fully decoded; a JPEG must reach its end marker) |
-| Review note | `ios.review_note` (subscriptions only, up to 4,000 characters) |
-| Family sharing | `ios.family_sharing`, default `false`. It can never be turned off again, so it is only sent when the catalog says `true` (subscriptions and non-consumables only) |
-
-A new subscription group also needs `display_name` in its `ios_subscription_groups`
-entry (its en-US name); a group App Store Connect already names, like
-`premium` ("Quit All Premium"), is never renamed. Comparing an existing
-product's price is only a warning, so an App Store Connect error while reading
-it is reported and the release goes on. The offline tests check every `ios`
-block (including the screenshot file) on every pull request and before every
-tag run, and the plan checks, read-only, that each product to create has every
-field, that its price is a price point in the United States, and that its
-territories exist. Example of a new subscription:
-
-```json
-"subscriptions": [
-  {
-    "id": "com.quitall.premium.monthly",
-    "period": "P1M",
-    "suggested_price_usd": "4.99",
-    "platforms": ["ios"],
-    "ios": {
-      "reference_name": "Monthly",
-      "display_name": "Quit All Premium Monthly",
-      "description": "Every Quit All Premium feature",
-      "review_note": "Monthly Quit All Premium; the paywall offers it.",
-      "review_screenshot": "store/catalog/review/paywall.png",
-      "subscription_group": "premium"
-    }
-  }
-]
-```
-
-A new product must also be added to `SubscriptionProduct` in
-`PaywallManager.swift` and to `Products.storekit` (the offline tests check all
-three list the same ids), and to RevenueCat.
-
-How it runs (`prepare` job, after `IOS_CREATE_VERSION` and before the
-preflight and anything built): the plan (read-only) checks every product
-first; any problem stops the run with nothing created. Subscriptions go
-through asc's reconciling `asc subscriptions setup`: once without the
-screenshot (group, localization, price, availability), then the review note,
-then again with the screenshot, which completes it and verifies the result.
-In-app purchases are added one part at a time (product, en-US localization,
-price, availability, screenshot last). Because the screenshot is required for
-Ready to Submit and always goes last, a product an interrupted run left behind
-stays in Missing Metadata, and the next run finishes it. Each product is read
-back until it is Ready to Submit (up to 2 minutes). The `prepare` job allows
-30 minutes for this. A manual validation run prints the plan and creates
-nothing (when `IOS_RELEASE_AUTOMATION` and `IOS_CREATE_PRODUCTS` are on).
-
-What stays manual:
-
-- **RevenueCat**: add each new product to its RevenueCat app, entitlement and
-  offering by hand; the app only sells what RevenueCat offers.
-- An in-app purchase's review note: the pinned asc 5.15.0 has no command for it,
-  so `ios.review_note` is refused on in-app purchases. Add one in App Store
-  Connect when App Review needs it.
-- Other locales, promotional images, introductory and promotional offers, offer
-  codes, a subscription's level within its group, and the app's own product
-  list (`PaywallManager.swift`, `Products.storekit`).
-- Changing an existing product (price, name, availability); the release only
-  warns about differences.
-- A new subscription group's own review item, if App Store Connect asks for one:
-  the review step attaches subscription and in-app purchase versions only.
-
 ## Scripts
 
 | Script | Role |
 |--------|------|
 | [`scripts/store/ios_release.py`](../scripts/store/ios_release.py) | Switches, tag/version check, build number, wait for this run's build (both read-only) |
 | [`scripts/store/asc_cli.py`](../scripts/store/asc_cli.py) | Installs the pinned, checksum-verified `asc` and runs it (credentials, read-only mode, telemetry off, redacted errors) |
-| [`scripts/store/asc_products.py`](../scripts/store/asc_products.py) | `plan`: read-only check of the catalog products App Store Connect does not have (or has in Missing Metadata) and drift warnings for the rest; `create` (`CREATE_IOS_PRODUCTS`): the plan, then create or finish them, Ready to Submit. Byte-identical to Fud AI's; its offline field checks run in the store tests |
 | [`scripts/store/asc_release.py`](../scripts/store/asc_release.py) | Version creation (`--create-version`), read-only preflight (`--preflight`), listing, What's New, screenshots, header and search results images, build selection, product + version submission; every call through `asc` |
 | [`scripts/store/verify_ios_bundles.sh`](../scripts/store/verify_ios_bundles.sh) | App and widget identity, version, signature, profile and app group checks |
 | [`scripts/store/redact_logs.py`](../scripts/store/redact_logs.py) | Removes the App Store Connect key and issuer IDs (and any non-text file) from failure logs before they are kept |
-| [`scripts/store/test_ios_release.py`](../scripts/store/test_ios_release.py) | Offline tests against a fake App Store Connect behind `asc`: disabled/invalid switches, tag mismatch, validation mode, build wait timeout/failure/ambiguity/mismatch/old build/missing upload time, the pinned app record, selection read-back, preflight, metadata reruns, screenshot order, alpha channels and RGB copies, creative assets, product creation (each type, finishing an interrupted product, drift warnings, failed checks before any write, plan-only validation runs, new products reaching review, the workflow wiring), product submission and draft checks, the asc runner (credentials, read-only, redaction, pinned checksum), log redaction, listing/screenshot/catalog inputs, release notes |
+| [`scripts/store/test_ios_release.py`](../scripts/store/test_ios_release.py) | Offline tests against a fake App Store Connect behind `asc`: disabled/invalid switches, tag mismatch, validation mode, build wait timeout/failure/ambiguity/mismatch/old build/missing upload time, the pinned app record, selection read-back, preflight, metadata reruns, screenshot order, alpha channels and RGB copies, creative assets, product submission and draft checks, the asc runner (credentials, read-only, redaction, pinned checksum), log redaction, listing/screenshot/catalog inputs, release notes |
 | [`scripts/store/print_gates.py`](../scripts/store/print_gates.py) | Prints the switches (never contacts a store); a value the gates would reject shows as `INVALID` |
 | [`scripts/release_notes.py`](../scripts/release_notes.py) | GitHub Release notes from `RELEASE_NOTES.md` (one section per tag) |
 
@@ -489,7 +377,5 @@ python3 -m unittest scripts/store/test_ios_release.py   # CHECK_ONLY_ENABLED_STO
 python3 scripts/store/print_gates.py
 UPLOAD_LISTING=true UPLOAD_WHATS_NEW=true UPLOAD_SCREENSHOTS=true \
   python3 scripts/store/asc_release.py --dry-run --version "$(cat store/metadata/ios/whats_new_version.txt)"
-# Read-only against App Store Connect (needs the APP_STORE_CONNECT_* variables):
-ASC_READ_ONLY=1 python3 scripts/store/asc_products.py plan
 python3 scripts/release_notes.py v1.2.1
 ```

@@ -1,6 +1,6 @@
 # Store automation, offline: switch parsing, build wait/selection, listing,
 # screenshot and creative asset checks, metadata reruns, the App Store Connect
-# preflight, product creation and submission, the asc runner, failure-log redaction, product
+# preflight, product submission, the asc runner, failure-log redaction, product
 # catalog and release notes, all against a fake App Store Connect. It also
 # installs the pinned App Store Connect CLI (asc) and checks its version, so a
 # bad pin fails here. Never contacts App Store Connect and never uploads
@@ -63,8 +63,6 @@ jobs:
             /ios/Quit All.xcodeproj/project.pbxproj
             /ios/Quit All/Core/PaywallManager.swift
             /ios/Quit All/Products.storekit
-            /.github/workflows/ios-release.yml
-            /.github/workflows/store-automation.yml
 
       # Same Python as the release jobs; never the runner image's system Python.
       - name: Set up Python for the store tooling
@@ -86,7 +84,6 @@ jobs:
         env:
           IOS_RELEASE_AUTOMATION: ${{ vars.IOS_RELEASE_AUTOMATION }}
           IOS_CREATE_VERSION: ${{ vars.IOS_CREATE_VERSION }}
-          IOS_CREATE_PRODUCTS: ${{ vars.IOS_CREATE_PRODUCTS }}
           IOS_UPLOAD_BUILD: ${{ vars.IOS_UPLOAD_BUILD }}
           IOS_UPLOAD_LISTING: ${{ vars.IOS_UPLOAD_LISTING }}
           IOS_UPLOAD_WHATS_NEW: ${{ vars.IOS_UPLOAD_WHATS_NEW }}
@@ -108,8 +105,6 @@ jobs:
 
       - name: Dry-run every App Store Connect operation against the committed inputs
         run: |
-          python3 scripts/store/asc_products.py --help > /dev/null
-          python3 scripts/store/asc_products.py create  # CREATE_IOS_PRODUCTS unset: skipped, no calls
           version="$(cat store/metadata/ios/whats_new_version.txt)"
           UPLOAD_LISTING=true UPLOAD_WHATS_NEW=true UPLOAD_SCREENSHOTS=true \
           SUBMIT_IOS_REVIEW=true PUBLIC_RELEASE=false \

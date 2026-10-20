@@ -1,39 +1,31 @@
 {
-  "$comment": "In-app products the iOS release may submit with a version (IOS_SUBMIT_REVIEW). Only these product ids (those whose platforms list ios) are ever attached to App Review; products already approved are left alone. With IOS_CREATE_PRODUCTS on, a v* tag creates every iOS product App Store Connect does not have yet from its `ios` block (fields in store/README.md, Creating products); existing products are never changed and need no `ios` block. Must match SubscriptionProduct in ios/Quit All/Core/PaywallManager.swift and ios/Quit All/Products.storekit (checked by scripts/store/test_ios_release.py). Exported from App Store Connect on 2026-10-14, when all three were APPROVED.",
+  "$comment": "In-app products the iOS release may submit with a version (IOS_SUBMIT_REVIEW). Only these product ids are ever attached to App Review; products already approved are left alone. Must match SubscriptionProduct in ios/Quit All/Core/PaywallManager.swift and ios/Quit All/Products.storekit (checked by scripts/store/test_ios_release.py). Exported from App Store Connect on 2026-10-14, when all three were APPROVED.",
   "app": {
     "bundle_id": "com.apoorvdarshan.Quit-All",
     "asc_app_id": "6760978934"
   },
   "entitlements": ["premium", "Quit All Premium"],
-  "ios_subscription_groups": [
-    {
-      "reference_name": "premium"
-    }
-  ],
   "subscriptions": [
     {
       "id": "com.quitall.premium.weekly",
       "name": "Weekly",
       "group": "premium",
       "period": "P1W",
-      "asc_id": "6785867530",
-      "platforms": ["ios"]
+      "asc_id": "6785867530"
     },
     {
       "id": "com.quitall.premium.yearly",
       "name": "Yearly",
       "group": "premium",
       "period": "P1Y",
-      "asc_id": "6760980033",
-      "platforms": ["ios"]
+      "asc_id": "6760980033"
     }
   ],
   "non_consumables": [
     {
       "id": "com.quitall.premium.lifetime",
       "name": "Lifetime Premium",
-      "asc_id": "6768501377",
-      "platforms": ["ios"]
+      "asc_id": "6768501377"
     }
   ]
 }
