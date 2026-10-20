@@ -66,5 +66,10 @@ updates:
       # Keep the Node types on the major version CI and the engines field use (24).
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
+      # typescript-eslint supports only TypeScript below 6.1, so a TypeScript
+      # major (7 in #44 and #48) fails npm ci. Bump it by hand together with a
+      # typescript-eslint release that supports the new major.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: "Web"
