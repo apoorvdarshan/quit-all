@@ -1,10 +1,7 @@
-# Store automation, offline: switch parsing, build wait/selection, listing,
-# screenshot and creative asset checks, metadata reruns, the App Store Connect
-# preflight, product creation and submission, the asc runner, failure-log redaction, product
-# catalog and release notes, all against a fake App Store Connect. It also
-# installs the pinned App Store Connect CLI (asc) and checks its version, so a
-# bad pin fails here. Never contacts App Store Connect and never uploads
-# anything. Safe to run at any time.
+# Store automation, offline: switch parsing, build wait/selection, listing and
+# screenshot checks, metadata reruns, the App Store Connect preflight, product
+# submission, failure-log redaction, product catalog and release notes. Never
+# contacts App Store Connect and never uploads anything. Safe to run at any time.
 # A newer push to a pull request cancels its older run; main runs never cancel.
 
 name: Store automation (offline)
@@ -63,8 +60,6 @@ jobs:
             /ios/Quit All.xcodeproj/project.pbxproj
             /ios/Quit All/Core/PaywallManager.swift
             /ios/Quit All/Products.storekit
-            /.github/workflows/ios-release.yml
-            /.github/workflows/store-automation.yml
 
       # Same Python as the release jobs; never the runner image's system Python.
       - name: Set up Python for the store tooling
@@ -72,26 +67,16 @@ jobs:
         with:
           python-version: "3.13"
 
-      # Pillow, for the RGB copies of screenshots that store an alpha channel.
       - name: Install store tooling (hash-pinned)
         run: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-store.txt
-
-      # Proves the pinned release still downloads and matches its checksum.
-      - name: Install and check the pinned App Store Connect CLI (no store calls)
-        run: |
-          python3 scripts/store/asc_cli.py install --dest "$RUNNER_TEMP/asc-bin"
-          PATH="$RUNNER_TEMP/asc-bin:$PATH" python3 scripts/store/asc_cli.py check
 
       - name: Print switches (must stay safe by default)
         env:
           IOS_RELEASE_AUTOMATION: ${{ vars.IOS_RELEASE_AUTOMATION }}
-          IOS_CREATE_VERSION: ${{ vars.IOS_CREATE_VERSION }}
-          IOS_CREATE_PRODUCTS: ${{ vars.IOS_CREATE_PRODUCTS }}
           IOS_UPLOAD_BUILD: ${{ vars.IOS_UPLOAD_BUILD }}
           IOS_UPLOAD_LISTING: ${{ vars.IOS_UPLOAD_LISTING }}
           IOS_UPLOAD_WHATS_NEW: ${{ vars.IOS_UPLOAD_WHATS_NEW }}
           IOS_UPLOAD_SCREENSHOTS: ${{ vars.IOS_UPLOAD_SCREENSHOTS }}
-          IOS_UPLOAD_CREATIVE_ASSETS: ${{ vars.IOS_UPLOAD_CREATIVE_ASSETS }}
           IOS_SUBMIT_REVIEW: ${{ vars.IOS_SUBMIT_REVIEW }}
           IOS_PUBLIC_RELEASE: ${{ vars.IOS_PUBLIC_RELEASE }}
           IOS_BUILD_POLL_SECONDS: ${{ vars.IOS_BUILD_POLL_SECONDS }}
@@ -100,16 +85,11 @@ jobs:
 
       # Every committed input is checked here, including the listing, What's New
       # and screenshot files a release run checks only when their switch is on.
-      - name: Test switches, build wait, build selection, the asc runner, log redaction and repo inputs (offline)
-        env:
-          # Pillow is installed above, so the RGB copy tests can't skip here.
-          STORE_TESTS_NEED_PILLOW: "1"
+      - name: Test switches, build wait, build selection, log redaction and repo inputs (offline)
         run: python3 -m unittest -v scripts/store/test_ios_release.py
 
       - name: Dry-run every App Store Connect operation against the committed inputs
         run: |
-          python3 scripts/store/asc_products.py --help > /dev/null
-          python3 scripts/store/asc_products.py create  # CREATE_IOS_PRODUCTS unset: skipped, no calls
           version="$(cat store/metadata/ios/whats_new_version.txt)"
           UPLOAD_LISTING=true UPLOAD_WHATS_NEW=true UPLOAD_SCREENSHOTS=true \
           SUBMIT_IOS_REVIEW=true PUBLIC_RELEASE=false \
