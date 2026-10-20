@@ -60,10 +60,7 @@
 #   asc the credentials. Its telemetry is off. Checks that must not write
 #   (version preflight, build number, build wait, and everything on validation
 #   runs) run asc in read-only mode, which refuses any write before it is sent.
-#   asc refuses PNGs that store an alpha channel, so screenshots that do are
-#   uploaded as RGB copies made with Pillow (requirements-store.txt); the
-#   committed files never change. The binary itself is still exported and
-#   uploaded by xcodebuild.
+#   The binary itself is still exported and uploaded by xcodebuild.
 #
 # Secrets
 #   APP_STORE_CONNECT_API_KEY_ID / _ISSUER_ID / _API_KEY_P8
@@ -141,21 +138,15 @@ jobs:
             /scripts/release_notes.py
             /store/
             /RELEASE_NOTES.md
-            /requirements-store.txt
             /ios/Quit All.xcodeproj/project.pbxproj
             /ios/Quit All/Core/PaywallManager.swift
             /ios/Quit All/Products.storekit
 
-      # The store tooling never installs into the runner image's system Python.
+      # The store tooling (standard library only) never runs on the runner image's system Python.
       - name: Set up Python for the store tooling
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
-
-      # Pillow: the preflight compares and the store step uploads RGB copies of
-      # screenshots that store an alpha channel.
-      - name: Install store tooling (hash-pinned)
-        run: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-store.txt
 
       # These checks pass before anything reaches App Store Connect. A duplicate
       # or empty notes section for this tag fails here.
@@ -165,7 +156,6 @@ jobs:
           # The listing, What's New and screenshot files are checked below, only for
           # the switches that are on, so unused files never block a release.
           CHECK_ONLY_ENABLED_STORE_INPUTS: "true"
-          STORE_TESTS_NEED_PILLOW: "1"
         run: |
           python3 scripts/release_notes.py "$GITHUB_REF_NAME" > /dev/null
           python3 -m unittest scripts/store/test_ios_release.py
@@ -566,16 +556,11 @@ jobs:
           sparse-checkout: |
             /scripts/store/
             /store/
-            /requirements-store.txt
 
       - name: Set up Python for the store tooling
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
-
-      # Pillow, for RGB copies of screenshots that store an alpha channel.
-      - name: Install store tooling (hash-pinned)
-        run: python3 -m pip install --disable-pip-version-check --require-hashes -r requirements-store.txt
 
       - name: Install the pinned App Store Connect CLI
         run: |

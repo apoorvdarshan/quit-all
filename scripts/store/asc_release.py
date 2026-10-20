@@ -51,6 +51,7 @@ import io
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 from pathlib import Path
@@ -389,14 +390,13 @@ def metadata_problems(plans: list[LocalePlan], *, version: str, state: str) -> l
             continue
         for display_type in plan.stale_screenshots:
             # App Store Connect, and asc before it uploads, refuses a PNG that
-            # stores alpha even when every pixel is opaque, so those are uploaded
-            # as RGB copies, which needs Pillow.
+            # stores alpha even when every pixel is opaque.
             with_alpha = [p.name for p in plan.screenshots.get(display_type, []) if asc_cli.image_has_alpha(p)]
-            if with_alpha and try_import_pillow() is None:
+            if with_alpha:
                 problems.append(
-                    f"{plan.locale}: the {display_type} screenshots differ from App Store Connect, and these have "
-                    f"an alpha channel, which App Store Connect refuses: {', '.join(with_alpha)}; install Pillow "
-                    "(requirements-store.txt) so the release uploads RGB copies"
+                    f"{plan.locale}: the {display_type} screenshots differ from App Store Connect, but these have "
+                    f"an alpha channel, which App Store Connect refuses: {', '.join(with_alpha)}; re-export them "
+                    "as RGB PNGs (no transparency), then rerun"
                 )
     return problems
 
@@ -479,60 +479,6 @@ def load_screenshot_sets(metadata_dir: Path, locale: str, root: Path | None = No
     return sets
 
 
-def try_import_pillow():
-    try:
-        from PIL import Image  # type: ignore[import-untyped]
-
-        return Image
-    except ImportError:
-        return None
-
-
-def opaque_rgb(Image, img):
-    """The image without an alpha channel, transparent pixels laid over black.
-
-    App Store Connect (and asc) refuse screenshots that store alpha, even when
-    every pixel is opaque.
-    """
-    img = img.convert("RGBA")
-    canvas = Image.new("RGB", img.size, (0, 0, 0))
-    canvas.paste(img, mask=img.getchannel("A"))
-    return canvas
-
-
-def upload_bytes(path: Path) -> bytes:
-    """What is uploaded for one screenshot: the file itself, or an RGB copy when it stores alpha.
-
-    The copy is flattened once, at the same size, with Pillow (requirements-store.txt);
-    the committed file is never changed.
-    """
-    if not asc_cli.image_has_alpha(path):
-        return path.read_bytes()
-    Image = try_import_pillow()
-    if Image is None:
-        fail(
-            f"{path.name} has an alpha channel, which App Store Connect refuses, and Pillow is not installed "
-            "to upload an RGB copy; install requirements-store.txt"
-        )
-    with Image.open(path) as img:
-        flat = opaque_rgb(Image, img)
-    out = io.BytesIO()
-    flat.save(out, format="PNG")
-    return out.getvalue()
-
-
-def live_checksums(shots: list[dict[str, Any]] | None) -> list[str] | None:
-    """A live set's sourceFileChecksums in order; None when it is missing or a screenshot failed processing."""
-    if shots is None:
-        return None
-    checksums: list[str] = []
-    for shot in shots:
-        if (shot.get("assetDeliveryState") or {}).get("state") == "FAILED":
-            return None
-        checksums.append(str(shot.get("sourceFileChecksum") or "").lower())
-    return checksums
-
-
 def live_screenshot_sets(asc: asc_cli.Asc, version_loc_id: str) -> dict[str, list[dict[str, Any]]]:
     """Display type -> the screenshots App Store Connect holds for one localization, in order."""
     payload = call(asc, "screenshots", "list", "--version-localization", version_loc_id)
@@ -553,40 +499,31 @@ def screenshots_up_to_date(
 ) -> bool:
     """True when the live set already holds exactly these files, in this order (read-only).
 
-    Compares App Store Connect's sourceFileChecksum (MD5) with the files, or
-    with the RGB copies uploaded for files that store alpha; a screenshot whose
-    processing failed never counts as up to date. `live` is a listing already
-    read for this localization.
+    Compares App Store Connect's sourceFileChecksum (MD5) with the files; a
+    screenshot whose processing failed never counts as up to date. `live` is a
+    listing already read for this localization.
     """
-    checksums = live_checksums((live_screenshot_sets(asc, version_loc_id) if live is None else live).get(display_type))
-    if checksums is None or len(checksums) != len(pngs):
+    shots = (live_screenshot_sets(asc, version_loc_id) if live is None else live).get(display_type)
+    if shots is None:
         return False
-    if checksums == [file_md5(path) for path in pngs]:
-        return True
-    # A set uploaded by this script holds the RGB copies of files that store alpha.
-    if not any(asc_cli.image_has_alpha(path) for path in pngs) or try_import_pillow() is None:
-        return False
-    return checksums == [hashlib.md5(upload_bytes(path), usedforsecurity=False).hexdigest() for path in pngs]
+    checksums: list[str] = []
+    for shot in shots:
+        if (shot.get("assetDeliveryState") or {}).get("state") == "FAILED":
+            return False
+        checksums.append(str(shot.get("sourceFileChecksum") or "").lower())
+    return checksums == [file_md5(path) for path in pngs]
 
 
 def replace_screenshot_set(asc: asc_cli.Asc, version_loc_id: str, display_type: str, pngs: list[Path]) -> None:
     """Replace one display type's screenshots, keeping the manifest order, then read the set back.
 
     asc uploads a folder in file-name order, so the files are copied into a
-    temporary folder with their manifest position in front of their names. A
-    file that stores alpha is copied as RGB (upload_bytes); the committed files
-    are never changed.
+    temporary folder with their manifest position in front of their names.
     """
     device_type = display_type.removeprefix("APP_")
     with tempfile.TemporaryDirectory(prefix="asc-screenshots-") as staged:
-        expected: list[str] = []
         for number, path in enumerate(pngs, start=1):
-            copy = Path(staged) / f"{number:02d}-{path.name}"
-            copy.write_bytes(upload_bytes(path))
-            # The last guard on what is actually uploaded: asc refuses any alpha.
-            if asc_cli.image_has_alpha(copy):
-                fail(f"the {display_type} screenshot {path.name} still has an alpha channel; not uploading it")
-            expected.append(file_md5(copy))
+            shutil.copyfile(path, Path(staged) / f"{number:02d}-{path.name}")
         # --replace deletes the set's screenshots before uploading. If an upload
         # fails part-way, fix the error and rerun: the set is replaced again.
         call(
@@ -594,7 +531,7 @@ def replace_screenshot_set(asc: asc_cli.Asc, version_loc_id: str, display_type: 
             "screenshots", "upload", "--version-localization", version_loc_id, "--path", staged,
             "--device-type", device_type, "--replace", "--confirm",
         )
-    if live_checksums(live_screenshot_sets(asc, version_loc_id).get(display_type)) != expected:
+    if not screenshots_up_to_date(asc, version_loc_id, display_type, pngs):
         fail(f"after uploading, App Store Connect's {display_type} set does not hold the manifest's files in order")
     print(f"  uploaded {len(pngs)} {display_type} screenshot(s)")
 
@@ -1466,8 +1403,7 @@ def validate_local_inputs(
         if with_alpha:
             print(
                 f"  note: {len(with_alpha)} screenshot(s) have an alpha channel, which App Store Connect refuses; "
-                "a set that has to be uploaded gets RGB copies (transparent pixels over black), and the "
-                "committed files stay as they are"
+                "a set that differs from App Store Connect stops the run until it is re-exported as RGB PNG"
             )
     if upload_creative:
         creative_sources(creative_dir or CREATIVE_DIR)

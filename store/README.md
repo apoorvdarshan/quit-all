@@ -231,16 +231,11 @@ with a clear message, and so does turning the switch on without any
 
 App Store Connect, and `asc` before it uploads, refuses a PNG that stores an
 alpha channel, even when every pixel is opaque. The committed screenshots are
-RGBA PNGs, so a set that has to be replaced is uploaded from a temporary
-folder of RGB copies: each file that stores alpha is flattened once, at its
-own size, onto black (transparent pixels become black, opaque pixels keep
-their exact colors) with Pillow, pinned with hashes in
-[`requirements-store.txt`](../requirements-store.txt). The committed files are
-never changed. Every staged copy is checked for alpha again just before the
-upload, and one that still has it stops the run. A live set counts as up to
-date when its checksums match the committed files or the RGB copies made from
-them, so a rerun uploads nothing again. Without Pillow, a set that would need
-RGB copies stops the release in the preflight, before anything is built.
+RGBA PNGs, byte-identical to the live listing, so they pass while App Store
+Connect already holds them; replacing a set needs RGB PNG exports (no
+transparency). A set that would have to be replaced with files that have an
+alpha channel stops the release in the preflight, before anything is built;
+the committed images are never changed by the release.
 
 **Creative assets** (the product page header and search results images) have
 no images yet, so `IOS_UPLOAD_CREATIVE_ASSETS` stays off; turning it on without
@@ -339,23 +334,19 @@ the same product ids.
 | [`scripts/store/asc_release.py`](../scripts/store/asc_release.py) | Version creation (`--create-version`), read-only preflight (`--preflight`), listing, What's New, screenshots, header and search results images, build selection, product + version submission; every call through `asc` |
 | [`scripts/store/verify_ios_bundles.sh`](../scripts/store/verify_ios_bundles.sh) | App and widget identity, version, signature, profile and app group checks |
 | [`scripts/store/redact_logs.py`](../scripts/store/redact_logs.py) | Removes the App Store Connect key and issuer IDs (and any non-text file) from failure logs before they are kept |
-| [`scripts/store/test_ios_release.py`](../scripts/store/test_ios_release.py) | Offline tests against a fake App Store Connect behind `asc`: disabled/invalid switches, tag mismatch, validation mode, build wait timeout/failure/ambiguity/mismatch/old build/missing upload time, the pinned app record, selection read-back, preflight, metadata reruns, screenshot order, alpha channels and RGB copies, creative assets, product submission and draft checks, the asc runner (credentials, read-only, redaction, pinned checksum), log redaction, listing/screenshot/catalog inputs, release notes |
+| [`scripts/store/test_ios_release.py`](../scripts/store/test_ios_release.py) | Offline tests against a fake App Store Connect behind `asc`: disabled/invalid switches, tag mismatch, validation mode, build wait timeout/failure/ambiguity/mismatch/old build/missing upload time, the pinned app record, selection read-back, preflight, metadata reruns, screenshot order and alpha channels, creative assets, product submission and draft checks, the asc runner (credentials, read-only, redaction, pinned checksum), log redaction, listing/screenshot/catalog inputs, release notes |
 | [`scripts/store/print_gates.py`](../scripts/store/print_gates.py) | Prints the switches (never contacts a store); a value the gates would reject shows as `INVALID` |
 | [`scripts/release_notes.py`](../scripts/release_notes.py) | GitHub Release notes from `RELEASE_NOTES.md` (one section per tag) |
 
-The store scripts run on the Python 3.13 that `actions/setup-python` sets up
-(never the runner image's system Python); store scripts run unbuffered
-(`python3 -u`) so long waits log as they go. Their only Python package is
-Pillow, for the RGB screenshot copies: the release jobs and the offline
-workflow install [`requirements-store.txt`](../requirements-store.txt)
-(compiled from `requirements-store.in`) with `pip --require-hashes`, and the
-offline tests there fail instead of skipping when Pillow is missing. The pinned
-`asc` is the only tool they download, and only after its checksum matches (see
-above). Dependabot proposes monthly updates for the pinned actions and for
-Pillow ([`dependabot.yml`](../.github/dependabot.yml)); `asc` is moved to a
-newer release by hand. The **Store automation (offline)** workflow runs the
-offline tests, installs and checks the pinned `asc`, and dry-runs every App
-Store Connect operation on pull requests that touch these files.
+The store scripts use only Python's standard library and run on the Python
+3.13 that `actions/setup-python` sets up (never the runner image's system
+Python); store scripts run unbuffered (`python3 -u`) so long waits log as they
+go. The pinned `asc` is the only tool they download, and only after its
+checksum matches (see above). Dependabot proposes monthly updates for the
+pinned actions ([`dependabot.yml`](../.github/dependabot.yml)); `asc` is moved
+to a newer release by hand. The **Store automation (offline)** workflow runs
+the offline tests, installs and checks the pinned `asc`, and dry-runs every
+App Store Connect operation on pull requests that touch these files.
 
 ## How to enable
 
