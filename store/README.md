@@ -246,8 +246,10 @@ changed image a new file name. Apple reviews each new image on its own (the
 app already has an approved version), and a later run places it on every
 listing locale once it is approved; a rejected image stops the run with
 Apple's reason, and an upload an earlier run left unfinished is uploaded again.
-Sizes, formats and alpha are checked with the other local inputs, before the
-build, so a wrong file stops the run early. An image approved while the version
+Images never take an empty leftover draft (the version may have chosen it); an
+unfinished draft holding only these images is finished instead of starting
+another. Sizes, formats and alpha are checked with the other local inputs,
+before the build, so a wrong file stops the run early. An image approved while the version
 waits for review is not a mismatch: the rerun passes and the image is placed
 once the version can be edited. Apple's rules for these images: no prices,
 website addresses, other platforms or Apple badges, and no transparency.
@@ -316,9 +318,10 @@ run. The draft that already holds this version is reused; otherwise only a
 draft holding no app version is, so another version's draft is never touched,
 and a `READY_FOR_REVIEW` version that no draft holds stops the run before
 anything is written: the draft is checked before the listing text, screenshots,
-images or build are touched. Drafts holding creative images belong to those
-images' own review and are never used for the version. A rerun with nothing
-left to send creates no draft. The offline tests check that the catalog,
+images or build are touched, and the read-only preflight checks it too, before
+anything is built. Drafts holding creative images belong to those images' own
+review and are never used for the version. A rerun with nothing left to send
+creates no draft. The offline tests check that the catalog,
 `SubscriptionProduct` in `PaywallManager.swift` and `Products.storekit` list
 the same product ids.
 
