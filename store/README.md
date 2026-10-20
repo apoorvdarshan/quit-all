@@ -315,9 +315,10 @@ nothing but versions of catalog products besides it; anything else stops the
 run. The draft that already holds this version is reused; otherwise only a
 draft holding no app version is, so another version's draft is never touched,
 and a `READY_FOR_REVIEW` version that no draft holds stops the run before
-anything is written. Drafts holding creative images belong to those images' own
-review and are never used for the version. A rerun with nothing left to send
-creates no draft. The offline tests check that the catalog,
+anything is written: the draft is checked before the listing text, screenshots,
+images or build are touched. Drafts holding creative images belong to those
+images' own review and are never used for the version. A rerun with nothing
+left to send creates no draft. The offline tests check that the catalog,
 `SubscriptionProduct` in `PaywallManager.swift` and `Products.storekit` list
 the same product ids.
 
