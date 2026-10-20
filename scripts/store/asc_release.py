@@ -780,14 +780,16 @@ def apply_creative(
 def submit_creative_review(asc: asc_cli.Asc, app_id: str, images: list[tuple[str, dict[str, Any]]]) -> str:
     """Send not-yet-reviewed creative images to App Review in a submission of their own.
 
-    A draft an earlier attempt left behind holding only some of these images
-    (or nothing yet) is finished instead of starting another one.
+    A draft an earlier attempt left behind holding only some of these images is
+    finished instead of starting another one. An empty draft is never taken:
+    the version and its products may already have chosen it.
     """
     wanted = {image["id"] for _, image in images}
     submission_id = None
     for draft in draft_submission_ids(asc, app_id):
-        held = {related_id(item, "appAssetLibraryImage") for item in submission_items(asc, draft)}
-        if held <= wanted:
+        items = submission_items(asc, draft)
+        held = {related_id(item, "appAssetLibraryImage") for item in items}
+        if items and held <= wanted:
             submission_id = draft
             print(f"  finishing creative review submission {draft} from an earlier attempt")
             break
@@ -1502,6 +1504,17 @@ def preflight(
             f"version {version_string!r} is already WAITING_FOR_REVIEW, so the build this run would "
             "upload could never be selected; take the version out of review in App Store Connect first"
         )
+    if do_submit and state == "READY_FOR_REVIEW":
+        # The store step needs the draft holding this version; finding out after
+        # the build and upload would be too late.
+        draft = find_draft_submission(asc, app_id, version["id"])
+        if draft is None or not any(
+            related_id(item, "appStoreVersion") == version["id"] for item in submission_items(asc, draft)
+        ):
+            problems.append(
+                f"App Store version {version_string} is READY_FOR_REVIEW, but no draft review submission holds it; "
+                "remove the version from its submission in App Store Connect and rerun"
+            )
     if not problems and (do_listing or do_whats_new or do_screenshots):
         plans = plan_metadata(
             asc,
