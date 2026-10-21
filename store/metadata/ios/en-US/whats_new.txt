@@ -1,5 +1,1 @@
-Quit All is now open source.
-
-- About has new links to star Quit All on GitHub, report a bug or request a feature.
-- Updated the Instagram and Product Hunt links in About.
-- Updated the in-app purchase library to the latest version.
+Bug fixes and improvements.
