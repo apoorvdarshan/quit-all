@@ -5,7 +5,7 @@ Quit All's App Store releases run on
 shared set of reusable workflows and Python tooling that carries this repository's
 former release scripts (`scripts/store/` at `34b8198`) unchanged as its `quit-all`
 flow. Two thin caller workflows pin it by commit SHA, with the version in a
-`# vX.Y.Z` comment (v0.2.0 today):
+`# vX.Y.Z` comment (v0.3.0 today):
 
 | Workflow | Trigger | What it does |
 |----------|---------|--------------|
@@ -19,15 +19,15 @@ releases: only a tag push does. The callers are rendered by store-release
 anything but a store-release release. Dependabot moves both pins to a new
 store-release release in one PR of its own, seven days after it is published.
 
-How the pipeline behaves is documented in store-release (v0.2.0):
-[switches](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/switches.md),
-[secrets](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/secrets.md),
-[jobs and checks](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/workflows.md),
-[Quit All's flow](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/flows.md#quit-all-iosflow--quit-all),
-[store plan](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/plan.md),
-[re-runs](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/rerun.md),
-[the config file](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/config.md)
-and [how a new release reaches this repository](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/release-process.md#how-apps-receive-a-release).
+How the pipeline behaves is documented in store-release (v0.3.0):
+[switches](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/switches.md),
+[secrets](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/secrets.md),
+[jobs and checks](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/workflows.md),
+[Quit All's flow](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/flows.md#quit-all-iosflow--quit-all),
+[store plan](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/plan.md),
+[re-runs](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/rerun.md),
+[the config file](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/config.md)
+and [how a new release reaches this repository](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/release-process.md#how-apps-receive-a-release).
 This file keeps only Quit All's own facts.
 
 **Xcode Cloud** no longer builds Quit All: its tag-triggered workflow and product
@@ -76,7 +76,7 @@ as of 2026-10-21. Missing means off; any value other than
 | `IOS_BUILD_WAIT_MINUTES` | not set (120) |
 
 What each one does:
-[switches](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/switches.md#ios).
+[switches](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/switches.md#ios).
 Quit All ships only on iOS, so there are no Android or shared `STORE_*` switches.
 Every validation run's `store-plan` job prints the values a tag run would read.
 
@@ -93,7 +93,7 @@ Every validation run's `store-plan` job prints the values a tag run would read.
 [`ios-release.yml`](../.github/workflows/ios-release.yml) passes each job exactly the
 secrets it needs, by name; nothing else is shared with store-release. Rotating the
 development identity:
-[the shared CI signing identity](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/secrets.md#the-shared-ci-signing-identity).
+[the shared CI signing identity](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/provenance.md#facts-that-only-concern-the-six-apps).
 
 ## Release procedure
 
@@ -114,13 +114,16 @@ development identity:
    has already approved, so while the project still has the released version, set
    `marketing_version` to the next one (e.g. `1.2.2`); the build is validated as that
    version without changing the project. Read the `store-plan` job's summary: it
-   lists every write the tag run would make with the current switches, and anything
-   that would stop it.
+   lists the operations the tag run would make with the current switches and every
+   check that would stop it. While the version does not exist yet, it still runs the
+   checks that need no version (the catalog, the files the enabled switches upload,
+   including `whats_new_version.txt`, and the review drafts) and names what it can
+   check only once the tag run has created the version.
 6. Merge, then push the `v1.2.2` tag only when you intend that release. Tag runs
    queue one at a time; a newer tag never cancels a waiting one.
 7. If a later step fails, fix the cause and use **Re-run failed jobs**, not **Re-run
    all jobs** (which would build and upload a new build)
-   ([re-runs](https://github.com/apoorvdarshan/store-release/blob/v0.2.0/docs/rerun.md)).
+   ([re-runs](https://github.com/apoorvdarshan/store-release/blob/v0.3.0/docs/rerun.md)).
 
 ## Export compliance
 
@@ -210,7 +213,7 @@ attached, the version is not submitted. Store checks fails unless the catalog,
 With Python 3.11 or later (CI uses 3.13), from the repository root:
 
 ```bash
-git clone --branch v0.2.0 https://github.com/apoorvdarshan/store-release ../store-release
+git clone --branch v0.3.0 https://github.com/apoorvdarshan/store-release ../store-release
 python3 -I -u ../store-release/run.py --app-root . config check --files
 python3 -I -u ../store-release/run.py --app-root . catalog check
 python3 -I -u ../store-release/run.py --app-root . release-notes --check-headings

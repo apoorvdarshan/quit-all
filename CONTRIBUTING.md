@@ -53,7 +53,7 @@ npm run check
 # Store files and release config (offline; never contacts App Store Connect).
 # The release tooling lives in apoorvdarshan/store-release; use the version
 # pinned in .github/workflows/ios-release.yml (see store/README.md).
-git clone --branch v0.2.0 https://github.com/apoorvdarshan/store-release ../store-release
+git clone --branch v0.3.0 https://github.com/apoorvdarshan/store-release ../store-release
 python3 -I -u ../store-release/run.py --app-root . config check --files
 ```
 
