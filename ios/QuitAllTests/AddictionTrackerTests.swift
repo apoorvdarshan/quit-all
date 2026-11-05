@@ -5,6 +5,19 @@ import XCTest
 final class AddictionTrackerTests: QuitAllTestCase {
     private let tracker = AddictionTracker.shared
 
+    func testChosenCurrencyIsPersistedOnTheFirstSave() throws {
+        let context = makeContext()
+        let habit = tracker.createAddiction(
+            name: "Smoking", type: .smoking, startDate: ago(days: 2),
+            dailyCost: 250, motivation: "Health", currency: "INR", context: context
+        )
+        let id = habit.objectID
+        context.reset()
+        let reloaded = try XCTUnwrap(context.existingObject(with: id) as? CDAddiction)
+        XCTAssertEqual(reloaded.currency, "INR")
+        XCTAssertEqual(reloaded.dailyCost, 250)
+    }
+
     func testCreatingAHabitSavesEveryField() throws {
         let context = makeContext()
         let start = ago(days: 4, hours: 3)

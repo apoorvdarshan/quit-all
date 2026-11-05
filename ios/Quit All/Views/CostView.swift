@@ -31,6 +31,7 @@ struct CostView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
+                .readableContent()
             }
             .background(Color(hex: "080808"))
             .navigationTitle("Money Saved")

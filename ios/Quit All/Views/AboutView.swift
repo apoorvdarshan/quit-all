@@ -245,6 +245,7 @@ struct AboutView: View {
                 .listRowBackground(Color(hex: "111111"))
             }
             .scrollContentBackground(.hidden)
+            .readableContent()
             .background(Color(hex: "080808"))
             .navigationTitle("About")
             .navigationBarTitleDisplayMode(.inline)

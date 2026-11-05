@@ -23,6 +23,14 @@ enum AppTestEnvironment {
     /// Insert Smoking (10 days clean, $15/day) and Caffeine (3 days clean, $5/day).
     static let seedHabitsArgument = "--ui-testing-seed-habits"
 
+    /// Visual capture routing; unavailable in Release or on physical devices.
+    static var previewScreen: String? {
+        guard isUITesting,
+              let index = CommandLine.arguments.firstIndex(of: "--preview-screen"),
+              CommandLine.arguments.indices.contains(index + 1) else { return nil }
+        return CommandLine.arguments[index + 1]
+    }
+
     static var isActive: Bool {
         isUITesting || isHostingUnitTests
     }
@@ -99,14 +107,15 @@ enum AppTestEnvironment {
         let existing = (try? context.count(for: request)) ?? 0
         guard existing == 0 else { return }
 
+        let isPreview = previewScreen != nil
         let seeds: [(type: AddictionType, days: Double, dailyCost: Double, motivation: String)] = [
-            (.smoking, 10, 15, "For my health"),
-            (.caffeine, 3, 5, "Better sleep"),
+            (.smoking, isPreview ? 28 : 10, 15, "For my health"),
+            (.caffeine, isPreview ? 14 : 3, 5, "Better sleep"),
         ]
         for seed in seeds {
             // Two extra hours keep the day counts stable for the whole test run.
             let startDate = now.addingTimeInterval(-(seed.days * 86_400 + 2 * 3_600))
-            _ = AddictionTracker.shared.createAddiction(
+            let habit = AddictionTracker.shared.createAddiction(
                 name: seed.type.rawValue,
                 type: seed.type,
                 startDate: startDate,
@@ -114,6 +123,20 @@ enum AppTestEnvironment {
                 motivation: seed.motivation,
                 context: context
             )
+            if isPreview {
+                for day in 0..<14 {
+                    let craving = CDCravingEvent(context: context)
+                    craving.id = UUID()
+                    craving.timestamp = now.addingTimeInterval(-Double(day * 86_400 + 3_600))
+                    craving.trigger = day.isMultiple(of: 3) ? "Stress" : "Boredom"
+                    craving.survived = true
+                    craving.duration = 120
+                    craving.moodBefore = "Okay"
+                    craving.moodAfter = "Good"
+                    craving.addiction = habit
+                }
+                AddictionTracker.shared.saveContext(context)
+            }
         }
     }
     #endif

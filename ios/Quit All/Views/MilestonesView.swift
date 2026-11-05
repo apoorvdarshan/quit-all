@@ -32,6 +32,7 @@ struct MilestonesView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
+                .readableContent()
             }
             .background(Color(hex: "080808"))
             .navigationTitle("Milestones")

@@ -91,6 +91,7 @@ struct AddictionsView: View {
                 .onMove(perform: moveAddictions)
             }
             .scrollContentBackground(.hidden)
+            .readableContent()
             .background(Color(hex: "080808"))
             .navigationTitle("My Addictions")
             .navigationBarTitleDisplayMode(.inline)
@@ -135,7 +136,10 @@ struct AddictionsView: View {
                 EditAddictionView(addiction: addiction)
             }
             .sheet(isPresented: $showAddNew) {
-                AddNewAddictionView(existingTypes: addictions.compactMap { AddictionTracker.shared.addictionType(for: $0) })
+                AddNewAddictionView(
+                    existingTypes: addictions.compactMap { AddictionTracker.shared.addictionType(for: $0) },
+                    currency: UserDefaults.standard.string(forKey: "preferredCurrency") ?? addictions.first?.currency ?? "USD"
+                )
             }
         }
         .preferredColorScheme(.dark)
@@ -210,7 +214,7 @@ struct EditAddictionView: View {
                                 .tracking(1.5)
 
                             HStack {
-                                Text(Locale.current.currencySymbol ?? "$")
+                                Text(CostCalculator.currencySymbol(for: addiction.currency))
                                     .font(.system(size: 16, design: .serif))
                                     .foregroundColor(gold.opacity(0.5))
                                 TextField("0", text: $dailyCost)
@@ -334,6 +338,7 @@ struct AddNewAddictionView: View {
     @Environment(\.dismiss) private var dismiss
 
     let existingTypes: [AddictionType]
+    var currency: String = UserDefaults.standard.string(forKey: "preferredCurrency") ?? "USD"
 
     @State private var selectedType: AddictionType?
     @State private var dailyCost: String = ""
@@ -409,7 +414,7 @@ struct AddNewAddictionView: View {
                                         .tracking(1.5)
 
                                     HStack {
-                                        Text("$")
+                                        Text(CostCalculator.currencySymbol(for: currency))
                                             .font(.system(size: 16, design: .serif))
                                             .foregroundColor(gold.opacity(0.5))
                                         TextField("0", text: $dailyCost)
@@ -522,6 +527,7 @@ struct AddNewAddictionView: View {
             startDate: startDate,
             dailyCost: Double(dailyCost) ?? 0,
             motivation: motivation,
+            currency: currency,
             context: viewContext
         )
         HapticManager.shared.notification(.success)

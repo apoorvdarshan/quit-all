@@ -27,6 +27,13 @@ final class PaywallManager {
     var purchaseError: String?
     var isLoading: Bool = false
 
+    private var entitlementLoader: (() async throws -> Bool)?
+
+    /// Inject a refresh source without configuring the store (for regression tests).
+    init(entitlementLoader: @escaping () async throws -> Bool) {
+        self.entitlementLoader = entitlementLoader
+    }
+
     private init() {
         if AppTestEnvironment.isActive {
             // Simulator tests: RevenueCat is never configured, so no store request
@@ -137,6 +144,14 @@ final class PaywallManager {
 
     // MARK: - Check Entitlements
     func checkEntitlements() async {
+        if let entitlementLoader {
+            do {
+                isSubscribed = try await entitlementLoader()
+            } catch {
+                // A transport failure says nothing about the last verified entitlement.
+            }
+            return
+        }
         if AppTestEnvironment.isActive {
             isSubscribed = AppTestEnvironment.grantsPremium
             return
@@ -147,7 +162,9 @@ final class PaywallManager {
             let customerInfo = try await Purchases.shared.customerInfo()
             apply(customerInfo: customerInfo)
         } catch {
-            isSubscribed = false
+            // Keep the last verified state. Only a successful customer-info
+            // response can establish that access has expired. RevenueCat supplies
+            // its cached customer info on launch when it is available offline.
         }
     }
 

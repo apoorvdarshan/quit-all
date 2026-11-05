@@ -5,6 +5,8 @@ import Combine
 // MARK: - Home Dashboard View
 struct HomeView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ObservedObject private var updateChecker = AppUpdateChecker.shared
 
     @FetchRequest(
@@ -27,35 +29,42 @@ struct HomeView: View {
 
     // Force refresh to update streak display
     @State private var refreshID = UUID()
+    @State private var selectedTab = AppTestEnvironment.previewScreen == "stats" ? 1 : 0
 
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             dashboardTab
                 .tabItem {
                     Label("Home", systemImage: "house.fill")
                 }
+                .tag(0)
 
             statsTab
                 .tabItem {
                     Label("Stats", systemImage: "chart.bar.fill")
                 }
+                .tag(1)
 
             AddictionsView(showsDoneButton: false)
                 .tabItem {
                     Label("Habits", systemImage: "target")
                 }
+                .tag(2)
 
             SettingsView(showsDoneButton: false)
                 .tabItem {
                     Label("Settings", systemImage: "gearshape.fill")
                 }
+                .tag(3)
 
             AboutView()
                 .tabItem {
                     Label("About", systemImage: "info.circle.fill")
                 }
                 .badge(updateChecker.isUpdateAvailable ? Text("") : nil)
+                .tag(4)
         }
+        .modifier(AdaptiveTabPresentation())
         .tint(Color(hex: "D4AF37"))
         .preferredColorScheme(.dark)
         .task {
@@ -68,23 +77,35 @@ struct HomeView: View {
             ZStack {
                 Color(hex: "080808").ignoresSafeArea()
 
-                VStack(spacing: 0) {
-                    // Multiple addiction cards (horizontal scroll)
-                    if addictions.count > 1 {
-                        multiAddictionCards
+                GeometryReader { geometry in
+                    ScrollView {
+                        VStack(spacing: 16) {
+                            if addictions.count > 1 {
+                                multiAddictionCards
+                            }
+                            if horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize {
+                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 320), spacing: 24)], spacing: 24) {
+                                    if let addiction = selectedAddiction ?? addictions.first {
+                                        mainStreakDisplay(addiction)
+                                            .padding(.vertical, 24)
+                                    }
+                                    dashboardActions
+                                }
+                                .padding(.horizontal, 20)
+                            } else {
+                                if let addiction = selectedAddiction ?? addictions.first {
+                                    mainStreakDisplay(addiction)
+                                        .padding(.vertical, 24)
+                                }
+                                Spacer(minLength: 12)
+                                sosButton
+                            }
+                        }
+                        .frame(minHeight: geometry.size.height)
+                        .readableContent(maxWidth: 1100)
+                        .id(refreshID)
                     }
-
-                    // Main streak display
-                    if let addiction = selectedAddiction ?? addictions.first {
-                        mainStreakDisplay(addiction)
-                    }
-
-                    Spacer()
-
-                    // SOS Button
-                    sosButton
                 }
-                .id(refreshID)
             }
             .preferredColorScheme(.dark)
             .onReceive(streakTimer) { _ in
@@ -96,6 +117,13 @@ struct HomeView: View {
                     selectedAddiction = addictions.first
                 }
                 WidgetSnapshotStore.refresh(context: viewContext, selectedAddiction: selectedAddiction ?? addictions.first)
+                switch AppTestEnvironment.previewScreen {
+                case "savings": showCost = true
+                case "milestones": showMilestones = true
+                case "sos": showSOS = true
+                case "habits": selectedTab = 2
+                default: break
+                }
             }
             .fullScreenCover(isPresented: $showSOS) {
                 if let addiction = selectedAddiction ?? addictions.first {
@@ -139,6 +167,29 @@ struct HomeView: View {
                 }
             }
         }
+    }
+
+    private var dashboardActions: some View {
+        VStack(spacing: 20) {
+            sosButton
+                .disabled(addictions.isEmpty)
+            if let addiction = selectedAddiction ?? addictions.first {
+                Button { showMilestones = true } label: {
+                    Label("Milestones", systemImage: "trophy.fill")
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                }
+                Button { showCost = true } label: {
+                    Label("Money Saved", systemImage: "dollarsign.circle.fill")
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                }
+                Text(addiction.motivation ?? "")
+                    .font(.title3.weight(.medium))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Color(hex: "F5E6A3"))
+            }
+        }
+        .buttonStyle(.bordered)
+        .padding(.vertical, 24)
     }
 
     @ViewBuilder
