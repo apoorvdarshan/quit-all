@@ -66,6 +66,7 @@ struct SOSView: View {
                     outcomePhase
                 }
             }
+            .readableContent()
 
             if showConfetti {
                 ConfettiView()

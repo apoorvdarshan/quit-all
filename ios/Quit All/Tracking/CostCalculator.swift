@@ -3,6 +3,14 @@ import Foundation
 // MARK: - Cost Calculator
 struct CostCalculator {
 
+    static func currencySymbol(for code: String?, locale: Locale = .current) -> String {
+        let formatter = NumberFormatter()
+        formatter.locale = locale
+        formatter.numberStyle = .currency
+        formatter.currencyCode = code ?? "USD"
+        return formatter.currencySymbol ?? code ?? "USD"
+    }
+
     // Total money saved since quit date
     static func moneySaved(dailyCost: Double, startDate: Date?) -> Double {
         guard let start = startDate else { return 0 }

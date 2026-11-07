@@ -96,6 +96,7 @@ struct OnboardingView: View {
                     removal: .move(edge: .leading).combined(with: .opacity)
                 ))
             }
+            .readableContent()
 
             if showConfetti {
                 ConfettiView()
@@ -838,17 +839,17 @@ struct OnboardingView: View {
             let motivation = addictionMotivations[type] ?? ""
             let startDate = addictionStartDates[type] ?? Date()
 
-            let addiction = AddictionTracker.shared.createAddiction(
+            _ = AddictionTracker.shared.createAddiction(
                 name: type.rawValue,
                 type: type,
                 startDate: startDate,
                 dailyCost: cost,
                 motivation: motivation,
+                currency: selectedCurrency,
                 context: viewContext
             )
-            addiction.currency = selectedCurrency
-            AddictionTracker.shared.saveContext(viewContext)
         }
+        UserDefaults.standard.set(selectedCurrency, forKey: "preferredCurrency")
     }
 
     private func completeOnboarding() {

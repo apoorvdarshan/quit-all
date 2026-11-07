@@ -5,6 +5,8 @@ import CoreData
 struct StatsView: View {
     @Environment(\.managedObjectContext) private var viewContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let addiction: CDAddiction
     let showsDoneButton: Bool
@@ -32,7 +34,7 @@ struct StatsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
+                AdaptiveCardsLayout(columns: horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize ? 2 : 1) {
                     // Overall summary
                     if allAddictions.count > 1 {
                         overallSummaryCard
@@ -65,6 +67,7 @@ struct StatsView: View {
                     Spacer().frame(height: 40)
                 }
                 .padding(.top, 16)
+                .readableContent(maxWidth: 1100)
             }
             .background(Color(hex: "080808"))
             .navigationTitle("Stats")

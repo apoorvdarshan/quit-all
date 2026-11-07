@@ -31,6 +31,7 @@ final class AddictionTracker {
         startDate: Date,
         dailyCost: Double,
         motivation: String,
+        currency: String = "USD",
         context: NSManagedObjectContext
     ) -> CDAddiction {
         let addiction = CDAddiction(context: context)
@@ -39,7 +40,7 @@ final class AddictionTracker {
         addiction.type = type.rawValue
         addiction.startDate = startDate
         addiction.dailyCost = dailyCost
-        addiction.currency = "USD"
+        addiction.currency = currency
         addiction.isActive = true
         addiction.longestStreak = 0
         addiction.totalRelapses = 0
