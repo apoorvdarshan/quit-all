@@ -11,7 +11,7 @@ The App Store "What's New" text is separate: it lives in
 
 ## v1.2.3
 
-Bug fixes and improvements. RevenueCat is updated to 5.96.0.
+Bug fixes and improvements. iPad support and adaptive layouts for wider iPhone displays, including iPhone Duo. Premium access and currency handling are more reliable, and RevenueCat is updated to 5.99.2.
 
 ## v1.2.2
 
