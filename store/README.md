@@ -178,6 +178,8 @@ them.
 `store/metadata/ios/en-US/screenshots/APP_IPHONE_67/` (the 6.7"/6.9" slot) and
 `store/metadata/ios/en-US/screenshots/APP_IPHONE_65/` (6.5"). Each has five RGB
 mockups using real simulator captures with demo data, ordered by `screenshots.json`.
+`APP_IPHONE_DUO` is a single set containing captures from both the folded outer
+display (1398×2034) and the unfolded inner display (2007×2853).
 The workflow leaves any live set alone when the checksums already match. The pinned
 Quit All release flow does not yet accept the 13-inch iPad slot
 (`APP_IPAD_PRO_3GEN_129`); do not add it to the manifest until that flow supports it.
