@@ -164,8 +164,8 @@ store/metadata/ios/
     subtitle.txt           reference only (App Information; not uploaded)
     privacy_url.txt        reference only (App Information; not uploaded)
 store/creative/ios/        App Store product page creative assets (Asset Library)
-  header/                  one product page header PNG, exactly 3840×1646 (none yet)
-  search-results/          one search results PNG or JPEG, 3:2, 1920 to 3840 wide (none yet)
+  header/                  quit-all-header.png, 3840×1646
+  search-results/          quit-all-search.png, 1920×1280
 ```
 
 Every locale directory is uploaded; App Store Connect must already have that locale
@@ -176,13 +176,14 @@ them.
 
 **Screenshots** live beside the listing, one folder per display type:
 `store/metadata/ios/en-US/screenshots/APP_IPHONE_67/` (the 6.7"/6.9" slot) and
-`store/metadata/ios/en-US/screenshots/APP_IPHONE_65/` (6.5"), 10 each. They are
-byte-identical to the live listing (checked by checksum), and `screenshots.json`
-keeps the live order (3, 2, 1, 4, 6, 5, 7, 8, 9, 10). The committed files are RGBA
-PNGs, which App Store Connect refuses, so they are uploaded as RGB copies made at
-upload time; the files in `store/metadata` are only read. A live set counts as up to
-date when its checksums match the RGB copies or the committed files, so the live
-sets are left alone. Quit All has no Apple Watch or iPhone Duo screenshots.
+`store/metadata/ios/en-US/screenshots/APP_IPHONE_65/` (6.5"). Each has five RGB
+mockups using real simulator captures with demo data, ordered by `screenshots.json`.
+`APP_IPHONE_DUO` is a single set containing captures from both the folded outer
+display (1398×2034) and the unfolded inner display (2007×2853).
+The workflow leaves any live set alone when the checksums already match. The pinned
+Quit All release flow does not yet accept the 13-inch iPad slot
+(`APP_IPAD_PRO_3GEN_129`); do not add it to the manifest until that flow supports it.
+Quit All has no Apple Watch screenshots.
 
 ## Header and search results images
 
@@ -191,8 +192,8 @@ App Store product page: `header/` takes one PNG of exactly 3840×1646, and
 `search-results/` one PNG or JPEG in 3:2, from 1920×1280 to 3840×2560. Neither may
 store alpha. A new image is uploaded to the Asset Library once, sent to App Review in
 a submission of its own (never the version's draft), and placed on the version's
-en-US page once approved, while the version can be edited. Quit All has no images
-yet, so both folders hold only a note and the switch has nothing to do.
+en-US page once approved, while the version can be edited. Both images are
+versioned here; committing them does not upload or submit them.
 
 ## In-app purchases
 

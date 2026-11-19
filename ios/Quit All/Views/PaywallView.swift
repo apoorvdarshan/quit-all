@@ -201,6 +201,7 @@ struct PaywallView: View {
                     .foregroundColor(.white.opacity(0.2))
                     .padding(.bottom, 32)
                 }
+                .readableContent()
             }
         }
         .preferredColorScheme(.dark)

@@ -90,6 +90,7 @@ struct SettingsView: View {
                 .listRowBackground(Color(hex: "111111"))
             }
             .scrollContentBackground(.hidden)
+            .readableContent()
             .background(Color(hex: "080808"))
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)

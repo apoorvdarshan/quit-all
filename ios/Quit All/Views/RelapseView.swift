@@ -56,6 +56,7 @@ struct RelapseView: View {
                     }
                 }
             }
+            .readableContent()
         }
         .preferredColorScheme(.dark)
     }

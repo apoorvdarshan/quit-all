@@ -1,26 +1,28 @@
 {
   "APP_IPHONE_67": [
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 3.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 2.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 1.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 4.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 6.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 5.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 7.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 8.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 9.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/Apple iPhone 16 Screenshot 10.png"
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/home.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/sos.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/habits.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/stats.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_67/savings.png"
   ],
   "APP_IPHONE_65": [
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 3.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 2.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 1.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 4.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 6.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 5.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 7.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 8.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 9.png",
-    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/Apple iPhone 16 Screenshot 10.png"
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/home.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/sos.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/habits.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/stats.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_65/savings.png"
+  ],
+  "APP_IPHONE_DUO": [
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/outer-home.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/inner-home.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/outer-sos.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/inner-sos.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/outer-habits.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/inner-habits.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/outer-stats.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/inner-stats.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/outer-savings.png",
+    "store/metadata/ios/en-US/screenshots/APP_IPHONE_DUO/inner-savings.png"
   ]
 }
