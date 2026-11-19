@@ -2,6 +2,27 @@ import XCTest
 @testable import Quit_All
 
 final class PremiumAccessTests: QuitAllTestCase {
+    func testRefreshFailureKeepsVerifiedAccessButSuccessfulExpirationRevokesIt() async {
+        var response: Result<Bool, Error> = .success(true)
+        let manager = PaywallManager(entitlementLoader: { try response.get() })
+        await manager.checkEntitlements()
+        XCTAssertTrue(manager.hasAccess)
+
+        response = .failure(URLError(.notConnectedToInternet))
+        await manager.checkEntitlements()
+        XCTAssertTrue(manager.hasAccess, "a network error is not an expired subscription")
+
+        response = .success(false)
+        await manager.checkEntitlements()
+        XCTAssertFalse(manager.hasAccess, "a verified inactive entitlement revokes access")
+    }
+
+    func testRefreshFailureNeverGrantsUnverifiedAccess() async {
+        let manager = PaywallManager(entitlementLoader: { throw URLError(.timedOut) })
+        await manager.checkEntitlements()
+        XCTAssertFalse(manager.hasAccess)
+    }
+
     func testPremiumNeedsAnActiveAppEntitlement() {
         XCTAssertTrue(PaywallManager.grantsPremium { $0 == "premium" })
         XCTAssertTrue(PaywallManager.grantsPremium { $0 == "Quit All Premium" })

@@ -111,7 +111,7 @@ struct MemeBrowseView: View {
                         }
 
                         // Text memes grid
-                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 150, maximum: 320))], spacing: 12) {
                             ForEach(filteredMemes) { meme in
                                 memeCard(meme)
                             }

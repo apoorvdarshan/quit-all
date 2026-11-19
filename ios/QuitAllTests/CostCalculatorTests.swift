@@ -4,6 +4,12 @@ import XCTest
 /// Currency strings assume the en_US test locale that scripts/test-ios.sh sets
 /// (`-testLanguage en -testRegion US`).
 final class CostCalculatorTests: QuitAllTestCase {
+    func testCurrencySymbolUsesHabitCurrencyInsteadOfDeviceCurrency() {
+        let us = Locale(identifier: "en_US")
+        XCTAssertEqual(CostCalculator.currencySymbol(for: "INR", locale: us), "₹")
+        XCTAssertEqual(CostCalculator.currencySymbol(for: "EUR", locale: us), "€")
+        XCTAssertEqual(CostCalculator.currencySymbol(for: "USD", locale: us), "$")
+    }
     func testMoneySavedCountsWholeDaysAfterTheFirstDay() {
         XCTAssertEqual(CostCalculator.moneySaved(dailyCost: 15, startDate: ago(days: 10, hours: 2)), 150, accuracy: 0.001)
         XCTAssertEqual(CostCalculator.moneySaved(dailyCost: 15, startDate: ago(days: 1, hours: 23)), 15, accuracy: 0.001)
