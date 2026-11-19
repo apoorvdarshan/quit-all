@@ -31,7 +31,11 @@ final class CravingAndRelapseUITests: QuitAllUITestCase {
         let app = launchSeededHome()
 
         app.buttons["home.sos"].tap()
-        tapButton("I'M READY TO CHECK IN", in: app)
+        // This label belongs to the SOS waiting screen only. Avoid enumerating
+        // the full accessibility tree while the SOS animation is playing.
+        let checkIn = app.buttons["I'M READY TO CHECK IN"].firstMatch
+        waitFor(checkIn)
+        checkIn.tap()
         waitFor(app.staticTexts["What triggered this craving?"])
         app.buttons["sos.trigger.Habit/Routine"].tap()
         tapButton("DID YOU MAKE IT?", in: app)
@@ -55,7 +59,11 @@ final class CravingAndRelapseUITests: QuitAllUITestCase {
         waitFor(plan)
         plan.tap()
         plan.typeText("Take a walk instead")
-        tapButton("SAVE & START OVER", in: app)
+        // The final form is the only screen with this label. Resolve the
+        // button directly instead of counting matches during keyboard updates.
+        let save = app.buttons["SAVE & START OVER"].firstMatch
+        waitFor(save)
+        save.tap()
 
         waitFor(app.staticTexts["New streak begins now."])
         tapButton("LET'S GO", in: app)
