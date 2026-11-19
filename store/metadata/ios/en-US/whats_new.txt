@@ -1,1 +1,1 @@
-Bug fixes and improvements.
+Bug fixes and improvements. Quit All now supports iPad and adapts to wider iPhone displays, including iPhone Duo. Premium access and currency handling are more reliable.
