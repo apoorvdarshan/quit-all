@@ -9,6 +9,10 @@ empty or duplicated section fails the release before anything is built.
 The App Store "What's New" text is separate: it lives in
 `store/metadata/ios/<locale>/whats_new.txt` (see `store/README.md`).
 
+## v1.2.4
+
+Updated the developer’s Instagram link to @apoorvxi.
+
 ## v1.2.3
 
 Bug fixes and improvements. iPad support and adaptive layouts for wider iPhone displays, including iPhone Duo. Premium access and currency handling are more reliable, and RevenueCat is updated to 5.99.2.
