@@ -11,12 +11,12 @@ export const LINKS = {
   trustMrr: "https://trustmrr.com/startup/quit-all-break-every-habit",
   kofi: "https://ko-fi.com/apoorvdarshan",
   x: "https://x.com/apoorvdarshan",
-  instagram: "https://www.instagram.com/apoorvcodes/",
+  instagram: "https://www.instagram.com/apoorvxi/",
 } as const;
 
 export const SOCIAL_HANDLES = {
   x: "@apoorvdarshan",
-  instagram: "@apoorvcodes",
+  instagram: "@apoorvxi",
 } as const;
 
 export const OG_IMAGE = { path: "/og.png", width: 1200, height: 630 } as const;
